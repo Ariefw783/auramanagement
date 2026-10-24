@@ -273,9 +273,9 @@ const DEFAULT_MASTER_RESEP = [
       { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar', qtyPerPcs: 1, unit: 'lembar', isGram: false, tipe: 'kulit' },
       { bahanKey: 'Wortel', nama: 'Wortel Dadu Kecil', qtyPerPcs: 5.0, unit: 'gram', isGram: true, tipe: 'isian' },
       { bahanKey: 'Jagung', nama: 'Jagung Manis Pipil', qtyPerPcs: 3.5, unit: 'gram', isGram: true, tipe: 'isian' },
-      { bahanKey: 'Sosis', nama: 'Sosis Dadu Mikro (1 btg=8 pcs)', qtyPerPcs: 2.75, unit: 'gram', isGram: true, tipe: 'isian' },
-      { bahanKey: 'Telur', nama: 'Telur Ayam Kocok (Pengikat)', qtyPerPcs: 2.2, unit: 'gram', isGram: true, tipe: 'isian' },
-      { bahanKey: 'Bawang Putih', nama: 'Bawang Putih Cincang', qtyPerPcs: 0.4, unit: 'gram', isGram: true, tipe: 'bumbu' },
+      { bahanKey: 'Sosis', nama: 'Sosis Dadu Mikro (1 btg=8 pcs)', qtyPerPcs: 0.125, unit: 'batang', isGram: false, tipe: 'isian' },
+      { bahanKey: 'Telur', nama: 'Telur Ayam Ras', qtyPerPcs: 0.04, unit: 'butir', isGram: false, tipe: 'isian' },
+      { bahanKey: 'Bawang Putih', nama: 'Bawang Putih Cincang', qtyPerPcs: 0.1, unit: 'siung', isGram: false, tipe: 'bumbu' },
       { bahanKey: 'Daun Bawang', nama: 'Daun Bawang Iris Segar', qtyPerPcs: 0.4, unit: 'gram', isGram: true, tipe: 'bumbu' },
       { bahanKey: 'Saus Tiram', nama: 'Saus Tiram & Kaldu Garam', qtyPerPcs: 0.75, unit: 'gram', isGram: true, tipe: 'bumbu' },
       { bahanKey: 'Terigu', nama: 'Tepung Lem Perekat', qtyPerPcs: 0.3, unit: 'gram', isGram: true, tipe: 'kulit' },
@@ -587,7 +587,8 @@ if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.ma
   ['prod_ubi', 'prod_sayur', 'prod_roti'].forEach(stdId => {
     const cur = auraData.masterResep.find(r => r.id === stdId);
     const def = DEFAULT_MASTER_RESEP.find(d => d.id === stdId);
-    if (cur && def && (!cur.isUserModified || getProductUnitHPP(cur) > 1500)) {
+    const hasOldGramUnits = cur && cur.komposisi && cur.komposisi.some(k => (k.bahanKey === 'Telur' || k.bahanKey === 'Sosis') && k.isGram);
+    if (cur && def && (!cur.isUserModified || getProductUnitHPP(cur) > 1500 || hasOldGramUnits)) {
       const idx = auraData.masterResep.findIndex(r => r.id === stdId);
       auraData.masterResep[idx] = JSON.parse(JSON.stringify(def));
     }
@@ -1305,6 +1306,18 @@ window.openEditBuku1RowModal = function(idx) {
   if (titleEl) titleEl.innerText = 'Edit Data Konsinyasi: ' + r.nama;
 
   const unitRate = r.hargaSetor !== undefined ? r.hargaSetor : (r.nama.includes('Ragil') ? 1000 : 800);
+  const drops = getRowDrops(r);
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0) ? auraData.masterResep : DEFAULT_MASTER_RESEP;
+
+  let dropsInputsHtml = '';
+  recipes.forEach(p => {
+    const val = drops[p.id] !== undefined ? drops[p.id] : (p.id === 'prod_ubi' ? (r.ubi || 0) : (p.id === 'prod_sayur' ? (r.sayur || 0) : (p.id === 'prod_roti' ? (r.roti || 0) : 0)));
+    dropsInputsHtml +=
+      '<div>' +
+        '<label class="form-label" style="color: ' + (p.badgeColor || '#38BDF8') + ';">' + (p.shortName || p.nama) + ' (Pcs)</label>' +
+        '<input type="number" id="b1EditProd_' + p.id + '" class="form-control-slate b1-edit-drop-input" data-prod-id="' + p.id + '" value="' + val + '" min="0">' +
+      '</div>';
+  });
 
   body.innerHTML =
     '<form id="formEditBuku1Row">' +
@@ -1312,21 +1325,11 @@ window.openEditBuku1RowModal = function(idx) {
         '<label class="form-label">Nama Warung / Kantin</label>' +
         '<input type="text" id="b1EditNama" class="form-control-slate" value="' + r.nama + '" required>' +
       '</div>' +
-      '<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px;">' +
+      '<div style="margin-bottom: 8px;"><strong style="font-size:0.75rem; color:#94A3B8; text-transform:uppercase;">Rencana Drop Produk:</strong></div>' +
+      '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 10px;">' +
+        dropsInputsHtml +
         '<div>' +
-          '<label class="form-label">Ubi (Pcs)</label>' +
-          '<input type="number" id="b1EditUbi" class="form-control-slate" value="' + r.ubi + '" min="0">' +
-        '</div>' +
-        '<div>' +
-          '<label class="form-label">Sayur (Pcs)</label>' +
-          '<input type="number" id="b1EditSayur" class="form-control-slate" value="' + r.sayur + '" min="0">' +
-        '</div>' +
-        '<div>' +
-          '<label class="form-label">Roti (Pcs)</label>' +
-          '<input type="number" id="b1EditRoti" class="form-control-slate" value="' + r.roti + '" min="0">' +
-        '</div>' +
-        '<div>' +
-          '<label class="form-label">Bonus (Pcs)</label>' +
+          '<label class="form-label" style="color:#818CF8;">Bonus Pemilik</label>' +
           '<input type="number" id="b1EditBonus" class="form-control-slate" value="' + r.bonus + '" min="0">' +
         '</div>' +
       '</div>' +
@@ -1344,24 +1347,27 @@ window.openEditBuku1RowModal = function(idx) {
           '<input type="number" id="b1EditSetor" class="form-control-slate" value="' + r.setor + '" min="0">' +
         '</div>' +
       '</div>' +
-      '<p style="font-size: 0.75rem; color: var(--text-muted);">Catatan: Jika Ubi/Sayur/Roti atau Retur diubah, jumlah Laku dan Setoran Net akan menyesuaikan otomatis kecuali Anda mengetik Setoran Net secara spesifik.</p>' +
+      '<p style="font-size: 0.75rem; color: var(--text-muted);">Catatan: Jumlah Kirim dihitung otomatis dari seluruh varian produk yang dititipkan.</p>' +
     '</form>';
 
-  // Re-calculate setor preview inside modal when ubi/sayur/roti/retur/rate changes
+  // Re-calculate setor preview inside modal when drops/retur/rate changes
   const recalcModalPreview = () => {
-    const u = Math.max(0, parseInt(document.getElementById('b1EditUbi')?.value, 10) || 0);
-    const s = Math.max(0, parseInt(document.getElementById('b1EditSayur')?.value, 10) || 0);
-    const rt = Math.max(0, parseInt(document.getElementById('b1EditRoti')?.value, 10) || 0);
+    let totKirim = 0;
+    document.querySelectorAll('.b1-edit-drop-input').forEach(inp => {
+      totKirim += Math.max(0, parseInt(inp.value, 10) || 0);
+    });
     const ret = Math.max(0, parseInt(document.getElementById('b1EditRetur')?.value, 10) || 0);
     const rate = Math.max(0, parseInt(document.getElementById('b1EditRate')?.value, 10) || 800);
-    const kirim = u + s + rt;
-    const laku = Math.max(0, kirim - ret);
+    const laku = Math.max(0, totKirim - ret);
     const setorEl = document.getElementById('b1EditSetor');
     if (setorEl) setorEl.value = laku * rate;
   };
 
   setTimeout(() => {
-    ['b1EditUbi', 'b1EditSayur', 'b1EditRoti', 'b1EditRetur', 'b1EditRate'].forEach(id => {
+    document.querySelectorAll('.b1-edit-drop-input').forEach(inp => {
+      inp.addEventListener('input', recalcModalPreview);
+    });
+    ['b1EditRetur', 'b1EditRate'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', recalcModalPreview);
     });
@@ -1375,22 +1381,26 @@ window.openEditBuku1RowModal = function(idx) {
   if (btnSave) {
     btnSave.onclick = () => {
       const nama = (document.getElementById('b1EditNama')?.value || '').trim() || r.nama;
-      const ubi = Math.max(0, parseInt(document.getElementById('b1EditUbi')?.value, 10) || 0);
-      const sayur = Math.max(0, parseInt(document.getElementById('b1EditSayur')?.value, 10) || 0);
-      const roti = Math.max(0, parseInt(document.getElementById('b1EditRoti')?.value, 10) || 0);
+      let totKirim = 0;
+      recipes.forEach(p => {
+        const inp = document.getElementById('b1EditProd_' + p.id);
+        const q = inp ? Math.max(0, parseInt(inp.value, 10) || 0) : 0;
+        drops[p.id] = q;
+        if (p.id === 'prod_ubi') r.ubi = q;
+        if (p.id === 'prod_sayur') r.sayur = q;
+        if (p.id === 'prod_roti') r.roti = q;
+        totKirim += q;
+      });
+
       const bonus = Math.max(0, parseInt(document.getElementById('b1EditBonus')?.value, 10) || 0);
-      const kirim = ubi + sayur + roti;
-      const retur = Math.min(kirim, Math.max(0, parseInt(document.getElementById('b1EditRetur')?.value, 10) || 0));
-      const laku = Math.max(0, kirim - retur);
+      const retur = Math.min(totKirim, Math.max(0, parseInt(document.getElementById('b1EditRetur')?.value, 10) || 0));
+      const laku = Math.max(0, totKirim - retur);
       const hargaSetor = Math.max(0, parseInt(document.getElementById('b1EditRate')?.value, 10) || 800);
-      const setor = Math.max(0, parseInt(document.getElementById('b1EditSetor')?.value, 10) || 0);
+      const setor = Math.max(0, parseInt(document.getElementById('b1EditSetor')?.value, 10) || (laku * hargaSetor));
 
       r.nama = nama;
-      r.ubi = ubi;
-      r.sayur = sayur;
-      r.roti = roti;
       r.bonus = bonus;
-      r.kirim = kirim;
+      r.kirim = totKirim;
       r.retur = retur;
       r.laku = laku;
       r.hargaSetor = hargaSetor;
@@ -1399,6 +1409,7 @@ window.openEditBuku1RowModal = function(idx) {
       window.syncRecipeFromBuku1(false);
       window.closeAppModal();
       saveLocal();
+      renderAllViews();
       window.showSuccessModal("Baris Diperbarui", 'Data konsinyasi "' + nama + '" berhasil diperbarui dan disimpan.');
     };
   }
@@ -2608,6 +2619,24 @@ window.calculateTakaran = function() {
   const rotiProd = recipes.find(r => r.id === 'prod_roti') || recipes[2];
   const customProducts = recipes.filter(r => r.isCustom);
 
+  const customInputsContainer = document.getElementById('calcCustomInputsContainer');
+  if (customInputsContainer) {
+    if (customProducts.length === 0) {
+      customInputsContainer.innerHTML = '';
+      customInputsContainer.style.display = 'none';
+    } else {
+      customInputsContainer.style.display = 'grid';
+      if (customInputsContainer.children.length !== customProducts.length) {
+        customInputsContainer.innerHTML = customProducts.map((cp, idx) => {
+          return '<div>' +
+            '<label class="form-label" style="color: ' + (cp.badgeColor || '#38BDF8') + ';">' + (idx + 4) + '. ' + cp.nama + ' (Pcs)</label>' +
+            '<input type="number" id="calcPcs_' + cp.id + '" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: ' + (cp.badgeColor || '#38BDF8') + ';" value="' + (cp.defaultPcs || 20) + '" min="0" oninput="window.calculateTakaran()">' +
+          '</div>';
+        }).join('');
+      }
+    }
+  }
+
   customProducts.forEach(cp => {
     const cpInput = document.getElementById('calcPcs_' + cp.id);
     const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
@@ -2788,11 +2817,11 @@ window.calculateTakaran = function() {
         '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">' + (wortelPerPcs + jagungPerPcs + sosisPerPcs).toFixed(1) + 'g / pcs • Lipat Segitiga</span>' +
       '</div>' +
       '<ul class="takaran-list">' +
-        renderTakaranItemRow('Wortel Dadu Kecil', wortelGram + 'g', '≈ ' + wortelBuah + ' buah sedang • tumis dadu kecil') +
+        renderTakaranItemRow('Wortel Dadu Kecil', wortelGram + 'g (' + (wortelGram / 1000).toFixed(2) + ' kg)', '≈ ' + wortelBuah + ' buah sedang • potong dadu kecil') +
         renderTakaranItemRow('Jagung Manis Pipil', jagungGram + 'g', '≈ ' + jagungTongkol + ' tongkol pipil manis') +
-        renderTakaranItemRow('Sosis Dadu Mikro', sosisBatangBulat + ' batang (' + sosisGram + 'g)', '1 batang sosis potong dadu untuk 8 pcs lumpia') +
-        renderTakaranItemRow('Telur Ayam (Pengikat Tumisan)', butirTelurUtuh + ' butir utuh', telurGram + 'g kocokan • tuang akhir saat isian hampir asat') +
-        renderTakaranItemRow('Bawang Putih Cincang', bwgPutihGram + 'g', bwgPutihSiung + ' siung cincang halus') +
+        renderTakaranItemRow('Sosis Dadu Mikro', sosisBatangBulat + ' batang utuh', 'Potong dadu kecil untuk ' + sayurPcs + ' pcs lumpia') +
+        renderTakaranItemRow('Telur Ayam (Pengikat)', butirTelurUtuh + ' butir utuh', 'Kocok lepas, tuang saat isian sayur hampir asat') +
+        renderTakaranItemRow('Bawang Putih Cincang', bwgPutihSiung + ' siung cincang', 'Tumis wangi di awal bersama bumbu') +
         renderTakaranItemRow('Saus Tiram & Bumbu', sausTiramGram + 'g', sausTiramTbsp + ' sdm saus tiram + kaldu garam') +
         renderTakaranItemRow('Kulit Lumpia Segar', sayurPcs + ' lembar', sayurKulitBks + ' bungkus (isi 36 lbr • sisa ' + ((sayurKulitBks * 36) - sayurPcs) + ' lbr)') +
       '</ul>' +
@@ -3229,10 +3258,11 @@ window.openManageFormulaModal = function(selectedProdId) {
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
       '<strong style="font-size: 0.82rem; color: #FFFFFF;">Daftar Komposisi &amp; Takaran Bahan (Per Pcs &amp; Per Batch):</strong>' +
+      '<span style="font-size: 0.72rem; color: #38BDF8; margin-left: auto;">↔ Geser tabel ke samping</span>' +
       '<button type="button" class="tool-btn" style="font-size: 0.72rem; padding: 3px 8px;" onclick="window.addFormulaIngredientLine()">+ Tambah Bahan Baku</button>' +
     '</div>' +
 
-    '<div class="table-responsive-wrapper" style="max-height: 280px; overflow-y: auto; margin-bottom: 12px;">' +
+    '<div class="modal-formula-scroll-wrap" style="max-height: 320px; overflow-y: auto; overflow-x: auto; margin-bottom: 12px; -webkit-overflow-scrolling: touch;">' +
       '<table class="slate-table">' +
         '<thead>' +
           '<tr>' +
@@ -4761,7 +4791,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 00:15 WIB';
+const APP_BUILD_TIME = '25/10/2026 01:30 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

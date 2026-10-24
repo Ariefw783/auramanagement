@@ -1068,7 +1068,7 @@
             </p>
 
             <!-- Input Rencana Pcs -->
-            <div class="form-grid-4">
+            <div class="form-grid-4" id="calcInputsGrid">
               <div>
                 <label class="form-label" style="color: #818CF8;">1. Lumpia Ubi Ungu (Pcs)</label>
                 <input type="number" id="calcUbiPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #818CF8;" value="66" min="0" oninput="window.calculateTakaran()">
@@ -1086,6 +1086,8 @@
                 <input type="text" id="calcTotalPcs" class="form-control-slate" style="font-weight: 900; font-family: var(--font-mono); color: #38BDF8;" value="130 pcs" readonly>
               </div>
             </div>
+            <!-- Dynamic Slot for Custom Variant Inputs -->
+            <div id="calcCustomInputsContainer" style="display: none; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px;"></div>
 
             <!-- Presets & Actions (Tertata 3 Baris Rapi) -->
             <div class="calc-controls-wrap">
