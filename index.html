@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.3</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.4</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 17:00 WIB
+          Update: 24/10/2026 17:05 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -351,32 +351,32 @@
         <div class="financial-kpi-grid">
           <div class="financial-kpi-card kpi-omzet">
             <span class="kpi-label">Omzet Setoran</span>
-            <strong class="kpi-val" id="kpiOmzetVal">Rp 89.000</strong>
-            <span class="kpi-sub" id="kpiOmzetSub">107 / 128 pcs (83.6%)</span>
+            <strong class="kpi-val" id="kpiOmzetVal">Rp 0</strong>
+            <span class="kpi-sub" id="kpiOmzetSub">0 / 120 pcs (Target Senin)</span>
           </div>
 
           <div class="financial-kpi-card kpi-belanja">
             <span class="kpi-label">Belanja Dapur (HPP)</span>
-            <strong class="kpi-val" id="kpiBelanjaVal">Rp 57.500</strong>
-            <span class="kpi-sub" id="kpiBelanjaSub">Plafon Amplop 1: Rp 65.000</span>
+            <strong class="kpi-val" id="kpiBelanjaVal">Rp 0</strong>
+            <span class="kpi-sub" id="kpiBelanjaSub">Plafon Amplop 1: Rp 100.000</span>
           </div>
 
           <div class="financial-kpi-card kpi-laba">
             <span class="kpi-label">Laba Bersih</span>
-            <strong class="kpi-val" id="kpiLabaVal">Rp 31.500</strong>
+            <strong class="kpi-val" id="kpiLabaVal">Rp 0</strong>
             <span class="kpi-sub" id="kpiLabaSub">Omzet dikurangi Belanja</span>
           </div>
 
           <div class="financial-kpi-card kpi-gaji">
             <span class="kpi-label">Gaji Bos (Amplop 2)</span>
-            <strong class="kpi-val" id="kpiGajiVal">Rp 24.000</strong>
+            <strong class="kpi-val" id="kpiGajiVal">Rp 0</strong>
             <span class="kpi-sub" id="kpiGajiSub">Masuk dompet pemilik</span>
           </div>
 
           <div class="financial-kpi-card kpi-endapan">
             <span class="kpi-label">Endapan Kotak</span>
-            <strong class="kpi-val" id="kpiEndapanVal">Rp 7.500</strong>
-            <span class="kpi-sub" id="kpiEndapanSub">Saldo kotak: Rp 16.500</span>
+            <strong class="kpi-val" id="kpiEndapanVal">Rp 100.000</strong>
+            <span class="kpi-sub" id="kpiEndapanSub">Modal awal Amplop 1 utuh</span>
           </div>
         </div>
 
@@ -645,7 +645,7 @@
               </div>
               <div class="kuitansi-meta-cell meta-plafon">
                 <span class="kuitansi-meta-lbl">PLAFON MODAL HARI INI:</span>
-                <strong class="kuitansi-meta-val" style="color: #34D399;" id="kuitansiPlafonDisplay">Rp 65.000</strong>
+                <strong class="kuitansi-meta-val" style="color: #34D399;" id="kuitansiPlafonDisplay">Rp 100.000</strong>
               </div>
               <div class="kuitansi-meta-cell meta-kepada">
                 <span class="kuitansi-meta-lbl">DIBAYARKAN KEPADA:</span>
@@ -685,7 +685,7 @@
             <!-- IN-LINE FORM: TAMBAH ITEM KE KUITANSI HARI INI -->
             <div class="kuitansi-add-item-box no-print">
               <div class="kuitansi-add-title">
-                <span>Form Input Pengeluaran Kas Baru (Tambah ke Lembar <span id="kuitansiCurrentDayLabel">21/10</span>)</span>
+                <span>Form Input Pengeluaran Kas Baru (Tambah ke Lembar <span id="kuitansiCurrentDayLabel">26/10</span>)</span>
               </div>
               <form id="formAddBelanjaKuitansi" onsubmit="window.handleAddBelanjaToKuitansi(event)">
                 <div class="kuitansi-input-grid">
@@ -730,21 +730,21 @@
                 <div class="kuitansi-rekap-head">
                   <span class="kuitansi-rekap-lbl">1. PLAFON MODAL (AMPLOP 1)</span>
                 </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapModal">Rp 65.000</strong>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapModal">Rp 100.000</strong>
                 <span class="kuitansi-rekap-sub">Alokasi kas harian untuk belanja</span>
               </div>
               <div class="kuitansi-rekap-card card-belanja">
                 <div class="kuitansi-rekap-head">
                   <span class="kuitansi-rekap-lbl">2. TOTAL BELANJA RIIL KELUAR</span>
                 </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapBelanja">Rp 57.500</strong>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapBelanja">Rp 0</strong>
                 <span class="kuitansi-rekap-sub">Total pengeluaran lembar kuitansi ini</span>
               </div>
               <div class="kuitansi-rekap-card card-endapan">
                 <div class="kuitansi-rekap-head">
                   <span class="kuitansi-rekap-lbl">3. SISA KAS MENGENDAP DI KOTAK</span>
                 </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapEndapan">Rp 7.500</strong>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapEndapan">Rp 100.000</strong>
                 <span class="kuitansi-rekap-sub">Sisa uang tunai (Cadangan gas & minyak)</span>
               </div>
             </div>
@@ -802,36 +802,36 @@
           <div class="bep-card-wrap">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <strong style="color: #FFFFFF; font-size: 0.95rem;">Monitoring Balik Modal Awal Usaha (Target BEP: Rp 190.000)</strong>
+                <strong style="color: #FFFFFF; font-size: 0.95rem;">Monitoring Balik Modal Awal Usaha (Target BEP: Rp 100.000)</strong>
                 <div style="font-size: 0.75rem; color: #94A3B8;">Modal perdana dipulihkan dari akumulasi laba murni Amplop 2 (Gaji Bersih Bos)</div>
               </div>
-              <span class="badge-status done" id="bepStatusBadge">BEP On Track</span>
+              <span class="badge-status progress" id="bepStatusBadge">Modal Awal Rp 100rb</span>
             </div>
             <div class="bep-stats-grid">
               <div class="bep-stat-pill">
                 <span>Target Modal Awal</span>
-                <strong style="color: #FFFFFF;">Rp 190.000</strong>
+                <strong style="color: #FFFFFF;">Rp 100.000</strong>
               </div>
               <div class="bep-stat-pill">
                 <span>Gaji Terkumpul di Dompet</span>
-                <strong style="color: #34D399;" id="bepAccumulated">Rp 64.500</strong>
+                <strong style="color: #34D399;" id="bepAccumulated">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
                 <span>Sisa Menuju Lunas</span>
-                <strong style="color: #FB923C;" id="bepRemaining">Rp 125.500</strong>
+                <strong style="color: #FB923C;" id="bepRemaining">Rp 100.000</strong>
               </div>
               <div class="bep-stat-pill">
                 <span>Estimasi Waktu Impas</span>
-                <strong style="color: #38BDF8;" id="bepDaysEstimate">~6 Hari Kerja</strong>
+                <strong style="color: #38BDF8;" id="bepDaysEstimate">Menunggu Penjualan Senin</strong>
               </div>
             </div>
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
                 <span style="color: #94A3B8;">Progress Pemulihan Modal:</span>
-                <span style="color: #38BDF8;" id="bepPercent">33.9%</span>
+                <span style="color: #38BDF8;" id="bepPercent">0.0%</span>
               </div>
               <div class="bep-progress-bar-bg">
-                <div class="bep-progress-bar-fill" id="bepBarFill" style="width: 33.9%;"></div>
+                <div class="bep-progress-bar-fill" id="bepBarFill" style="width: 0%;"></div>
               </div>
             </div>
           </div>

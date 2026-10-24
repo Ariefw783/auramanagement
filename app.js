@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const AURA_DB_KEY = 'dapur_mom_fitri_db_v6_clean';
+const AURA_DB_KEY = 'dapur_mom_fitri_db_v7_clean';
 
 // Bersihkan seluruh database lama di browser (Reset total ke akar)
 try {
@@ -94,7 +94,7 @@ function initFirestoreSync(retryCount = 0) {
     isFirestoreInitialized = true;
     setCloudStatusUI('connected', 'Online');
 
-    const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v6');
+    const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
     docRef.onSnapshot(doc => {
       if (doc.exists) {
         const cloudDoc = doc.data();
@@ -162,7 +162,7 @@ function pushToFirestoreCloud(immediate = false) {
     if (auraData) auraData._lastUpdated = now;
     const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
-    firestoreDb.collection('dapur_mom_fitri').doc('production_data_v6').set({
+    firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7').set({
       lastUpdated: now,
       clientAgent: 'PWA Dapur Mom Fitri Web',
       version: '6.3.2',
@@ -342,12 +342,7 @@ function buildDayMetaFromIso(isoDate, idxNum) {
 
 // Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Siklus Produksi & Jual Mulai Senin 26 Okt 2026)
 const OPERATIONAL_DAYS_CONFIG = [
-  { isoDate: '2026-10-26', b2Key: '26/10', tgl: 1, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: true },
-  { isoDate: '2026-10-27', b2Key: '27/10', tgl: 2, hari: 'Sel', namaHari: 'Selasa, 27 Oktober 2026', shortLabel: 'SEL (27/10)', noBkk: 'BKK-20261027-02', modal: 100000, isTarget: true },
-  { isoDate: '2026-10-28', b2Key: '28/10', tgl: 3, hari: 'Rab', namaHari: 'Rabu, 28 Oktober 2026', shortLabel: 'RAB (28/10)', noBkk: 'BKK-20261028-03', modal: 100000, isTarget: true },
-  { isoDate: '2026-10-29', b2Key: '29/10', tgl: 4, hari: 'Kam', namaHari: 'Kamis, 29 Oktober 2026', shortLabel: 'KAM (29/10)', noBkk: 'BKK-20261029-04', modal: 100000, isTarget: true },
-  { isoDate: '2026-10-30', b2Key: '30/10', tgl: 5, hari: 'Jum', namaHari: 'Jumat, 30 Oktober 2026', shortLabel: 'JUM (30/10)', noBkk: 'BKK-20261030-05', modal: 100000, isTarget: true },
-  { isoDate: '2026-10-31', b2Key: '31/10', tgl: 6, hari: 'Sab', namaHari: 'Sabtu, 31 Oktober 2026', shortLabel: 'SAB (31/10)', noBkk: 'BKK-20261031-06', modal: 100000, isTarget: true }
+  { isoDate: '2026-10-26', b2Key: '26/10', tgl: 1, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: false }
 ];
 
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
@@ -2115,12 +2110,7 @@ window.handleDeleteMasterBahan = function(idx) {
 // STAGE 3: BUKU 2 KUITANSI PENGELUARAN KAS & EDIT ACTION
 // ==============================================================
 const KUITANSI_DATE_CONFIG = {
-  '26/10': { namaHari: 'Senin, 26 Oktober 2026', noBkk: 'BKK-20261026-01', modal: 100000 },
-  '27/10': { namaHari: 'Selasa, 27 Oktober 2026', noBkk: 'BKK-20261027-02', modal: 100000 },
-  '28/10': { namaHari: 'Rabu, 28 Oktober 2026', noBkk: 'BKK-20261028-03', modal: 100000 },
-  '29/10': { namaHari: 'Kamis, 29 Oktober 2026', noBkk: 'BKK-20261029-04', modal: 100000 },
-  '30/10': { namaHari: 'Jumat, 30 Oktober 2026', noBkk: 'BKK-20261030-05', modal: 100000 },
-  '31/10': { namaHari: 'Sabtu, 31 Oktober 2026', noBkk: 'BKK-20261031-06', modal: 100000 }
+  '26/10': { namaHari: 'Senin, 26 Oktober 2026', noBkk: 'BKK-20261026-01', modal: 100000 }
 };
 // Kuitansi hanya melayani siklus operasional resmi
 
@@ -4007,11 +3997,11 @@ function renderAllViews() {
 
     renderBuku3Cards(auraData.buku3Kas, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalModalAll, totalGajiAll, totalBelanjaAll, totalEndapanAll);
 
-    const bepTarget = 190000;
+    const bepTarget = 100000;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
     const bepPct = Math.min(100, ((totalGajiAll / bepTarget) * 100)).toFixed(1);
-    const avgDailyGaji = totalGajiAll > 0 ? (totalGajiAll / 3) : 21500;
-    const daysRemain = bepRemain > 0 ? Math.ceil(bepRemain / avgDailyGaji) : 0;
+    const avgDailyGaji = totalGajiAll > 0 ? (totalGajiAll / 3) : 0;
+    const daysRemain = (avgDailyGaji > 0 && bepRemain > 0) ? Math.ceil(bepRemain / avgDailyGaji) : 0;
 
     const accEl = document.getElementById('bepAccumulated');
     const remEl = document.getElementById('bepRemaining');
@@ -4021,7 +4011,7 @@ function renderAllViews() {
 
     if (accEl) accEl.innerText = 'Rp ' + totalGajiAll.toLocaleString('id-ID');
     if (remEl) remEl.innerText = 'Rp ' + bepRemain.toLocaleString('id-ID');
-    if (estEl) estEl.innerText = bepRemain === 0 ? 'LUNAS BEP 100%!' : '~' + daysRemain + ' Hari Kerja';
+    if (estEl) estEl.innerText = bepRemain === 0 ? 'LUNAS BEP 100%!' : (daysRemain > 0 ? '~' + daysRemain + ' Hari Kerja' : 'Menunggu Penjualan Senin');
     if (pctEl) pctEl.innerText = bepPct + '%';
     if (barEl) barEl.style.width = bepPct + '%';
   }
@@ -4294,8 +4284,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.3';
-const APP_BUILD_TIME = '24/10/2026 17:00 WIB';
+const APP_VERSION = 'v6.3.4';
+const APP_BUILD_TIME = '24/10/2026 17:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
