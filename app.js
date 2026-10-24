@@ -3746,14 +3746,115 @@ document.addEventListener('DOMContentLoaded', () => {
 renderAllViews();
 initFirestoreSync();
 
-// Register Service Worker for PWA Offline Capability
+// ==============================================================
+// PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
+// ==============================================================
+const APP_VERSION = 'v6.1.0';
+const APP_BUILD_TIME = '24/10/2026 15:35 WIB';
+const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
+
+window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
+  const timeDisplay = buildTime || APP_BUILD_TIME;
+  const overlay = document.getElementById('appModalOverlay');
+  const icon = document.getElementById('appModalIcon');
+  const titleEl = document.getElementById('appModalTitle');
+  const body = document.getElementById('appModalBody');
+  const footer = document.getElementById('appModalFooter');
+
+  if (!overlay) return;
+  if (icon) {
+    icon.innerHTML = '<span style="font-size: 1.5rem;">🚀</span>';
+    icon.style.display = 'inline-flex';
+  }
+  if (titleEl) {
+    titleEl.innerText = 'Pembaruan Sistem Berhasil';
+  }
+  if (body) {
+    body.innerHTML = 
+      '<div style="text-align: center; padding: 10px 0 16px 0;">' +
+        '<div style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); margin-bottom: 12px;">' +
+          '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<polyline points="20 6 9 17 4 12"></polyline>' +
+          '</svg>' +
+        '</div>' +
+        '<h4 style="color: #F8FAFC; font-size: 1.1rem; font-weight: 800; margin: 0 0 8px 0;">Aplikasi Telah Diperbaharui</h4>' +
+        '<div style="display: inline-block; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 6px 14px; margin-bottom: 12px;">' +
+          '<span style="color: #38BDF8; font-weight: 800; font-size: 0.95rem; font-family: var(--font-mono);">' +
+            'Pembaruan: ' + timeDisplay +
+          '</span>' +
+        '</div>' +
+        '<p style="color: #CBD5E1; font-size: 0.88rem; line-height: 1.6; margin: 0;">' +
+          'Aplikasi telah diperbaharui pada <strong>' + timeDisplay + '</strong>.<br>' +
+          'Versi <strong>' + APP_VERSION + '</strong> telah aktif dengan strategi <strong>Network First</strong> (selalu memprioritaskan data & kode terbaru dari jaringan).' +
+        '</p>' +
+      '</div>';
+  }
+
+  if (footer) {
+    if (needReload) {
+      footer.innerHTML = 
+        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Nanti Saja</button>' +
+        '<button type="button" class="tool-btn tool-btn-success" id="btnReloadAppUpdate" style="font-weight: 800; min-width: 130px;">Muat Ulang Sekarang</button>';
+      const btn = document.getElementById('btnReloadAppUpdate');
+      if (btn) {
+        btn.onclick = () => {
+          localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+          window.location.reload();
+        };
+      }
+    } else {
+      footer.innerHTML = 
+        '<button type="button" class="tool-btn tool-btn-success" id="btnAckAppUpdate" style="font-weight: 800; min-width: 140px; margin: 0 auto;">OK, Mengerti</button>';
+      const btn = document.getElementById('btnAckAppUpdate');
+      if (btn) {
+        btn.onclick = () => {
+          localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+          window.closeAppModal();
+        };
+      }
+    }
+  }
+
+  overlay.style.display = 'flex';
+};
+
+function checkAppVersionOnBoot() {
+  const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
+  if (lastVersion !== APP_VERSION) {
+    setTimeout(() => {
+      window.showAppUpdateConfirmationModal(APP_BUILD_TIME, false);
+      localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+    }, 700);
+  }
+}
+
+// Register Service Worker for PWA Offline Capability (Network-First Strategy)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((err) => {
+    navigator.serviceWorker.register('./sw.js').then((registration) => {
+      registration.onupdatefound = () => {
+        const installingWorker = registration.installing;
+        if (installingWorker) {
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              window.showAppUpdateConfirmationModal(APP_BUILD_TIME, true);
+            }
+          };
+        }
+      };
+    }).catch((err) => {
       console.log('SW registration note:', err);
+    });
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'APP_UPDATED') {
+        window.showAppUpdateConfirmationModal(event.data.buildTime || APP_BUILD_TIME, false);
+      }
     });
   });
 }
+
+checkAppVersionOnBoot();
 
 // ==============================================================
 // PWA INSTALLATION CONTROLLER (PC & MOBILE)

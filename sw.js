@@ -1,4 +1,9 @@
-const CACHE_NAME = 'dapur-mom-fitri-v6.0';
+// ==============================================================
+// DAPUR MOM FITRI - SERVICE WORKER (NETWORK-FIRST STRATEGY)
+// ==============================================================
+const CACHE_NAME = 'dapur-mom-fitri-v6.1.0';
+const APP_BUILD_TIME = '24/10/2026 15:35 WIB';
+
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +19,7 @@ const ASSETS = [
   './Panduan_Visual_Trio_Gorengan_Lengkap.jpg'
 ];
 
+// Install: Cache critical assets immediately & skip waiting
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
@@ -21,22 +27,48 @@ self.addEventListener('install', (e) => {
   self.skipWaiting();
 });
 
+// Activate: Clean up previous caches & claim clients immediately
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
       );
+    }).then(() => {
+      return self.clients.claim();
+    }).then(() => {
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({
+            type: 'APP_UPDATED',
+            version: CACHE_NAME,
+            buildTime: APP_BUILD_TIME
+          });
+        });
+      });
     })
   );
-  self.clients.claim();
 });
 
+// Message listener: Allow client to force skipWaiting
+self.addEventListener('message', (e) => {
+  if (e.data && e.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
+
+// Fetch: Pure Network First Strategy
+// Always attempt to fetch the freshest version from the network.
+// If successful, update the cache with the new response.
+// If network is offline or fails, serve from the local cache.
 self.addEventListener('fetch', (e) => {
+  // Hanya proses HTTP/HTTPS GET requests
+  if (e.request.method !== 'GET') return;
+
   e.respondWith(
     fetch(e.request)
       .then((networkRes) => {
-        if (networkRes && networkRes.status === 200 && e.request.method === 'GET') {
+        if (networkRes && networkRes.status === 200) {
           const resClone = networkRes.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(e.request, resClone));
         }
