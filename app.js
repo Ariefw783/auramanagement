@@ -3255,7 +3255,10 @@ window.toggleCardItem = function(group, idx) {
 
 window.toggleAllCardsInGroup = function(group, expandAll) {
   window.cardsCollapsedState[group] = window.cardsCollapsedState[group] || {};
-  const container = document.getElementById(group + 'CardsContainer');
+  let container = document.getElementById(group + 'CardsContainer');
+  if (!container && (group === 'master' || group === 'masterBahan')) {
+    container = document.getElementById('masterBahanCardsContainer');
+  }
   if (!container) return;
   const cards = container.querySelectorAll('.expandable-record-card');
   cards.forEach((card, idx) => {
@@ -4292,8 +4295,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.7';
-const APP_BUILD_TIME = '24/10/2026 18:05 WIB';
+const APP_VERSION = 'v6.3.8';
+const APP_BUILD_TIME = '24/10/2026 18:25 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
