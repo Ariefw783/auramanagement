@@ -1147,8 +1147,8 @@ window.setBuku1Today = function() {
   buku1EditModeDates[todayIso] = true;
   saveLocal();
   window.showSuccessModal(
-    "Lembar Hari Ini Siap",
-    "Lembar Kontrol Konsinyasi untuk hari ini (" + (OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === todayIso)?.namaHari || todayIso) + ") telah diaktifkan dalam Mode Input. Silakan isi data lalu klik 'Simpan Hari Ini'."
+    "Navigasi: Tanggal Hari Ini",
+    "Tampilan telah dialihkan ke tanggal hari ini (" + (OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === todayIso)?.namaHari || todayIso) + "). Gunakan tombol '💾 Simpan & Sinkronkan' untuk menyimpan data ke cloud."
   );
 };
 
@@ -1218,8 +1218,8 @@ window.saveAndLockBuku1Day = function() {
 
   saveLocal();
   window.showSuccessModal(
-    "Data Hari Ini Tersimpan",
-    "Data Kontrol Konsinyasi untuk tanggal " + (cfg ? cfg.namaHari : activeDate) + " telah disimpan dan dikunci. Jika sewaktu-waktu diperlukan perubahan, klik tombol 'Edit Data' atau tombol 'Edit' pada baris warung."
+    "Lembar Telah Dikunci (Tutup Buku)",
+    "Data Kontrol Konsinyasi untuk tanggal " + (cfg ? cfg.namaHari : activeDate) + " telah dikunci dari perubahan tidak sengaja. Jika sewaktu-waktu diperlukan koreksi, klik tombol '🔓 Buka Kunci (Edit)'."
   );
 };
 
@@ -3679,10 +3679,11 @@ function renderAllViews() {
   }
 
   if (btnToggleEditEl) {
+    btnToggleEditEl.innerText = '🔓 Buka Kunci (Edit)';
     btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
   }
   if (btnSimpanEl) {
-    btnSimpanEl.innerText = isDaySaved ? 'Simpan Perubahan' : 'Simpan Hari Ini';
+    btnSimpanEl.innerText = isDaySaved ? '🔒 Kunci Perubahan' : '🔒 Kunci Lembar';
     btnSimpanEl.style.display = isEditingAllowed ? 'inline-flex' : 'none';
   }
   if (printStatusText) {
@@ -4291,8 +4292,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.6';
-const APP_BUILD_TIME = '24/10/2026 17:40 WIB';
+const APP_VERSION = 'v6.3.7';
+const APP_BUILD_TIME = '24/10/2026 18:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

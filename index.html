@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.6</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.7</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 17:40 WIB
+          Update: 24/10/2026 18:05 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -463,15 +463,15 @@
                 <span>Distribusi & Penjualan Mitra (Format A5)</span>
                 <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Mode Input</span>
               </div>
-              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik Simpan untuk mengunci data hari ini, atau klik Edit jika perlu koreksi.</div>
+              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik '💾 Simpan & Sinkronkan' untuk simpan ke cloud, atau '🔒 Kunci Lembar' saat tutup buku sore.</div>
             </div>
             
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Set lembar ke tanggal hari ini">Set Hari Ini</button>
+              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Lompat ke tanggal kalender hari ini">📅 Ke Hari Ini</button>
               <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku1')" title="Simpan data mitra dan sinkronkan ke database cloud">💾 Simpan & Sinkronkan</button>
               <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
-              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">Edit Data</button>
-              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()">Kunci Hari Ini</button>
+              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">🔓 Buka Kunci (Edit)</button>
+              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()" title="Kunci data konsinyasi dan tutup buku harian">🔒 Kunci Lembar</button>
               <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
             </div>
           </div>
