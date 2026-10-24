@@ -4,7 +4,24 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const AURA_DB_KEY = 'dapur_mom_fitri_db_v5';
+const AURA_DB_KEY = 'dapur_mom_fitri_db_v6_clean';
+
+// Bersihkan seluruh database lama di browser (Reset total ke akar)
+try {
+  const legacyStorageKeys = [
+    'dapur_mom_fitri_db_v5',
+    'dapur_mom_fitri_db_v4',
+    'dapur_mom_fitri_db_v3',
+    'dapur_mom_fitri_db_v2',
+    'dapur_mom_fitri_db_v1',
+    'aura_pos_db_v5',
+    'aura_pos_db_v4',
+    'aura_pos_db_v3',
+    'aura_pos_db_v2',
+    'aura_pos_db_v1'
+  ];
+  legacyStorageKeys.forEach(k => localStorage.removeItem(k));
+} catch(e) {}
 const LEGACY_KEY = 'aura_slate_db_v5';
 
 // ==============================================================
@@ -77,7 +94,7 @@ function initFirestoreSync(retryCount = 0) {
     isFirestoreInitialized = true;
     setCloudStatusUI('connected', 'Online');
 
-    const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data');
+    const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v6');
     docRef.onSnapshot(doc => {
       if (doc.exists) {
         const cloudDoc = doc.data();
@@ -145,7 +162,7 @@ function pushToFirestoreCloud(immediate = false) {
     if (auraData) auraData._lastUpdated = now;
     const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
-    firestoreDb.collection('dapur_mom_fitri').doc('production_data').set({
+    firestoreDb.collection('dapur_mom_fitri').doc('production_data_v6').set({
       lastUpdated: now,
       clientAgent: 'PWA Dapur Mom Fitri Web',
       version: '6.3.2',
@@ -318,7 +335,7 @@ function buildDayMetaFromIso(isoDate, idxNum) {
     namaHari: hFull + ', ' + d + ' ' + bName + ' ' + y,
     shortLabel: hShort.toUpperCase() + ' (' + b2Key + ')',
     noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-0' + (idxNum || 5),
-    modal: 60000,
+    modal: 100000,
     isTarget: true
   };
 }
@@ -336,9 +353,7 @@ const OPERATIONAL_DAYS_CONFIG = [
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
 const REAL_TODAY_ISO = getRealTodayIso();
 const DEFAULT_CYCLE_START_ISO = '2026-10-26';
-if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === REAL_TODAY_ISO)) {
-  OPERATIONAL_DAYS_CONFIG.push(buildDayMetaFromIso(REAL_TODAY_ISO, OPERATIONAL_DAYS_CONFIG.length + 1));
-}
+// Siklus produksi & jualan murni dimulai dari Senin 26 Oktober s/d Sabtu 31 Oktober 2026
 const REAL_TODAY_META = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === REAL_TODAY_ISO) || OPERATIONAL_DAYS_CONFIG[0];
 const REAL_TODAY_B2KEY = REAL_TODAY_META.b2Key;
 
@@ -764,7 +779,7 @@ function computeDayTargetHPP(isoDate) {
 
   if (totalPcs === 0) {
     const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === isoDate);
-    return cfg ? cfg.modal : 65000;
+    return cfg ? cfg.modal : 100000;
   }
 
   const { hppUbi, hppSayur, hppRoti } = computeProductHPPUnits();
@@ -780,7 +795,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     namaHari: isoDate,
     shortLabel: isoDate,
     noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-01',
-    modal: 65000,
+    modal: 100000,
     isTarget: false
   };
 
@@ -1615,15 +1630,20 @@ function renderAccountingChart() {
   let chartData = [];
 
   if (currentChartPeriod === 'mingguan') {
-    if (subTitle) subTitle.innerText = 'Rekapitulasi Mingguan (19 - 24 Oktober 2026)';
-    chartData = [
-      { label: 'SEN 19/10', omzet: d19.omzet, belanja: d19.belanja, laba: d19.labaBersih, gaji: d19.gajiBos, endapan: d19.endapanHarian, isCurrent: activeDate === '2026-10-19', isTarget: false },
-      { label: 'SEL 20/10', omzet: d20.omzet, belanja: d20.belanja, laba: d20.labaBersih, gaji: d20.gajiBos, endapan: d20.endapanHarian, isCurrent: activeDate === '2026-10-20', isTarget: false },
-      { label: 'RAB 21/10', omzet: d21.omzet, belanja: d21.belanja, laba: d21.labaBersih, gaji: d21.gajiBos, endapan: d21.endapanHarian, isCurrent: activeDate === '2026-10-21', isTarget: false },
-      { label: 'KAM 22/10' + (d22.isTarget ? '*' : ''), omzet: d22.omzet, belanja: d22.belanja, laba: d22.labaBersih, gaji: d22.gajiBos, endapan: d22.endapanHarian, isCurrent: activeDate === '2026-10-22', isTarget: d22.isTarget },
-      { label: 'JUM 23/10' + (d23.isTarget ? '*' : ''), omzet: d23.omzet, belanja: d23.belanja, laba: d23.labaBersih, gaji: d23.gajiBos, endapan: d23.endapanHarian, isCurrent: activeDate === '2026-10-23', isTarget: d23.isTarget },
-      { label: 'SAB 24/10', omzet: 0, belanja: 0, laba: 0, gaji: 0, endapan: 0, isCurrent: activeDate === '2026-10-24', isTarget: false }
-    ];
+    if (subTitle) subTitle.innerText = 'Siklus Mingguan (26 - 31 Oktober 2026)';
+    chartData = OPERATIONAL_DAYS_CONFIG.map(cfg => {
+      const dayAcc = allDays.find(d => d.isoDate === cfg.isoDate) || computeDayAccounting(cfg.isoDate);
+      return {
+        label: cfg.shortLabel,
+        omzet: dayAcc.omzet,
+        belanja: dayAcc.belanja,
+        laba: dayAcc.labaBersih,
+        gaji: dayAcc.gajiBos,
+        endapan: dayAcc.endapanHarian,
+        isCurrent: activeDate === cfg.isoDate,
+        isTarget: dayAcc.isTarget
+      };
+    });
   } else if (currentChartPeriod === 'bulanan') {
     if (subTitle) subTitle.innerText = 'Akumulasi Bulanan (Oktober 2026)';
     const w3Omzet = d19.omzet + d20.omzet + d21.omzet;
@@ -2102,13 +2122,7 @@ const KUITANSI_DATE_CONFIG = {
   '30/10': { namaHari: 'Jumat, 30 Oktober 2026', noBkk: 'BKK-20261030-05', modal: 100000 },
   '31/10': { namaHari: 'Sabtu, 31 Oktober 2026', noBkk: 'BKK-20261031-06', modal: 100000 }
 };
-if (!KUITANSI_DATE_CONFIG[REAL_TODAY_B2KEY]) {
-  KUITANSI_DATE_CONFIG[REAL_TODAY_B2KEY] = {
-    namaHari: REAL_TODAY_META.namaHari,
-    noBkk: REAL_TODAY_META.noBkk,
-    modal: REAL_TODAY_META.modal
-  };
-}
+// Kuitansi hanya melayani siklus operasional resmi
 
 function terbilangRupiah(n) {
   if (!n || n === 0) return "Nol Rupiah";
@@ -2163,7 +2177,7 @@ window.handleCreateNewKuitansiDay = function() {
         KUITANSI_DATE_CONFIG[val] = {
           namaHari: 'Hari ' + val,
           noBkk: 'BKK-' + val.replace(/[^0-9]/g, '') + '-01',
-          modal: 60000
+          modal: 100000
         };
       }
       window.closeAppModal();
@@ -3817,7 +3831,7 @@ function renderAllViews() {
   const allKuitansiDates = [...new Set([...defaultDates, ...dataDates])].filter(Boolean);
 
   if (!allKuitansiDates.includes(selectedBuku2Date)) {
-    selectedBuku2Date = allKuitansiDates[allKuitansiDates.length - 1] || '21/10';
+    selectedBuku2Date = allKuitansiDates[0] || '26/10';
   }
 
   const dayTotals = {};
@@ -3848,13 +3862,13 @@ function renderAllViews() {
   const currentDayCfg = KUITANSI_DATE_CONFIG[selectedBuku2Date] || {
     namaHari: 'Hari ' + selectedBuku2Date,
     noBkk: 'BKK-' + selectedBuku2Date.replace(/[^0-9]/g, '') + '-01',
-    modal: 65000
+    modal: 100000
   };
 
   const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === selectedBuku2Date);
   const dayAccounting = matchedDayCfg ? computeDayAccounting(matchedDayCfg.isoDate) : null;
   const dayTotal = currentItems.reduce((acc, cur) => acc + (cur.biaya || 0), 0);
-  const dayPlafon = dayAccounting ? dayAccounting.plafonModal : Math.max(currentDayCfg.modal || 65000, dayTotal);
+  const dayPlafon = dayAccounting ? dayAccounting.plafonModal : Math.max(currentDayCfg.modal || 100000, dayTotal);
   const dayEndapan = dayPlafon - dayTotal;
 
   if (kuitansiCurrentDayLabelEl) kuitansiCurrentDayLabelEl.innerText = selectedBuku2Date;
@@ -4280,8 +4294,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.2';
-const APP_BUILD_TIME = '24/10/2026 16:45 WIB';
+const APP_VERSION = 'v6.3.3';
+const APP_BUILD_TIME = '24/10/2026 17:00 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
@@ -4445,3 +4459,62 @@ window.addEventListener('appinstalled', () => {
   if (btnMobile) btnMobile.style.display = 'none';
   window.showSuccessModal("Pemasangan Berhasil", "Aplikasi DAPUR MOM FITRI berhasil dipasang ke perangkat Anda!");
 });
+
+// ==============================================================
+// RESET DATABASE KE AKAR (MODAL AWAL RP 100.000 SIKLUS SENIN 26 OKT)
+// ==============================================================
+window.resetDatabaseToCleanRoot = function(showConfirm = true) {
+  const doReset = () => {
+    // 1. Bersihkan seluruh penyimpanan lokal browser
+    try {
+      const legacyStorageKeys = [
+        'dapur_mom_fitri_db_v6_clean',
+        'dapur_mom_fitri_db_v5',
+        'dapur_mom_fitri_db_v4',
+        'dapur_mom_fitri_db_v3',
+        'dapur_mom_fitri_db_v2',
+        'aura_pos_db_v5',
+        'aura_pos_db_v4'
+      ];
+      legacyStorageKeys.forEach(k => localStorage.removeItem(k));
+    } catch(e) {}
+
+    // 2. Buat payload bersih dengan modal Rp 100.000 untuk produksi Senin 26 Oktober 2026
+    auraData = JSON.parse(JSON.stringify(INITIAL_AURA_DATA));
+    auraData._lastUpdated = Date.now();
+    activeDate = '2026-10-26';
+    selectedBuku2Date = '26/10';
+
+    // 3. Simpan ke database lokal
+    localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+
+    // 4. Sinkronkan langsung ke Cloud Firestore
+    pushToFirestoreCloud(true);
+
+    // 5. Render ulang seluruh tampilan
+    renderAllViews();
+
+    if (typeof window.showSuccessModal === 'function') {
+      window.showSuccessModal(
+        'Sistem Berhasil Direset ke Akar',
+        'Seluruh histori database lama telah dihapus total.\n' +
+        '• Modal Awal: Rp 100.000 (Amplop 1 Modal Kerja)\n' +
+        '• Siklus Aktif: Senin, 26 Oktober 2026 (120 pcs Titik Konsinyasi)\n' +
+        '• Belanja: Rp 0 (Belum ada pengeluaran)\n' +
+        '• Endapan Kas: Rp 100.000 (Utuh)\n' +
+        'Data baru telah tersimpan di browser dan disinkronkan ke Cloud Firestore.'
+      );
+    }
+  };
+
+  if (showConfirm && typeof window.showConfirmModal === 'function') {
+    window.showConfirmModal(
+      'Konfirmasi Reset Total',
+      'Apakah Anda yakin ingin mereset seluruh sistem hingga ke akar?\n\n' +
+      'Tindakan ini akan menghapus seluruh data transaksi sebelumnya dan mengatur ulang sistem dengan MODAL AWAL Rp 100.000 untuk produksi jual hari Senin 26 Oktober 2026.',
+      doReset
+    );
+  } else {
+    doReset();
+  }
+};

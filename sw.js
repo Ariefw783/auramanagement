@@ -1,8 +1,8 @@
 // ==============================================================
 // DAPUR MOM FITRI - SERVICE WORKER (NETWORK-FIRST STRATEGY)
 // ==============================================================
-const CACHE_NAME = 'dapur-mom-fitri-v6.3.2';
-const APP_BUILD_TIME = '24/10/2026 16:45 WIB';
+const CACHE_NAME = 'dapur-mom-fitri-v6.3.3';
+const APP_BUILD_TIME = '24/10/2026 17:00 WIB';
 
 const ASSETS = [
   './',
@@ -64,6 +64,19 @@ self.addEventListener('message', (e) => {
 self.addEventListener('fetch', (e) => {
   // Hanya proses HTTP/HTTPS GET requests
   if (e.request.method !== 'GET') return;
+
+  const url = e.request.url;
+  // Lewati skema selain HTTP/HTTPS
+  if (!url.startsWith('http')) return;
+
+  // JANGAN intervensi request Firebase, Firestore, Google APIs streaming / channel
+  // (Mencegah browser freeze atau halaman loading terus-menerus)
+  if (url.includes('firestore.googleapis.com') ||
+      url.includes('firebaseio.com') ||
+      url.includes('identitytoolkit') ||
+      url.includes('googleapis.com')) {
+    return;
+  }
 
   e.respondWith(
     fetch(e.request)
