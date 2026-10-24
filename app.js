@@ -3281,6 +3281,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku1\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3384,6 +3385,7 @@ function renderKuitansiCards(items, total) {
       '<span>RINCIAN BELANJA (KARTU KUITANSI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'kuitansi\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3456,6 +3458,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
       '<span>REKAP ARUS KAS HARIAN (KARTU)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku3\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3518,6 +3521,7 @@ function renderMasterBahanCards(list) {
       '<span>KATALOG HARGA & TOKO LANGGANAN (ACUAN)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'master\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3578,6 +3582,7 @@ function renderStokCards(list) {
       '<span>STOK FISIK DAPUR & JADWAL BELANJA (KARTU)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4286,8 +4291,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.5';
-const APP_BUILD_TIME = '24/10/2026 17:25 WIB';
+const APP_VERSION = 'v6.3.6';
+const APP_BUILD_TIME = '24/10/2026 17:40 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
@@ -4508,5 +4513,36 @@ window.resetDatabaseToCleanRoot = function(showConfirm = true) {
     );
   } else {
     doReset();
+  }
+};
+
+// ==============================================================
+// UNIVERSAL SAVE & CLOUD SYNC CONTROLLER (HEMAT WRITES & READS)
+// Menggunakan Single-Document Aggregation Pattern:
+// 1 Kali Klik = Tepat 1 Write, 0 Delete, Reactive Snapshot Read
+// ==============================================================
+window.saveAndSyncModule = function(moduleName) {
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  renderAllViews();
+  pushToFirestoreCloud(true);
+
+  const moduleLabels = {
+    buku1: 'Distribusi Titip Jual (Buku 1)',
+    kuitansi: 'Kuitansi Belanja Dapur (Buku 2)',
+    buku3: 'Arus Kas & Laba Bersih (Buku 3)',
+    stok: 'Stok Fisik Dapur & Belanja Malam',
+    master: 'Katalog Harga & Toko Langganan'
+  };
+
+  const label = moduleLabels[moduleName] || 'Data Operasional';
+  const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+  if (typeof window.showSuccessModal === 'function') {
+    window.showSuccessModal(
+      'Tersimpan & Disinkronkan ke Cloud',
+      'Data <strong>' + label + '</strong> telah berhasil disimpan ke database lokal dan disinkronkan ke Cloud Firestore pada pukul <strong>' + timeStr + ' WIB</strong>.\n\n' +
+      'Perangkat lain (HP/PC) akan otomatis menerima pembaruan data secara real-time.'
+    );
   }
 };

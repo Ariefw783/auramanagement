@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.5</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.6</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 17:25 WIB
+          Update: 24/10/2026 17:40 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -468,9 +468,10 @@
             
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Set lembar ke tanggal hari ini">Set Hari Ini</button>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku1')" title="Simpan data mitra dan sinkronkan ke database cloud">💾 Simpan & Sinkronkan</button>
               <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
               <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">Edit Data</button>
-              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()">Simpan Hari Ini</button>
+              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()">Kunci Hari Ini</button>
               <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
             </div>
           </div>
@@ -582,6 +583,7 @@
               <div class="slate-card-subtitle">Format Bukti Kas Keluar (BKK) resmi Amplop 1 • Dilengkapi fitur edit langsung per baris</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('kuitansi')" title="Simpan kuitansi belanja dan sinkronkan ke cloud">💾 Simpan & Sinkronkan</button>
               <button type="button" class="tool-btn tool-btn-success" onclick="window.printKuitansi()">Cetak Kuitansi A5</button>
               <button type="button" class="tool-btn" onclick="window.handleCreateNewKuitansiDay()">+ Buat Lembar Hari Baru</button>
             </div>
@@ -795,7 +797,9 @@
               </div>
               <div class="slate-card-subtitle">Pemisahan 2 Amplop Dinamis: Amplop 1 (Operasional Dapur & Buffer) & Amplop 2 (Gaji Bersih Pemilik)</div>
             </div>
-            <span class="badge-status done">BEP Aman: 81 Pcs/Hari</span>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku3')" title="Simpan data arus kas dan sinkronkan ke cloud">💾 Simpan & Sinkronkan Kas</button>
+            </div>
           </div>
 
           <!-- BEP Progress Card -->
@@ -875,6 +879,7 @@
               </div>
               <div class="slate-card-subtitle">Daftar harga beli terakhir, isi kemasan standar, dan nama toko/pasar langganan. Hanya diubah jika harga pasar naik/turun.</div>
             </div>
+            <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">💾 Simpan Katalog</button>
             <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
           </div>
 
@@ -940,6 +945,7 @@
               <div class="slate-card-subtitle">Cek sisa fisik bahan di kulkas/rak dapur dan rekomendasi daftar belanja malam ini (Pasar Subuh & Toko/Minimarket) untuk produksi besok.</div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">💾 Simpan Stok Dapur</button>
               <button class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
               <button class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
             </div>
