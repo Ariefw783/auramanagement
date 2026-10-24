@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.1</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.2</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,14 +238,14 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 16:22 WIB
+          Update: 24/10/2026 16:45 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
         <div style="margin-top: 10px;">
-          <div class="cloud-sync-pill" id="cloudSyncPillDesktop" onclick="window.triggerCloudSync()" title="Status Sinkronisasi Cloud Firestore (Klik untuk sinkronkan sekarang)">
+          <div class="cloud-sync-pill connected" id="cloudSyncPillDesktop" onclick="window.triggerCloudSync()" title="Status Sinkronisasi Cloud Firestore (Klik untuk sinkronkan sekarang)">
             <span class="cloud-sync-dot"></span>
-            <span class="cloud-sync-text">Cloud Memuat...</span>
+            <span class="cloud-sync-text">Online</span>
           </div>
         </div>
         
@@ -283,7 +283,7 @@
           </div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <div class="cloud-sync-pill" id="cloudSyncPillMobile" onclick="window.triggerCloudSync()" title="Status Cloud Firestore">
+          <div class="cloud-sync-pill connected" id="cloudSyncPillMobile" onclick="window.triggerCloudSync()" title="Status Cloud Firestore">
             <span class="cloud-sync-dot"></span>
             <span class="cloud-sync-text">Online</span>
           </div>
@@ -532,6 +532,9 @@
               </table>
             </div>
 
+            <!-- TAMPILAN KARTU DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
+            <div id="buku1CardsContainer" class="collapsible-cards-container"></div>
+
           </div>
         </div>
       </section>
@@ -669,6 +672,9 @@
                 </tfoot>
               </table>
             </div>
+
+            <!-- TAMPILAN KARTU BELANJA DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
+            <div id="kuitansiCardsContainer" class="collapsible-cards-container"></div>
 
             <!-- IN-LINE FORM: TAMBAH ITEM KE KUITANSI HARI INI -->
             <div class="kuitansi-add-item-box no-print">
@@ -844,6 +850,9 @@
               <tfoot id="buku3TableFoot"></tfoot>
             </table>
           </div>
+
+          <!-- TAMPILAN KARTU ARUS KAS DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
+          <div id="buku3CardsContainer" class="collapsible-cards-container"></div>
         </div>
       </section>
 
@@ -899,6 +908,9 @@
               </tbody>
             </table>
           </div>
+
+          <!-- TAMPILAN KARTU MASTER BAHAN DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
+          <div id="masterBahanCardsContainer" class="collapsible-cards-container"></div>
         </div>
       </section>
 
@@ -991,6 +1003,9 @@
               <tbody id="stokTableBody"></tbody>
             </table>
           </div>
+
+          <!-- TAMPILAN KARTU INVENTARIS DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
+          <div id="stokCardsContainer" class="collapsible-cards-container"></div>
         </div>
       </section>
 

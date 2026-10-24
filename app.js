@@ -34,7 +34,7 @@ function setCloudStatusUI(status, label) {
       if (pill.id === 'cloudSyncPillMobile') {
         if (status === 'connected') textEl.innerText = 'Online';
         else if (status === 'syncing') textEl.innerText = 'Sync';
-        else textEl.innerText = 'Lokal';
+        else textEl.innerText = 'Offline';
       } else {
         textEl.innerText = label;
       }
@@ -43,18 +43,21 @@ function setCloudStatusUI(status, label) {
 }
 
 function initFirestoreSync(retryCount = 0) {
-  // Jika SDK belum selesai dimuat oleh browser perangkat HP
+  // Jika perangkat offline secara fisik
+  if (!navigator.onLine) {
+    setCloudStatusUI('offline', 'Mode Offline');
+    return;
+  }
+
+  // Jika online, prioritaskan status Online (Hijau)
+  setCloudStatusUI('connected', 'Online');
+
   if (typeof firebase === 'undefined' || !firebase.firestore) {
-    if (retryCount < 15) {
-      setCloudStatusUI('syncing', 'Menghubungkan...');
+    if (retryCount < 10) {
       setTimeout(() => initFirestoreSync(retryCount + 1), 400);
       return;
     }
-    if (!navigator.onLine) {
-      setCloudStatusUI('offline', 'Mode Offline');
-    } else {
-      setCloudStatusUI('connected', 'Penyimpanan Lokal');
-    }
+    setCloudStatusUI('connected', 'Online');
     return;
   }
 
@@ -72,7 +75,7 @@ function initFirestoreSync(retryCount = 0) {
     } catch (e) {}
 
     isFirestoreInitialized = true;
-    setCloudStatusUI('connected', 'Cloud Terhubung');
+    setCloudStatusUI('connected', 'Online');
 
     const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data');
     docRef.onSnapshot(doc => {
@@ -87,29 +90,29 @@ function initFirestoreSync(retryCount = 0) {
             localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
             renderAllViews();
             const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            setCloudStatusUI('connected', 'Tersinkron ' + timeStr);
+            setCloudStatusUI('connected', 'Online • ' + timeStr);
             return;
           }
         }
       } else {
-        console.log('[Firestore] Dokumen cloud belum tersedia, inisialisasi upload state perdana...');
         pushToFirestoreCloud(true);
       }
-      setCloudStatusUI('connected', 'Cloud Terhubung');
+      setCloudStatusUI('connected', 'Online');
     }, err => {
-      console.warn('[Firestore] Realtime snapshot listener:', err.message);
+      console.warn('[Firestore] Realtime snapshot note:', err.message);
       if (!navigator.onLine) {
-        setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
+        setCloudStatusUI('offline', 'Mode Offline');
       } else {
-        setCloudStatusUI('syncing', 'Menyinkronkan...');
-        setTimeout(() => pushToFirestoreCloud(false), 3000);
+        setCloudStatusUI('connected', 'Online');
       }
     });
 
   } catch (err) {
-    console.warn('[Firestore] Inisialisasi error:', err);
+    console.warn('[Firestore] Inisialisasi note:', err);
     if (!navigator.onLine) {
       setCloudStatusUI('offline', 'Mode Offline');
+    } else {
+      setCloudStatusUI('connected', 'Online');
     }
   }
 }
@@ -118,7 +121,7 @@ function initFirestoreSync(retryCount = 0) {
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     console.log('[App] Koneksi internet online');
-    setCloudStatusUI('syncing', 'Menghubungkan...');
+    setCloudStatusUI('connected', 'Online');
     initFirestoreSync(0);
   });
   window.addEventListener('offline', () => {
@@ -132,6 +135,11 @@ function pushToFirestoreCloud(immediate = false) {
   if (cloudSyncTimeout) clearTimeout(cloudSyncTimeout);
 
   const performPush = () => {
+    if (!navigator.onLine) {
+      setCloudStatusUI('offline', 'Mode Offline');
+      return;
+    }
+
     setCloudStatusUI('syncing', 'Menyinkronkan...');
     const now = Date.now();
     if (auraData) auraData._lastUpdated = now;
@@ -140,18 +148,19 @@ function pushToFirestoreCloud(immediate = false) {
     firestoreDb.collection('dapur_mom_fitri').doc('production_data').set({
       lastUpdated: now,
       clientAgent: 'PWA Dapur Mom Fitri Web',
-      version: '6.3.0',
+      version: '6.3.2',
       payload: cleanPayload
     }, { merge: true })
     .then(() => {
       const timeStr = new Date(now).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      setCloudStatusUI('connected', 'Tersinkron ' + timeStr);
+      setCloudStatusUI('connected', 'Online • ' + timeStr);
     })
     .catch(err => {
-      console.warn('[Firestore] Gagal push ke cloud:', err.message);
-      if (!navigator.onLine) {
-        setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
-      }
+      console.warn('[Firestore] Push cloud note:', err.message);
+      setTimeout(() => {
+        if (navigator.onLine) setCloudStatusUI('connected', 'Online');
+        else setCloudStatusUI('offline', 'Mode Offline');
+      }, 700);
     });
   };
 
@@ -1763,6 +1772,7 @@ window.renderMasterBahanTable = function() {
   tbody.innerHTML = '';
   if (filtered.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted); font-style: italic;">Tidak ada bahan baku yang cocok dengan pencarian.</td></tr>';
+    renderMasterBahanCards([]);
     return;
   }
 
@@ -1804,6 +1814,8 @@ window.renderMasterBahanTable = function() {
       '</td>';
     tbody.appendChild(tr);
   });
+
+  renderMasterBahanCards(filtered);
 };
 
 window.syncModalGramFields = function(prefix, source) {
@@ -3211,6 +3223,411 @@ window.updateStokFromGram = function(idx, gramVal) {
 };
 
 // ==============================================================
+// COLLAPSIBLE CARDS CONTROLLER & RENDERERS (FITUR SEMBUNYIKAN)
+// ==============================================================
+window.cardsCollapsedState = window.cardsCollapsedState || {
+  buku1: {},
+  kuitansi: {},
+  buku3: {},
+  master: {},
+  stok: {}
+};
+
+window.toggleCardItem = function(group, idx) {
+  window.cardsCollapsedState[group] = window.cardsCollapsedState[group] || {};
+  window.cardsCollapsedState[group][idx] = !window.cardsCollapsedState[group][idx];
+  const card = document.getElementById(group + 'Card_' + idx);
+  if (card) {
+    const isNowCollapsed = !!window.cardsCollapsedState[group][idx];
+    card.classList.toggle('collapsed', isNowCollapsed);
+    const toggleBtn = card.querySelector('.btn-record-expand-toggle');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = isNowCollapsed ? '▼ Buka' : '▲ Sembunyikan';
+    }
+  }
+};
+
+window.toggleAllCardsInGroup = function(group, expandAll) {
+  window.cardsCollapsedState[group] = window.cardsCollapsedState[group] || {};
+  const container = document.getElementById(group + 'CardsContainer');
+  if (!container) return;
+  const cards = container.querySelectorAll('.expandable-record-card');
+  cards.forEach((card, idx) => {
+    window.cardsCollapsedState[group][idx] = !expandAll;
+    card.classList.toggle('collapsed', !expandAll);
+    const toggleBtn = card.querySelector('.btn-record-expand-toggle');
+    if (toggleBtn) {
+      toggleBtn.innerHTML = !expandAll ? '▼ Buka' : '▲ Sembunyikan';
+    }
+  });
+};
+
+function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor) {
+  const container = document.getElementById('buku1CardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = 
+    '<div class="card-view-header-title">' +
+      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>' +
+      '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
+    '</div>' +
+    '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', true)">Buka Semua</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', false)">Sembunyikan</button>' +
+    '</div>';
+  container.appendChild(topBar);
+
+  rows.forEach((r, idx) => {
+    const isCollapsed = !!(window.cardsCollapsedState.buku1 && window.cardsCollapsedState.buku1[idx]);
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'buku1Card_' + idx;
+
+    card.innerHTML = 
+      '<div class="record-card-header" onclick="window.toggleCardItem(\'buku1\', ' + idx + ')">' +
+        '<div class="record-title-wrap">' +
+          '<span class="record-num-tag">#' + (idx + 1) + '</span>' +
+          '<strong class="record-title-name">' + r.nama + '</strong>' +
+        '</div>' +
+        '<div class="record-header-meta">' +
+          '<span class="record-chip accent">' + r.kirim + ' krm</span>' +
+          '<span class="record-chip">' + r.laku + ' lku</span>' +
+          '<span class="record-chip success">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="record-card-body">' +
+        '<div class="record-field-block">' +
+          '<div class="record-field-label">1. RENCANA DROP PAGI:</div>' +
+          '<div class="record-grid-3">' +
+            '<div class="card-input-box">' +
+              '<span>Ubi Ungu</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)">' +
+            '</div>' +
+            '<div class="card-input-box">' +
+              '<span>Sayur Sosis</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #34D399;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)">' +
+            '</div>' +
+            '<div class="card-input-box">' +
+              '<span>Roti Collins</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FBBF24;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)">' +
+            '</div>' +
+            '<div class="card-total-box">' +
+              '<span>Total Kirim</span>' +
+              '<strong>' + r.kirim + ' pcs</strong>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="record-field-block">' +
+          '<div class="record-field-label">2. HASIL PENJUALAN SORE:</div>' +
+          '<div class="record-grid-2">' +
+            '<div class="card-input-box">' +
+              '<span>Bonus Pemilik (+)</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)">' +
+            '</div>' +
+            '<div class="card-input-box">' +
+              '<span>Retur Sore (-)</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB923C;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
+            '</div>' +
+            '<div class="card-total-box">' +
+              '<span>Laku Terjual</span>' +
+              '<strong style="color: #38BDF8;">' + r.laku + ' pcs</strong>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="record-footer-row">' +
+          '<div class="card-setor-field">' +
+            '<label>Setoran Net:</label>' +
+            '<div class="card-setor-input">' +
+              '<span>Rp</span>' +
+              '<input type="number" inputmode="numeric" class="dark-input" value="' + r.setor + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="tool-btn" style="padding: 5px 10px; font-size: 0.72rem; color: #38BDF8;" onclick="window.openEditBuku1RowModal(' + idx + ')">Edit Baris</button>' +
+        '</div>' +
+      '</div>';
+    container.appendChild(card);
+  });
+
+  const summaryCard = document.createElement('div');
+  summaryCard.className = 'buku1-card-summary-total';
+  summaryCard.innerHTML = 
+    '<div class="card-summary-title">TOTAL KONSINYASI HARI INI</div>' +
+    '<div class="card-summary-grid">' +
+      '<div class="card-stat-pill"><span>Total Kirim:</span><strong>' + sumKirim + ' pcs</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Bonus:</span><strong style="color:#818CF8;">+' + sumBonus + ' pcs</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Retur:</span><strong style="color:#FB923C;">' + sumRetur + ' pcs</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + sumLaku + ' pcs</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL SETORAN NET:</span><strong>Rp ' + sumSetor.toLocaleString('id-ID') + '</strong></div>' +
+    '</div>';
+  container.appendChild(summaryCard);
+}
+
+function renderKuitansiCards(items, total) {
+  const container = document.getElementById('kuitansiCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = 
+    '<div class="card-view-header-title">' +
+      '<span>RINCIAN BELANJA (KARTU KUITANSI)</span>' +
+    '</div>' +
+    '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', true)">Buka Semua</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', false)">Sembunyikan</button>' +
+    '</div>';
+  container.appendChild(topBar);
+
+  if (items.length === 0) {
+    container.innerHTML += '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem; font-style: italic; background: #151F2E; border-radius: 8px;">Belum ada item belanja pada kuitansi hari ini.</div>';
+    return;
+  }
+
+  items.forEach((b, localIdx) => {
+    const globalIdx = auraData.buku2Belanja.findIndex(item => item === b);
+    const isCollapsed = !!(window.cardsCollapsedState.kuitansi && window.cardsCollapsedState.kuitansi[localIdx]);
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'kuitansiCard_' + localIdx;
+
+    let badgeClass = 'badge-toko';
+    let badgeLabel = 'Toko / Minimarket';
+    const p = (b.paraf || '').toLowerCase();
+    if (p.includes('pasar') || p.includes('subuh') || p.includes('sayur') || p.includes('lumpia') || p.includes('kulit') || p.includes('ubi') || p.includes('wortel')) {
+      badgeClass = 'badge-pasar';
+      badgeLabel = 'Pasar Subuh';
+    } else if (p.includes('operasional') || p.includes('gas') || p.includes('awet') || p.includes('minyak')) {
+      badgeClass = 'badge-gas';
+      badgeLabel = 'Operasional / Gas';
+    }
+
+    card.innerHTML = 
+      '<div class="record-card-header" onclick="window.toggleCardItem(\'kuitansi\', ' + localIdx + ')">' +
+        '<div class="record-title-wrap">' +
+          '<span class="record-num-tag">#' + (localIdx + 1) + '</span>' +
+          '<strong class="record-title-name">' + b.nama + '</strong>' +
+        '</div>' +
+        '<div class="record-header-meta">' +
+          '<span class="badge-kategori ' + badgeClass + '">' + badgeLabel + '</span>' +
+          '<span class="record-chip danger">Rp ' + (b.biaya || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="record-card-body">' +
+        '<div class="record-meta-row"><span class="label">Kuantitas / Takaran:</span><span class="val">' + (b.qty || '-') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Kategori Belanja:</span><span class="val">' + badgeLabel + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Biaya Riil Pengeluaran:</span><strong class="val" style="color: #FB7185; font-size: 0.95rem;">Rp ' + (b.biaya || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">' +
+          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; color: #38BDF8;" onclick="window.openEditBelanjaModal(' + globalIdx + ')">Edit Item</button>' +
+          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; color: #F87171;" onclick="window.handleDeleteBelanjaFromKuitansi(' + globalIdx + ')">Hapus</button>' +
+        '</div>' +
+      '</div>';
+    container.appendChild(card);
+  });
+
+  const summary = document.createElement('div');
+  summary.className = 'buku1-card-summary-total';
+  summary.innerHTML = 
+    '<div class="card-summary-title">TOTAL BELANJA HARI INI</div>' +
+    '<div style="font-size: 1.15rem; font-weight: 900; color: #FB7185; font-family: var(--font-mono); text-align: center;">Rp ' + total.toLocaleString('id-ID') + '</div>';
+  container.appendChild(summary);
+}
+
+function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totModal, totGaji, totBelanja, totEndapan) {
+  const container = document.getElementById('buku3CardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = 
+    '<div class="card-view-header-title">' +
+      '<span>REKAP ARUS KAS HARIAN (KARTU)</span>' +
+    '</div>' +
+    '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', true)">Buka Semua</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', false)">Sembunyikan</button>' +
+    '</div>';
+  container.appendChild(topBar);
+
+  kasList.forEach((k, idx) => {
+    const isCollapsed = !!(window.cardsCollapsedState.buku3 && window.cardsCollapsedState.buku3[idx]);
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'buku3Card_' + idx;
+
+    const endapanFormatted = k.endapan < 0 ? '-Rp ' + Math.abs(k.endapan).toLocaleString('id-ID') : 'Rp ' + (k.endapan || 0).toLocaleString('id-ID');
+    const endapanColor = k.endapan < 0 ? '#FB7185' : '#34D399';
+
+    card.innerHTML = 
+      '<div class="record-card-header" onclick="window.toggleCardItem(\'buku3\', ' + idx + ')">' +
+        '<div class="record-title-wrap">' +
+          '<span class="record-num-tag">' + k.tgl + '</span>' +
+          '<strong class="record-title-name">' + k.hari + '</strong>' +
+        '</div>' +
+        '<div class="record-header-meta">' +
+          '<span class="record-chip success">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="record-card-body">' +
+        '<div class="record-meta-row"><span class="label">Konsinyasi:</span><span class="val">Kirim ' + k.kirim + ' • Retur ' + k.retur + ' • <strong>Laku ' + k.laku + ' pcs</strong></span></div>' +
+        '<div class="record-meta-row"><span class="label">Total Omzet Kas:</span><strong class="val" style="color:#34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Amplop 1 (Modal Dapur):</span><span class="val">Rp ' + (k.modal || 0).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Amplop 2 (Gaji Bersih):</span><strong class="val" style="color:#818CF8;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Belanja Riil:</span><span class="val" style="color:#FB7185;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Endapan Cadangan:</span><strong class="val" style="color:' + endapanColor + ';">' + endapanFormatted + '</strong></div>' +
+      '</div>';
+    container.appendChild(card);
+  });
+
+  const summary = document.createElement('div');
+  summary.className = 'buku1-card-summary-total';
+  summary.innerHTML = 
+    '<div class="card-summary-title">TOTAL AKTUAL TERVERIFIKASI</div>' +
+    '<div class="card-summary-grid">' +
+      '<div class="card-stat-pill"><span>Total Kirim:</span><strong>' + totKirim + ' pcs</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + totLaku + ' pcs</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL OMZET KAS:</span><strong>Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Gaji Bos:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Belanja:</span><strong style="color:#F87171;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
+    '</div>';
+  container.appendChild(summary);
+}
+
+function renderMasterBahanCards(list) {
+  const container = document.getElementById('masterBahanCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = 
+    '<div class="card-view-header-title">' +
+      '<span>MASTER BAHAN (KARTU RINGKAS)</span>' +
+    '</div>' +
+    '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', true)">Buka Semua</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', false)">Sembunyikan</button>' +
+    '</div>';
+  container.appendChild(topBar);
+
+  if (list.length === 0) {
+    container.innerHTML += '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem; font-style: italic; background: #151F2E; border-radius: 8px;">Tidak ada bahan baku yang cocok dengan pencarian.</div>';
+    return;
+  }
+
+  list.forEach((item, idx) => {
+    const globalIdx = auraData.masterBahan.findIndex(m => m === item);
+    const isCollapsed = !!(window.cardsCollapsedState.master && window.cardsCollapsedState.master[idx]);
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'masterCard_' + idx;
+
+    let catBadgeClass = 'badge-toko';
+    if (item.kategori.includes('Pasar')) catBadgeClass = 'badge-pasar';
+    else if (item.kategori.includes('Gas') || item.kategori.includes('Operasional')) catBadgeClass = 'badge-gas';
+    else if (item.kategori.includes('Kemasan')) catBadgeClass = 'mini-tag';
+
+    card.innerHTML = 
+      '<div class="record-card-header" onclick="window.toggleCardItem(\'master\', ' + idx + ')">' +
+        '<div class="record-title-wrap">' +
+          '<span class="record-num-tag">#' + (idx + 1) + '</span>' +
+          '<strong class="record-title-name">' + item.nama + '</strong>' +
+        '</div>' +
+        '<div class="record-header-meta">' +
+          '<span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span>' +
+          '<span class="record-chip success">Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="record-card-body">' +
+        '<div class="record-meta-row"><span class="label">Satuan & Takaran:</span><span class="val">' + item.satuan + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Harga Terakhir:</span><strong class="val" style="color:#34D399;">Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Vendor Langganan:</span><span class="val">' + (item.vendor || '-') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Update Terakhir:</span><span class="val">' + (item.tglUpdate || '-') + '</span></div>' +
+        '<div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">' +
+          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; color: #38BDF8;" onclick="window.openEditMasterBahanModal(' + globalIdx + ')">Edit Bahan</button>' +
+          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; color: #F87171;" onclick="window.handleDeleteMasterBahan(' + globalIdx + ')">Hapus</button>' +
+        '</div>' +
+      '</div>';
+    container.appendChild(card);
+  });
+}
+
+function renderStokCards(list) {
+  const container = document.getElementById('stokCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = 
+    '<div class="card-view-header-title">' +
+      '<span>INVENTARIS BAHAN (KARTU STOK)</span>' +
+    '</div>' +
+    '<div class="card-view-header-actions">' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', false)">Sembunyikan</button>' +
+    '</div>';
+  container.appendChild(topBar);
+
+  if (list.length === 0) {
+    container.innerHTML += '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem; font-style: italic; background: #151F2E; border-radius: 8px;">Tidak ada stok bahan yang terdaftar.</div>';
+    return;
+  }
+
+  list.forEach((s, idx) => {
+    const isCollapsed = !!(window.cardsCollapsedState.stok && window.cardsCollapsedState.stok[idx]);
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'stokCard_' + idx;
+
+    const min = s.minTrigger !== undefined ? s.minTrigger : 1;
+    const isCritical = s.stok <= 0;
+    const isLow = s.stok <= min;
+    let statusBadge = '<span class="badge-status done">Aman</span>';
+    if (isCritical) statusBadge = '<span class="badge-status alert">Habis</span>';
+    else if (isLow) statusBadge = '<span class="badge-status progress">Menipis</span>';
+
+    const ratio = getStokGramRatio(s);
+    const curGram = s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio);
+    const unitLabel = s.satuan || 'pcs';
+
+    card.innerHTML = 
+      '<div class="record-card-header" onclick="window.toggleCardItem(\'stok\', ' + idx + ')">' +
+        '<div class="record-title-wrap">' +
+          '<span class="record-num-tag">#' + (idx + 1) + '</span>' +
+          '<strong class="record-title-name">' + s.nama + '</strong>' +
+        '</div>' +
+        '<div class="record-header-meta">' +
+          statusBadge +
+          '<span class="record-chip accent">' + s.stok + ' ' + unitLabel + '</span>' +
+          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="record-card-body">' +
+        '<div class="record-meta-row"><span class="label">Jalur Pengadaan:</span><span class="val">' + (s.jalur === 'A' ? 'Toko / Minimarket' : 'Pasar Subuh') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Rekomendasi Restock:</span><span class="val" style="color:#FBBF24;">' + (s.action || '-') + '</span></div>' +
+        '<div class="record-field-block" style="margin-top: 4px;">' +
+          '<div class="record-field-label">UPDATE SISA STOK FISIK:</div>' +
+          '<div style="display: flex; gap: 8px; align-items: center;">' +
+            '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Satuan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
+            '<span style="color:#94A3B8; font-weight:700; padding-top:14px;">≈</span>' +
+            '<div style="flex: 1;"><span style="font-size:0.68rem; color:#38BDF8;">Gram (g):</span><input type="number" step="any" min="0" class="dark-input" value="' + curGram + '" onchange="window.updateStokFromGram(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; color:#38BDF8; font-weight:700;"></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    container.appendChild(card);
+  });
+}
+
+// ==============================================================
 // MASTER RENDER ENGINE (SINKRONISASI INTEGRAL SELURUH MODUL)
 // ==============================================================
 function renderAllViews() {
@@ -3339,6 +3756,8 @@ function renderAllViews() {
           '<td data-label="" class="no-print"></td>' +
         '</tr>';
     }
+
+    renderBuku1Cards(rowsBuku1, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor);
   }
 
   // 3. SLIP BOX 6 TITIK
@@ -3489,6 +3908,7 @@ function renderAllViews() {
         kuitansiBody.appendChild(tr);
       });
     }
+    renderKuitansiCards(currentItems, dayTotal);
   }
 
   // 5. ARUS KAS & LABA BERSIH (100% REAL-TIME DARI DISTRIBUSI & KAS KELUAR)
@@ -3570,6 +3990,8 @@ function renderAllViews() {
           '<td data-label="Total Endapan" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalEndapanAll.toLocaleString('id-ID') + '</td>' +
         '</tr>';
     }
+
+    renderBuku3Cards(auraData.buku3Kas, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalModalAll, totalGajiAll, totalBelanjaAll, totalEndapanAll);
 
     const bepTarget = 190000;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
@@ -3715,6 +4137,8 @@ function renderAllViews() {
     if (cntMenipisEl) cntMenipisEl.innerText = countMenipis + ' Bahan';
     if (cntKritisEl) cntKritisEl.innerText = countKritis + ' Bahan';
     if (estBelanjaEl) estBelanjaEl.innerText = 'Rp ' + (estBelanjaMalam > 0 ? estBelanjaMalam.toLocaleString('id-ID') : '0');
+
+    renderStokCards(auraData.stokBahan);
   }
 
   // 8. KALKULATOR TAKARAN RESEP & VISUAL SOP FORMULA
@@ -3856,8 +4280,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.1';
-const APP_BUILD_TIME = '24/10/2026 16:22 WIB';
+const APP_VERSION = 'v6.3.2';
+const APP_BUILD_TIME = '24/10/2026 16:45 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
