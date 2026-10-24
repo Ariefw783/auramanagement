@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.0</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.1</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 16:00 WIB
+          Update: 24/10/2026 16:22 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -514,17 +514,17 @@
               <table class="slate-table buku1-table">
                 <thead>
                   <tr>
-                    <th style="width: 38px; text-align: center;">No</th>
-                    <th>Nama Warung / Kantin</th>
-                    <th style="width: 62px; text-align: center;">Ubi</th>
-                    <th style="width: 62px; text-align: center;">Sayur</th>
-                    <th style="width: 62px; text-align: center;">Roti</th>
-                    <th style="width: 80px; text-align: center;">Kirim (Pcs)</th>
-                    <th style="width: 68px; text-align: center;">Bonus</th>
-                    <th style="width: 85px; text-align: center;">Retur Sore</th>
-                    <th style="width: 85px; text-align: center;">Laku (Pcs)</th>
-                    <th style="width: 135px; text-align: right;">Setoran Net (Rp)</th>
-                    <th style="width: 65px; text-align: center;" class="no-print">Aksi</th>
+                    <th style="width: 30px; text-align: center;">No</th>
+                    <th style="min-width: 90px;">Nama Warung / Kantin</th>
+                    <th style="width: 46px; text-align: center;">Ubi</th>
+                    <th style="width: 46px; text-align: center;">Sayur</th>
+                    <th style="width: 46px; text-align: center;">Roti</th>
+                    <th style="width: 52px; text-align: center;">Kirim</th>
+                    <th style="width: 48px; text-align: center;">Bonus</th>
+                    <th style="width: 52px; text-align: center;">Retur</th>
+                    <th style="width: 52px; text-align: center;">Laku</th>
+                    <th style="width: 90px; text-align: right;">Setoran (Rp)</th>
+                    <th style="width: 44px; text-align: center;" class="no-print">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="buku1TableBody"></tbody>
@@ -649,12 +649,12 @@
               <table class="slate-table kuitansi-table">
                 <thead>
                   <tr>
-                    <th style="width: 36px; text-align: center;">No</th>
+                    <th style="width: 30px; text-align: center;">No</th>
                     <th>Rincian Kebutuhan / Bahan Baku</th>
-                    <th style="width: 170px;">Kategori Belanja</th>
-                    <th style="width: 130px;">Kuantitas / Takaran</th>
-                    <th style="width: 140px; text-align: right;">Biaya Riil (Rp)</th>
-                    <th style="width: 80px; text-align: center;" class="no-print">Aksi</th>
+                    <th style="width: 110px;">Kategori Belanja</th>
+                    <th style="width: 85px;">Kuantitas</th>
+                    <th style="width: 95px; text-align: right;">Biaya Riil (Rp)</th>
+                    <th style="width: 48px; text-align: center;" class="no-print">Aksi</th>
                   </tr>
                 </thead>
                 <tbody id="kuitansiTableBody">
@@ -884,14 +884,14 @@
             <table class="slate-table master-bahan-table">
               <thead>
                 <tr>
-                  <th style="width: 40px; text-align: center;">No</th>
+                  <th style="width: 30px; text-align: center;">No</th>
                   <th>Nama Bahan Baku</th>
-                  <th style="width: 150px;">Kategori</th>
-                  <th style="width: 240px;">Satuan Kemasan &amp; Konversi Gram</th>
-                  <th style="width: 150px; text-align: right;">Harga Terakhir (Rp)</th>
-                  <th style="width: 160px;">Toko / Vendor Langganan</th>
-                  <th style="width: 110px; text-align: center;">Tgl Update</th>
-                  <th style="width: 90px; text-align: center;" class="no-print">Aksi</th>
+                  <th style="width: 100px;">Kategori</th>
+                  <th style="width: 135px;">Satuan &amp; Konversi Gram</th>
+                  <th style="width: 95px; text-align: right;">Harga Terakhir (Rp)</th>
+                  <th style="width: 100px;">Vendor Langganan</th>
+                  <th style="width: 75px; text-align: center;">Tgl Update</th>
+                  <th style="width: 48px; text-align: center;" class="no-print">Aksi</th>
                 </tr>
               </thead>
               <tbody id="masterBahanTableBody">
@@ -980,12 +980,12 @@
             <table class="slate-table stok-table">
               <thead>
                 <tr>
-                  <th style="width: 44px; text-align: center;">No</th>
+                  <th style="width: 30px; text-align: center;">No</th>
                   <th>Nama Bahan Baku</th>
-                  <th style="width: 145px;">Jalur Pengadaan</th>
-                  <th style="width: 280px; text-align: center;">Stok Fisik &amp; Konversi Gram (2 Arah)</th>
-                  <th style="width: 110px; text-align: center;">Status</th>
-                  <th>Catatan Restock</th>
+                  <th style="width: 100px;">Jalur Pengadaan</th>
+                  <th style="width: 155px; text-align: center;">Stok Fisik &amp; Gram</th>
+                  <th style="width: 75px; text-align: center;">Status</th>
+                  <th style="width: 110px;">Catatan Restock</th>
                 </tr>
               </thead>
               <tbody id="stokTableBody"></tbody>

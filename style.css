@@ -769,36 +769,50 @@ body {
   font-weight: 900 !important;
 }
 
-/* Slate Data Tables - Zero Horizontal Scroll */
+/* ============================================================== */
+/* SLATE DATA TABLES - SLEEK COMPACT RESPONSIVE SPREADSHEET       */
+/* ============================================================== */
 .table-responsive-wrapper {
-  overflow-x: hidden !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
   background: var(--card-bg);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56, 189, 248, 0.3) rgba(15, 23, 42, 0.5);
+}
+
+.table-responsive-wrapper::-webkit-scrollbar {
+  height: 5px;
+}
+.table-responsive-wrapper::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+}
+.table-responsive-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 4px;
 }
 
 .slate-table {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 0.85rem;
-  table-layout: auto !important;
+  font-size: 0.84rem;
 }
 
 .slate-table th {
-  background: #202D40;
-  color: var(--text-secondary);
+  background: #1C2738;
+  color: #94A3B8;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 10px 10px;
   border-bottom: 1px solid var(--card-border);
-  white-space: normal;
-  word-break: break-word;
+  white-space: nowrap;
 }
 
 .slate-table td {
@@ -806,10 +820,11 @@ body {
   border-bottom: 1px solid var(--card-border-subtle);
   color: var(--text-primary);
   vertical-align: middle;
+  background: var(--card-bg);
 }
 
 .slate-table tr:hover td {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(56, 189, 248, 0.04);
 }
 
 .slate-table tr:last-child td {
@@ -2997,117 +3012,206 @@ body {
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
 }
 
-@media (max-width: 640px) {
-  .date-stepper-container {
-    width: 100%;
-    justify-content: space-between;
+/* ============================================================== */
+/* MOBILE TOPBAR & CONTROLS REFINEMENT                            */
+/* ============================================================== */
+.btn-pwa-install-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #38BDF8;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn-pwa-install-mobile:hover {
+  background: #38BDF8;
+  color: #0F172A;
+}
+
+.menu-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: var(--card-btn-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-pure);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.menu-toggle-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38BDF8;
+  color: #38BDF8;
+}
+
+@media (max-width: 600px) {
+  .mobile-topbar {
+    padding: 8px 10px;
   }
-  .date-display-trigger {
-    flex: 1;
-    justify-content: center;
+  .brand-info h1 {
+    font-size: 0.95rem;
+  }
+  .brand-info span {
+    display: none;
+  }
+  .cloud-sync-pill {
+    padding: 4px 8px;
+    font-size: 0.68rem;
   }
 }
 
 /* ============================================================== */
-/* ZERO HORIZONTAL SCROLL - RESPONSIVE MOBILE CARD TABLES         */
+/* RESPONSIVE DATE STEPPER                                        */
+/* ============================================================== */
+@media (max-width: 640px) {
+  .date-stepper-container {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px;
+    box-sizing: border-box;
+    justify-content: space-between;
+  }
+  .date-display-trigger {
+    flex: 1 1 auto;
+    min-width: 140px;
+    justify-content: center;
+    padding: 4px 8px;
+  }
+  .date-display-text {
+    font-size: 0.78rem;
+  }
+  .date-today-btn {
+    flex: 0 0 auto;
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
+  .date-session-tag {
+    flex: 0 0 auto;
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+}
+
+/* ============================================================== */
+/* RESPONSIVE COMPACT SPREADSHEETS (PC & MOBILE)                  */
 /* ============================================================== */
 @media (max-width: 820px) {
   .table-responsive-wrapper {
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     width: 100% !important;
-    border: none !important;
-    background: transparent !important;
-    border-radius: 0 !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: var(--radius-sm) !important;
+    background: var(--card-bg) !important;
   }
 
-  .slate-table,
-  .slate-table tbody,
-  .slate-table tfoot {
-    display: block !important;
+  .slate-table {
+    display: table !important;
     width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 0.76rem !important;
   }
 
   .slate-table thead {
-    display: none !important;
+    display: table-header-group !important;
   }
 
-  .slate-table tbody tr {
-    display: block !important;
-    width: 100% !important;
-    margin-bottom: 12px !important;
-    background: #16202E !important;
-    border: 1px solid var(--card-border) !important;
-    border-radius: var(--radius-md) !important;
-    padding: 10px 14px !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25) !important;
+  .slate-table tbody {
+    display: table-row-group !important;
   }
 
-  .slate-table tfoot tr {
-    display: block !important;
-    width: 100% !important;
-    margin-top: 14px !important;
-    margin-bottom: 12px !important;
-    background: rgba(30, 41, 59, 0.95) !important;
-    border: 1.5px solid rgba(56, 189, 248, 0.45) !important;
-    border-radius: var(--radius-md) !important;
-    padding: 12px 14px !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35) !important;
+  .slate-table tfoot {
+    display: table-footer-group !important;
   }
 
+  .slate-table tr {
+    display: table-row !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .slate-table th,
   .slate-table td {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    padding: 8px 0 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-    text-align: right !important;
-    font-size: 0.85rem !important;
-    white-space: normal !important;
+    display: table-cell !important;
+    padding: 8px 6px !important;
+    border-bottom: 1px solid var(--card-border-subtle) !important;
+    white-space: nowrap !important;
+    text-align: left !important;
   }
 
-  .slate-table td:last-child {
-    border-bottom: none !important;
+  /* Sticky First Column for Outlets / Ingredients during horizontal swipe */
+  .buku1-table th:first-child,
+  .buku1-table td:first-child,
+  .master-bahan-table th:first-child,
+  .master-bahan-table td:first-child,
+  .stok-table th:first-child,
+  .stok-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: #1A2536 !important;
+    border-right: 1px solid var(--card-border);
   }
 
-  .slate-table td[data-label]::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: #94A3B8;
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    text-align: left;
-    padding-right: 12px;
-    flex-shrink: 0;
+  .buku1-table th:nth-child(2),
+  .buku1-table td:nth-child(2),
+  .master-bahan-table th:nth-child(2),
+  .master-bahan-table td:nth-child(2),
+  .stok-table th:nth-child(2),
+  .stok-table td:nth-child(2) {
+    position: sticky;
+    left: 32px;
+    z-index: 3;
+    background: #1A2536 !important;
+    border-right: 2px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 3px 0 8px rgba(0, 0, 0, 0.4);
   }
 
-  .slate-table td:empty,
-  .slate-table td[data-label=""] {
-    display: none !important;
+  .slate-table th {
+    top: 0;
+    position: sticky;
+    z-index: 2;
+    background: #202D40 !important;
   }
 
-  .slate-table td[colspan] {
-    justify-content: center !important;
+  .slate-table th:first-child,
+  .slate-table th:nth-child(2) {
+    z-index: 5 !important;
+    background: #223247 !important;
+  }
+
+  /* Compact input styling on mobile */
+  .slate-table input.dark-input {
+    width: 44px !important;
+    padding: 4px 2px !important;
+    font-size: 0.78rem !important;
     text-align: center !important;
   }
 
-  .slate-table td .dark-input {
-    max-width: 130px;
+  .buku1-table input[onchange*="updateBuku1RowSetor"] {
+    width: 78px !important;
+    text-align: right !important;
   }
 
-  .slate-table td .btn-del-row {
-    margin-left: auto;
-  }
-
-  .slate-table td[data-label="Mitra"] strong,
-  .slate-table td[data-label="Bahan"] strong,
-  .slate-table td[data-label="Bahan Baku"] strong {
-    font-size: 0.95rem;
-    color: #38BDF8 !important;
+  .slate-table .btn-del-row {
+    padding: 4px 6px !important;
+    font-size: 0.72rem !important;
   }
 }
 

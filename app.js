@@ -3283,30 +3283,30 @@ function renderAllViews() {
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
           '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
           '<td data-label="Ubi" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)" title="Rencana kirim Ubi">' +
+            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)" title="Rencana kirim Ubi">' +
           '</td>' +
           '<td data-label="Sayur" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #34D399; font-weight: 700;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)" title="Rencana kirim Sayur">' +
+            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #34D399; font-weight: 700;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)" title="Rencana kirim Sayur">' +
           '</td>' +
           '<td data-label="Roti" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #FBBF24; font-weight: 700;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)" title="Rencana kirim Roti">' +
+            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #FBBF24; font-weight: 700;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)" title="Rencana kirim Roti">' +
           '</td>' +
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
           '<td data-label="Bonus" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 52px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)" title="Bonus gratis pemilik">' +
+            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)" title="Bonus gratis pemilik">' +
           '</td>' +
           '<td data-label="Retur Sore" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 60px; text-align: center;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
+            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 46px; text-align: center;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
           '</td>' +
           '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
           '<td data-label="Setoran Net" style="text-align: right;">' +
-            '<div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">' +
-              '<span style="font-size: 0.75rem; color: #64748B; font-family: var(--font-mono);">Rp</span>' +
-              '<input type="number" inputmode="numeric" class="dark-input" style="width: 96px; text-align: right; color: #34D399; font-weight: 800; font-family: var(--font-mono); padding: 5px 8px;" value="' + r.setor + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">' +
+            '<div style="display: flex; align-items: center; justify-content: flex-end; gap: 3px;">' +
+              '<span style="font-size: 0.72rem; color: #64748B; font-family: var(--font-mono);">Rp</span>' +
+              '<input type="number" inputmode="numeric" class="dark-input" style="width: 78px; text-align: right; color: #34D399; font-weight: 800; font-family: var(--font-mono); padding: 4px 6px;" value="' + r.setor + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">' +
             '</div>' +
           '</td>' +
           '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
-            '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
+            '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
           '</td>';
       } else {
         tr.innerHTML = 
@@ -3856,8 +3856,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.0';
-const APP_BUILD_TIME = '24/10/2026 16:00 WIB';
+const APP_VERSION = 'v6.3.1';
+const APP_BUILD_TIME = '24/10/2026 16:22 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
