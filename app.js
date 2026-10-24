@@ -1395,9 +1395,12 @@ window.toggleSidebar = function(forceOpen) {
   const sidebar = document.querySelector('.app-sidebar');
   const backdrop = document.getElementById('sidebarBackdrop');
   if (!sidebar) return;
-  const shouldOpen = forceOpen !== undefined ? forceOpen : !sidebar.classList.contains('open');
+  const isBool = typeof forceOpen === 'boolean';
+  const shouldOpen = isBool ? forceOpen : !sidebar.classList.contains('open');
   sidebar.classList.toggle('open', shouldOpen);
-  if (backdrop) backdrop.classList.toggle('open', shouldOpen);
+  if (backdrop) {
+    backdrop.classList.toggle('open', shouldOpen);
+  }
 };
 
 // Backup Data
@@ -4181,15 +4184,43 @@ function renderAllViews() {
 // ==============================================================
 // DOM READY & EVENT ATTACHMENT
 // ==============================================================
-document.addEventListener('DOMContentLoaded', () => {
+function initSidebarDrawer() {
   const btnToggle = document.getElementById('btnToggleSidebar');
-  if (btnToggle) btnToggle.addEventListener('click', () => window.toggleSidebar());
+  if (btnToggle) {
+    btnToggle.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleSidebar();
+    };
+  }
 
   const btnClose = document.querySelector('.sidebar-close-btn');
-  if (btnClose) btnClose.addEventListener('click', () => window.toggleSidebar(false));
+  if (btnClose) {
+    btnClose.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleSidebar(false);
+    };
+  }
 
   const backdrop = document.getElementById('sidebarBackdrop');
-  if (backdrop) backdrop.addEventListener('click', () => window.toggleSidebar(false));
+  if (backdrop) {
+    backdrop.onclick = function(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      window.toggleSidebar(false);
+    };
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  initSidebarDrawer();
 
   // Copy WhatsApp Sayur
   const btnWa = document.getElementById('btnCopyWa');
@@ -4308,12 +4339,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 renderAllViews();
 initFirestoreSync();
+initSidebarDrawer();
 
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '24/10/2026 19:15 WIB';
+const APP_BUILD_TIME = '24/10/2026 21:20 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

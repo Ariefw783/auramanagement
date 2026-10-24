@@ -3036,8 +3036,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   background: var(--card-btn-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-sm);
@@ -3046,6 +3046,12 @@ body {
   padding: 0;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu-toggle-btn svg {
+  pointer-events: none;
 }
 .menu-toggle-btn:hover {
   background: rgba(56, 189, 248, 0.15);
