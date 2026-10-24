@@ -961,51 +961,122 @@ window.showConfirmModal = function(title, message, onConfirm, onCancel) {
 };
 
 // ==============================================================
-// STAGE 1: TANGGAL DATA AKTUAL & SINKRONISASI BUKU 1 & DASHBOARD
+// STAGE 1: UNIVERSAL DATE STEPPER & CALENDAR DISPLAY ENGINE
 // ==============================================================
-function syncDateSelectElements() {
-  const selects = [document.getElementById('topbarDateSelect'), document.getElementById('buku1DateSelect')];
-  const sortedConfigs = [...OPERATIONAL_DAYS_CONFIG].sort((a, b) => b.isoDate.localeCompare(a.isoDate));
-  selects.forEach(sel => {
-    if (!sel) return;
-    sel.innerHTML = '';
-    sortedConfigs.forEach(cfg => {
-      const opt = document.createElement('option');
-      opt.value = cfg.isoDate;
-      const isSaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
-      let suffix = '';
-      if (cfg.isoDate === REAL_TODAY_ISO) {
-        suffix = isSaved ? ' (Hari Ini - Tersimpan)' : ' (Hari Ini)';
-      } else if (isSaved) {
-        suffix = ' (Tersimpan)';
-      } else {
-        suffix = ' (Draft)';
-      }
-      opt.textContent = cfg.namaHari + suffix;
-      if (cfg.isoDate === activeDate) opt.selected = true;
-      sel.appendChild(opt);
-    });
-    sel.value = activeDate;
-  });
-}
-
-window.switchDate = function(dateStr) {
-  activeDate = dateStr;
-  syncDateSelectElements();
-
-  const tagEl = document.getElementById('dateSessionTag');
-  if (tagEl) {
-    const isSaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[dateStr]);
-    if (dateStr === REAL_TODAY_ISO) tagEl.innerText = isSaved ? 'Hari Ini • Tersimpan' : 'Hari Ini • Mode Input';
-    else if (isSaved) tagEl.innerText = 'Data Tersimpan';
-    else tagEl.innerText = 'Draft Rencana';
+function syncDateDisplays() {
+  if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === activeDate)) {
+    OPERATIONAL_DAYS_CONFIG.push(buildDayMetaFromIso(activeDate, OPERATIONAL_DAYS_CONFIG.length + 1));
+  }
+  const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
+  const isSaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+  
+  let statusSuffix = '';
+  if (activeDate === REAL_TODAY_ISO) {
+    statusSuffix = isSaved ? ' (Hari Ini • Tersimpan)' : ' (Hari Ini)';
+  } else if (isSaved) {
+    statusSuffix = ' (Tersimpan)';
+  } else {
+    statusSuffix = ' (Draft)';
   }
 
+  const labelText = curCfg.namaHari + statusSuffix;
+
+  // Update text label pada ketiga tab
+  const dashTextEl = document.getElementById('dashboardDateText');
+  const b1TextEl = document.getElementById('buku1DateText');
+  const kuitansiTextEl = document.getElementById('kuitansiDateText');
+  if (dashTextEl) dashTextEl.innerText = labelText;
+  if (b1TextEl) b1TextEl.innerText = labelText;
+  if (kuitansiTextEl) kuitansiTextEl.innerText = labelText;
+
+  // Update input datepicker kalender agar kalender otomatis membuka tanggal aktif
+  const pickerDash = document.getElementById('nativeDatePickerDashboard');
+  const pickerB1 = document.getElementById('nativeDatePickerBuku1');
+  const pickerB2 = document.getElementById('nativeDatePickerBuku2');
+  if (pickerDash) pickerDash.value = activeDate;
+  if (pickerB1) pickerB1.value = activeDate;
+  if (pickerB2) pickerB2.value = activeDate;
+
+  // Update Status Pill Tag
+  const tagEl = document.getElementById('dateSessionTag');
+  if (tagEl) {
+    if (activeDate === REAL_TODAY_ISO) {
+      tagEl.innerText = isSaved ? 'Hari Ini • Tersimpan' : 'Hari Ini • Mode Input';
+      tagEl.style.background = isSaved ? 'rgba(52, 211, 153, 0.2)' : 'rgba(56, 189, 248, 0.2)';
+      tagEl.style.color = isSaved ? '#34D399' : '#38BDF8';
+    } else if (isSaved) {
+      tagEl.innerText = 'Data Tersimpan';
+      tagEl.style.background = 'rgba(52, 211, 153, 0.2)';
+      tagEl.style.color = '#34D399';
+    } else {
+      tagEl.innerText = 'Draft Rencana';
+      tagEl.style.background = 'rgba(251, 191, 36, 0.2)';
+      tagEl.style.color = '#FBBF24';
+    }
+  }
+
+  // Update print date display
+  const b1PrintDateDisplay = document.getElementById('buku1PrintDateDisplay');
+  if (b1PrintDateDisplay) b1PrintDateDisplay.innerText = curCfg.namaHari;
+}
+
+window.stepDate = function(offsetDays) {
+  const parts = activeDate.split('-').map(Number);
+  const y = parts[0];
+  const m = parts[1] || 1;
+  const d = parts[2] || 1;
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + offsetDays);
+
+  const ny = dt.getFullYear();
+  const nm = String(dt.getMonth() + 1).padStart(2, '0');
+  const nd = String(dt.getDate()).padStart(2, '0');
+  const targetIso = ny + '-' + nm + '-' + nd;
+
+  window.switchDate(targetIso);
+};
+
+window.goToToday = function() {
+  const todayIso = getRealTodayIso();
+  window.switchDate(todayIso);
+};
+
+window.switchDate = function(dateStr) {
+  if (!dateStr) return;
+  activeDate = dateStr;
+
+  if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === activeDate)) {
+    OPERATIONAL_DAYS_CONFIG.push(buildDayMetaFromIso(activeDate, OPERATIONAL_DAYS_CONFIG.length + 1));
+  }
+
+  const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
+  if (matchedDayCfg) {
+    selectedBuku2Date = matchedDayCfg.b2Key;
+    if (!KUITANSI_DATE_CONFIG[matchedDayCfg.b2Key]) {
+      KUITANSI_DATE_CONFIG[matchedDayCfg.b2Key] = {
+        namaHari: matchedDayCfg.namaHari,
+        noBkk: matchedDayCfg.noBkk,
+        modal: matchedDayCfg.modal || 100000
+      };
+    }
+  }
+
+  syncDateDisplays();
   renderAllViews();
 };
 
 window.switchBuku1Date = function(dateStr) {
   window.switchDate(dateStr);
+};
+
+window.switchBuku2Date = function(b2Key) {
+  selectedBuku2Date = b2Key;
+  const matchedCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === b2Key);
+  if (matchedCfg) {
+    activeDate = matchedCfg.isoDate;
+  }
+  syncDateDisplays();
+  renderAllViews();
 };
 
 // Set Hari Ini pada Buku 1
@@ -1015,7 +1086,7 @@ window.setBuku1Today = function() {
     OPERATIONAL_DAYS_CONFIG.push(buildDayMetaFromIso(todayIso, OPERATIONAL_DAYS_CONFIG.length + 1));
   }
   if (!auraData.buku1History[todayIso]) {
-    auraData.buku1History[todayIso] = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY['2026-10-23']));
+    auraData.buku1History[todayIso] = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY['2026-10-26'] || getActiveBuku1Rows()));
   }
   activeDate = todayIso;
   buku1EditModeDates[todayIso] = true;
@@ -3107,7 +3178,7 @@ window.updateStokFromGram = function(idx, gramVal) {
 // MASTER RENDER ENGINE (SINKRONISASI INTEGRAL SELURUH MODUL)
 // ==============================================================
 function renderAllViews() {
-  syncDateSelectElements();
+  syncDateDisplays();
 
   // 1. EXECUTIVE DASHBOARD FINANCIALS, CHARTS & RANKING
   renderExecutiveFinancials();
@@ -3749,8 +3820,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.1.0';
-const APP_BUILD_TIME = '24/10/2026 15:35 WIB';
+const APP_VERSION = 'v6.2.0';
+const APP_BUILD_TIME = '24/10/2026 15:42 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
