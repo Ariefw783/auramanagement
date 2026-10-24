@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#233044">
+  <title>DAPUR MOM FITRI - Automated Utility & Revenue Assistant</title>
+  <link rel="icon" type="image/png" href="./icon-192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="DAPUR MOM FITRI">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+  <!-- Backdrop for Mobile Slide-in Drawer -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <!-- Master Dark Slate Shell Container -->
+  <div class="app-frame">
+
+    <!-- LEFT SIDEBAR: DARK SLATE BLUEPRINT MENU -->
+    <aside class="app-sidebar">
+      <div>
+        <!-- Sidebar Top Header with Brand & Close Button -->
+        <div class="sidebar-top">
+          <div class="brand-area">
+            <div class="brand-icon-box" title="DAPUR MOM FITRI">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
+                <line x1="6" y1="17" x2="18" y2="17"/>
+              </svg>
+            </div>
+            <div class="brand-info">
+              <h1>DAPUR MOM FITRI</h1>
+              <span>Automated Utility & Revenue Assistant</span>
+            </div>
+          </div>
+          <button class="sidebar-close-btn" title="Tutup Navigasi" aria-label="Tutup Navigasi">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Sidebar Navigation Groups -->
+        <nav class="sidebar-menu">
+
+          <!-- GROUP 1: RINGKASAN & STATUS -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Ringkasan & Status</span>
+            </div>
+
+            <button type="button" class="nav-item-btn active" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+                    <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+                    <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+                    <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Executive Dashboard</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- GROUP 2: DISTRIBUSI & PENJUALAN MITRA -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Distribusi & Mitra</span>
+            </div>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-buku1" onclick="window.switchTab('tab-buku1')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l1-6h16l1 6"></path>
+                    <path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"></path>
+                    <path d="M9 22V12h6v10"></path>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Distribusi Mitra</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-slipbox" onclick="window.switchTab('tab-slipbox')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Label Box & Kupon</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- GROUP 3: KEUANGAN & ARUS KAS -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Keuangan & Arus Kas</span>
+            </div>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-buku2" onclick="window.switchTab('tab-buku2')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Kas Keluar & Belanja</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-buku3" onclick="window.switchTab('tab-buku3')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                    <circle cx="16" cy="14" r="1.5" fill="currentColor"></circle>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Arus Kas & Laba Bersih</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- GROUP 4: INVENTARIS & PRODUKSI -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Inventaris & Produksi</span>
+            </div>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-master-bahan" onclick="window.switchTab('tab-master-bahan')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Master Bahan & Harga</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Inventaris & Pengadaan</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    <line x1="9" y1="7" x2="15" y2="7"></line>
+                    <line x1="9" y1="11" x2="13" y2="11"></line>
+                  </svg>
+                </span>
+                <span class="nav-item-label">SOP & Takaran Produksi</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+        </nav>
+      </div>
+
+      <!-- Bottom System Status Box -->
+      <div class="sidebar-status-box">
+        <div class="status-box-header">
+          <div class="status-box-title">
+            <span class="status-indicator"></span>
+            <span>Dapur Mom Fitri Core</span>
+          </div>
+          <span class="mini-tag">v5.0</span>
+        </div>
+        <p class="status-box-desc">
+          Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
+        </p>
+        <div class="status-box-tags">
+          <span class="mini-tag">Zero-Leakage</span>
+          <span class="mini-tag">Cloud Firestore</span>
+        </div>
+
+        <!-- Cloud Sync Status Badge Sidebar -->
+        <div style="margin-top: 10px;">
+          <div class="cloud-sync-pill" id="cloudSyncPillDesktop" onclick="window.triggerCloudSync()" title="Status Sinkronisasi Cloud Firestore (Klik untuk sinkronkan sekarang)">
+            <span class="cloud-sync-dot"></span>
+            <span class="cloud-sync-text">Cloud Memuat...</span>
+          </div>
+        </div>
+        
+        <!-- PWA Install Button Sidebar -->
+        <div style="margin-top: 8px;">
+          <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" onclick="window.triggerPwaInstall()">
+            <span>📲</span>
+            <span>Pasang Aplikasi (PWA)</span>
+          </button>
+        </div>
+
+        <div style="margin-top: 8px; display: flex; gap: 6px;">
+          <button type="button" class="tool-btn" style="padding: 5px 8px; font-size: 0.72rem; flex: 1;" onclick="window.backupData()">Backup</button>
+          <button type="button" class="tool-btn" style="padding: 5px 8px; font-size: 0.72rem; flex: 1;" onclick="document.getElementById('restoreFileInput').click()">Restore</button>
+          <input type="file" id="restoreFileInput" style="display:none;" accept=".json" onchange="window.restoreData(event)">
+        </div>
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN WORKSPACE -->
+    <main class="main-workspace">
+
+      <!-- Mobile Topbar with Brand & Hamburger Drawer Toggle -->
+      <header class="mobile-topbar">
+        <div class="brand-area">
+          <div class="brand-icon-box" title="DAPUR MOM FITRI">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
+              <line x1="6" y1="17" x2="18" y2="17"/>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <h1>DAPUR MOM FITRI</h1>
+            <span>Automated Utility & Revenue Assistant</span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <div class="cloud-sync-pill" id="cloudSyncPillMobile" onclick="window.triggerCloudSync()" title="Status Cloud Firestore">
+            <span class="cloud-sync-dot"></span>
+            <span class="cloud-sync-text">Cloud</span>
+          </div>
+          <button type="button" class="btn-pwa-install-mobile" id="btnPwaInstallMobile" onclick="window.triggerPwaInstall()" title="Pasang Aplikasi">Pasang</button>
+          <button class="menu-toggle-btn" id="btnToggleSidebar" aria-label="Buka Menu Navigasi">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- ============================================================== -->
+      <!-- TAB 1: EXECUTIVE DASHBOARD (P&L ACCOUNTING & OUTLET RANKING)    -->
+      <!-- ============================================================== -->
+      <section id="tab-dashboard" class="app-tab-panel active">
+        
+        <!-- Header Topbar Area with Working Date Selector -->
+        <div class="topbar-header">
+          <div class="topbar-title-area">
+            <h2>Executive Dashboard</h2>
+            <div class="topbar-date-pill">
+              <div class="date-text-wrap">
+                <span class="date-sublabel">TANGGAL DATA</span>
+                <select id="topbarDateSelect" class="date-switcher-select" onchange="window.switchDate(this.value)">
+                  <option value="2026-10-26" selected>Senin, 26 Oktober 2026 (Target Baru)</option>
+                  <option value="2026-10-27">Selasa, 27 Oktober 2026</option>
+                  <option value="2026-10-28">Rabu, 28 Oktober 2026</option>
+                  <option value="2026-10-29">Kamis, 29 Oktober 2026</option>
+                  <option value="2026-10-30">Jumat, 30 Oktober 2026</option>
+                  <option value="2026-10-31">Sabtu, 31 Oktober 2026</option>
+                </select>
+              </div>
+              <span class="date-session-tag" id="dateSessionTag">Target Baru</span>
+            </div>
+          </div>
+
+          <!-- Total Balance Stat Card -->
+          <div class="total-stat-card">
+            <div class="total-stat-info">
+              <span id="balanceLabel">Akumulasi Kas Bersih</span>
+              <strong id="balanceDisplay">Rp 100.000</strong>
+              <div id="balanceSubDisplay" style="font-size: 0.7rem; color: #94A3B8; margin-top: 2px;">Dompet Bos: Rp 0 • Kotak Dapur: Rp 100.000</div>
+            </div>
+            <button class="tool-btn" onclick="window.switchTab('tab-buku3')">Arus Kas</button>
+          </div>
+        </div>
+
+        <!-- STAGE 1: EXECUTIVE FINANCIAL SCORECARDS (CLEAN MINIMALIST) -->
+        <div class="financial-kpi-grid">
+          <div class="financial-kpi-card kpi-omzet">
+            <span class="kpi-label">Omzet Setoran</span>
+            <strong class="kpi-val" id="kpiOmzetVal">Rp 89.000</strong>
+            <span class="kpi-sub" id="kpiOmzetSub">107 / 128 pcs (83.6%)</span>
+          </div>
+
+          <div class="financial-kpi-card kpi-belanja">
+            <span class="kpi-label">Belanja Dapur (HPP)</span>
+            <strong class="kpi-val" id="kpiBelanjaVal">Rp 57.500</strong>
+            <span class="kpi-sub" id="kpiBelanjaSub">Plafon Amplop 1: Rp 65.000</span>
+          </div>
+
+          <div class="financial-kpi-card kpi-laba">
+            <span class="kpi-label">Laba Bersih</span>
+            <strong class="kpi-val" id="kpiLabaVal">Rp 31.500</strong>
+            <span class="kpi-sub" id="kpiLabaSub">Omzet dikurangi Belanja</span>
+          </div>
+
+          <div class="financial-kpi-card kpi-gaji">
+            <span class="kpi-label">Gaji Bos (Amplop 2)</span>
+            <strong class="kpi-val" id="kpiGajiVal">Rp 24.000</strong>
+            <span class="kpi-sub" id="kpiGajiSub">Masuk dompet pemilik</span>
+          </div>
+
+          <div class="financial-kpi-card kpi-endapan">
+            <span class="kpi-label">Endapan Kotak</span>
+            <strong class="kpi-val" id="kpiEndapanVal">Rp 7.500</strong>
+            <span class="kpi-sub" id="kpiEndapanSub">Saldo kotak: Rp 16.500</span>
+          </div>
+        </div>
+
+        <!-- STAGE 1: INTERACTIVE ACCOUNTING CHARTS -->
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Grafik Laba Rugi & Arus Kas</span>
+              </div>
+              <div class="slate-card-subtitle" id="chartSubtitleDisplay">
+                Perbandingan Omzet, Belanja Bahan, Laba Bersih, dan Gaji Pemilik
+              </div>
+            </div>
+
+            <!-- Timeframe Filter Buttons: Mingguan, Bulanan, Tahunan -->
+            <div class="chart-filter-toggle">
+              <button type="button" class="chart-time-btn active" data-period="mingguan" onclick="window.switchChartPeriod('mingguan')">Mingguan</button>
+              <button type="button" class="chart-time-btn" data-period="bulanan" onclick="window.switchChartPeriod('bulanan')">Bulanan</button>
+              <button type="button" class="chart-time-btn" data-period="tahunan" onclick="window.switchChartPeriod('tahunan')">Tahunan</button>
+            </div>
+          </div>
+
+          <!-- Indikator Legend Akuntansi -->
+          <div class="chart-legend-row">
+            <div class="legend-item">
+              <span class="legend-color-dot" style="background: #38BDF8;"></span>
+              <span>Omzet</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color-dot" style="background: #F87171;"></span>
+              <span>Belanja</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color-dot" style="background: #34D399;"></span>
+              <span>Laba Bersih</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-color-dot" style="background: #818CF8;"></span>
+              <span>Gaji Bos</span>
+            </div>
+          </div>
+
+          <!-- Dynamic SVG/CSS Accounting Chart Container -->
+          <div class="accounting-chart-canvas" id="accountingChartContainer">
+            <!-- Rendered Dynamically via app.js -->
+          </div>
+
+          <!-- Ringkasan Akumulasi Periode Grafik (Subtle Footer Strip) -->
+          <div id="chartPeriodSummary" class="chart-summary-strip">
+            <!-- Rendered Dynamically via app.js -->
+          </div>
+        </div>
+
+        <!-- STAGE 1: OUTLET PERFORMANCE RANKING -->
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Performa 6 Titik Konsinyasi</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38BDF8; font-size: 0.72rem; padding: 2px 8px; font-weight: 700;" id="rankDateTag">Rabu, 21 Okt 2026</span>
+              </div>
+              <div class="slate-card-subtitle">Urutan titik berdasarkan volume penjualan harian</div>
+            </div>
+            <button class="tool-btn" onclick="window.switchTab('tab-buku1')">Distribusi Mitra</button>
+          </div>
+
+          <!-- Grid Ranking Kartu Performa Outlet -->
+          <div class="outlet-ranking-grid" id="outletRankingContainer">
+            <!-- Rendered Dynamically via app.js -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 2: DISTRIBUSI & PENJUALAN MITRA (FORMAT A5)                -->
+      <!-- ============================================================== -->
+      <section id="tab-buku1" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Distribusi & Penjualan Mitra (Format A5)</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Mode Input</span>
+              </div>
+              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik Simpan untuk mengunci data hari ini, atau klik Edit jika perlu koreksi.</div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Set lembar ke tanggal hari ini">Set Hari Ini</button>
+              <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
+              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">Edit Data</button>
+              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()">Simpan Hari Ini</button>
+              <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
+            </div>
+          </div>
+
+          <!-- Date Filter Toolbar for Buku 1 -->
+          <div class="kuitansi-filter-bar no-print" style="margin-bottom: 16px;">
+            <div class="kuitansi-filter-group">
+              <label for="buku1DateSelect" class="kuitansi-filter-label">
+                <span>TANGGAL DISTRIBUSI MITRA:</span>
+              </label>
+              <select id="buku1DateSelect" class="kuitansi-dropdown-select" onchange="window.switchBuku1Date(this.value)">
+                <option value="2026-10-23" selected>Jumat, 23 Oktober 2026 (Hari Ini)</option>
+                <option value="2026-10-22">Kamis, 22 Oktober 2026</option>
+                <option value="2026-10-21">Rabu, 21 Oktober 2026</option>
+                <option value="2026-10-20">Selasa, 20 Oktober 2026</option>
+                <option value="2026-10-19">Senin, 19 Oktober 2026</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Printable A5 Container for Buku 1 -->
+          <div class="buku1-printable-wrap" id="buku1PrintArea">
+            
+            <!-- Header Kop Buku 1 saat dicetak -->
+            <div class="buku1-print-kop">
+              <div>
+                <strong style="font-size: 1.1rem; color: #FFFFFF;">DAPUR MOM FITRI — DISTRIBUSI & PENJUALAN MITRA</strong>
+                <div style="font-size: 0.8rem; color: #94A3B8;">Tanggal: <span id="buku1PrintDateDisplay">Rabu, 21 Oktober 2026</span> • Alokasi 6 Titik Konsinyasi</div>
+              </div>
+              <div style="text-align: right; font-size: 0.75rem; color: #94A3B8;">
+                Dokumen Distribusi Mitra Fisik (A5)<br>Status: <span id="buku1PrintStatusText">Terverifikasi Kas Sore</span>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper">
+              <table class="slate-table buku1-table">
+                <thead>
+                  <tr>
+                    <th style="width: 38px; text-align: center;">No</th>
+                    <th>Nama Warung / Kantin</th>
+                    <th style="width: 62px; text-align: center;">Ubi</th>
+                    <th style="width: 62px; text-align: center;">Sayur</th>
+                    <th style="width: 62px; text-align: center;">Roti</th>
+                    <th style="width: 80px; text-align: center;">Kirim (Pcs)</th>
+                    <th style="width: 68px; text-align: center;">Bonus</th>
+                    <th style="width: 85px; text-align: center;">Retur Sore</th>
+                    <th style="width: 85px; text-align: center;">Laku (Pcs)</th>
+                    <th style="width: 135px; text-align: right;">Setoran Net (Rp)</th>
+                    <th style="width: 65px; text-align: center;" class="no-print">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="buku1TableBody"></tbody>
+                <tfoot id="buku1TableFoot"></tfoot>
+              </table>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 3: LABEL BOX & KUPON TITIPAN (6 TITIK)                     -->
+      <!-- ============================================================== -->
+      <section id="tab-slipbox" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Label Box & Kupon Titipan Mitra (6 Titik)</span>
+              </div>
+              <div class="slate-card-subtitle">Kupon potong fisik untuk ditempel pada tutup box mika. Tarif setor & margin mitra dapat diedit langsung per toko.</div>
+            </div>
+            <button class="tool-btn" onclick="window.print()">Cetak Label Kupon</button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;" id="slipBoxContainer">
+            <!-- Dynamic Slip Boxes -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 4: KAS KELUAR & BELANJA DAPUR (KUITANSI A5)                -->
+      <!-- ============================================================== -->
+      <section id="tab-buku2" class="app-tab-panel">
+        
+        <!-- Header & Navigasi Lembar Kuitansi Per Hari -->
+        <div class="kuitansi-nav-card no-print">
+          <div class="kuitansi-nav-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Kas Keluar & Belanja Dapur (Kuitansi A5)</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">1 Lembar / 1 Hari</span>
+              </div>
+              <div class="slate-card-subtitle">Format Bukti Kas Keluar (BKK) resmi Amplop 1 • Dilengkapi fitur edit langsung per baris</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn tool-btn-success" onclick="window.printKuitansi()">Cetak Kuitansi A5</button>
+              <button type="button" class="tool-btn" onclick="window.handleCreateNewKuitansiDay()">+ Buat Lembar Hari Baru</button>
+            </div>
+          </div>
+
+          <!-- Dropdown Filter Lembar Tanggal -->
+          <div class="kuitansi-filter-bar">
+            <div class="kuitansi-filter-group">
+              <label for="kuitansiDateSelect" class="kuitansi-filter-label">
+                <span>LEMBAR TANGGAL KUITANSI:</span>
+              </label>
+              <select id="kuitansiDateSelect" class="kuitansi-dropdown-select" onchange="window.switchBuku2Date(this.value)">
+                <!-- Generated dynamically via app.js -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- LEMBAR KUITANSI FISIK A5 (VOUCHER KAS KELUAR) -->
+        <div class="kuitansi-voucher-wrap" id="kuitansiPrintArea">
+          <div class="kuitansi-voucher-box">
+            
+            <!-- KOP VOUCHER KUITANSI -->
+            <div class="kuitansi-kop">
+              <div class="kuitansi-brand-col">
+                <div class="kuitansi-brand-badge">DAPUR MOM FITRI</div>
+                <div class="kuitansi-brand-sub">AUTOMATED UTILITY & REVENUE ASSISTANT</div>
+                <div class="kuitansi-brand-loc">Sistem Operasional Konsinyasi • Dokumen Kontrol Kas Internal</div>
+              </div>
+              <div class="kuitansi-doc-col">
+                <div class="kuitansi-doc-title">BUKTI KAS KELUAR</div>
+                <div class="kuitansi-doc-no" id="kuitansiNoDisplay">BKK-20261021-03</div>
+                <div class="kuitansi-doc-badge">FORMAT LEMBAR A5 HARIAN</div>
+              </div>
+            </div>
+
+            <!-- METADATA GRID KUITANSI -->
+            <div class="kuitansi-meta-grid">
+              <div class="kuitansi-meta-cell meta-tgl">
+                <span class="kuitansi-meta-lbl">HARI & TANGGAL:</span>
+                <strong class="kuitansi-meta-val" id="kuitansiTglDisplay">Rabu, 21 Oktober 2026</strong>
+              </div>
+              <div class="kuitansi-meta-cell meta-sumber">
+                <span class="kuitansi-meta-lbl">SUMBER DANA KAS:</span>
+                <strong class="kuitansi-meta-val" style="color: #818CF8;">AMPLOP 1 (MODAL DAPUR & BAHAN)</strong>
+              </div>
+              <div class="kuitansi-meta-cell meta-plafon">
+                <span class="kuitansi-meta-lbl">PLAFON MODAL HARI INI:</span>
+                <strong class="kuitansi-meta-val" style="color: #34D399;" id="kuitansiPlafonDisplay">Rp 65.000</strong>
+              </div>
+              <div class="kuitansi-meta-cell meta-kepada">
+                <span class="kuitansi-meta-lbl">DIBAYARKAN KEPADA:</span>
+                <strong class="kuitansi-meta-val" style="color: #FBBF24;">Pedagang Pasar Subuh & Toko / Minimarket</strong>
+              </div>
+            </div>
+
+            <!-- TABEL RINCIAN PENGELUARAN PADA KUITANSI (STATUS STRUK DIHAPUS) -->
+            <div class="table-responsive-wrapper" style="margin-bottom: 14px;">
+              <table class="slate-table kuitansi-table">
+                <thead>
+                  <tr>
+                    <th style="width: 36px; text-align: center;">No</th>
+                    <th>Rincian Kebutuhan / Bahan Baku</th>
+                    <th style="width: 170px;">Kategori Belanja</th>
+                    <th style="width: 130px;">Kuantitas / Takaran</th>
+                    <th style="width: 140px; text-align: right;">Biaya Riil (Rp)</th>
+                    <th style="width: 80px; text-align: center;" class="no-print">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="kuitansiTableBody">
+                  <!-- Dynamic items for selected day -->
+                </tbody>
+                <tfoot>
+                  <tr class="kuitansi-total-row">
+                    <td colspan="4" style="text-align: right; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL PENGELUARAN KUITANSI HARI INI:</td>
+                    <td style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 900; color: #FB7185; text-align: right;" id="kuitansiTableTotal">Rp 0</td>
+                    <td class="no-print"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- IN-LINE FORM: TAMBAH ITEM KE KUITANSI HARI INI -->
+            <div class="kuitansi-add-item-box no-print">
+              <div class="kuitansi-add-title">
+                <span>Form Input Pengeluaran Kas Baru (Tambah ke Lembar <span id="kuitansiCurrentDayLabel">21/10</span>)</span>
+              </div>
+              <form id="formAddBelanjaKuitansi" onsubmit="window.handleAddBelanjaToKuitansi(event)">
+                <div class="kuitansi-input-grid">
+                  <div style="flex: 2; min-width: 180px;">
+                    <label class="form-label">Nama Bahan / Rincian</label>
+                    <input type="text" id="kuitansiInputNama" class="form-control-slate" placeholder="Contoh: Roti Tawar Kupas" required>
+                  </div>
+                  <div style="flex: 1.2; min-width: 120px;">
+                    <label class="form-label">Kuantitas</label>
+                    <input type="text" id="kuitansiInputQty" class="form-control-slate" placeholder="Contoh: 2 bungkus" required>
+                  </div>
+                  <div style="flex: 1.2; min-width: 120px;">
+                    <label class="form-label">Biaya Riil (Rp)</label>
+                    <input type="number" id="kuitansiInputBiaya" class="form-control-slate" placeholder="Contoh: 20000" min="0" required>
+                  </div>
+                  <div style="flex: 1.6; min-width: 160px;">
+                    <label class="form-label">Kategori Belanja</label>
+                    <select id="kuitansiInputKategori" class="form-control-slate">
+                      <option value="Toko / Minimarket">Toko / Minimarket</option>
+                      <option value="Pasar Subuh">Pasar Subuh</option>
+                      <option value="Operasional & Gas">Operasional / Gas</option>
+                    </select>
+                  </div>
+                  <div style="align-self: flex-end;">
+                    <button type="submit" class="tool-btn tool-btn-success" style="padding: 9px 18px; font-weight: 800;">+ Catat ke Kuitansi</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- TERBILANG KUITANSI BOX -->
+            <div class="kuitansi-terbilang-wrap">
+              <span class="kuitansi-terbilang-tag">TERBILANG:</span>
+              <div class="kuitansi-terbilang-text" id="kuitansiTerbilangDisplay">
+                # Lima Puluh Tujuh Ribu Lima Ratus Rupiah #
+              </div>
+            </div>
+
+            <!-- REKONSILIASI KAS AMPLOP 1 HARI INI -->
+            <div class="kuitansi-rekap-grid">
+              <div class="kuitansi-rekap-card card-plafon">
+                <div class="kuitansi-rekap-head">
+                  <span class="kuitansi-rekap-lbl">1. PLAFON MODAL (AMPLOP 1)</span>
+                </div>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapModal">Rp 65.000</strong>
+                <span class="kuitansi-rekap-sub">Alokasi kas harian untuk belanja</span>
+              </div>
+              <div class="kuitansi-rekap-card card-belanja">
+                <div class="kuitansi-rekap-head">
+                  <span class="kuitansi-rekap-lbl">2. TOTAL BELANJA RIIL KELUAR</span>
+                </div>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapBelanja">Rp 57.500</strong>
+                <span class="kuitansi-rekap-sub">Total pengeluaran lembar kuitansi ini</span>
+              </div>
+              <div class="kuitansi-rekap-card card-endapan">
+                <div class="kuitansi-rekap-head">
+                  <span class="kuitansi-rekap-lbl">3. SISA KAS MENGENDAP DI KOTAK</span>
+                </div>
+                <strong class="kuitansi-rekap-val" id="kuitansiRekapEndapan">Rp 7.500</strong>
+                <span class="kuitansi-rekap-sub">Sisa uang tunai (Cadangan gas & minyak)</span>
+              </div>
+            </div>
+
+            <!-- LEMBAR TANDA TANGAN & PENGESAHAN KUITANSI (A5 OFFICIAL) -->
+            <div class="kuitansi-signatures-wrap">
+              <div class="kuitansi-sig-box">
+                <div class="kuitansi-sig-title">Diserahkan Kepada / Toko:</div>
+                <div class="kuitansi-sig-line">
+                  <div class="kuitansi-sig-name">( Pedagang / Toko Bahan )</div>
+                  <div class="kuitansi-sig-role">Struk / Nota Fisik Terlampir</div>
+                </div>
+              </div>
+
+              <!-- CAP STEMPEL KUITANSI -->
+              <div class="kuitansi-stamp-box">
+                <div class="kuitansi-stamp-inner">
+                  <span class="stamp-star">★ ★ ★</span>
+                  <span class="stamp-main">LUNAS DIBAYAR</span>
+                  <span class="stamp-account">AMPLOP 1 DAPUR</span>
+                  <span class="stamp-status">ZERO-LEAKAGE VERIFIED</span>
+                </div>
+              </div>
+
+              <div class="kuitansi-sig-box">
+                <div class="kuitansi-sig-title">Penanggung Jawab Kas / Bos:</div>
+                <div class="kuitansi-sig-line">
+                  <div class="kuitansi-sig-name">( Bos / Otorisator Kas )</div>
+                  <div class="kuitansi-sig-role">Penanggung Jawab Kas Utama</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 5: ARUS KAS & LABA BERSIH (MASTER KAS A4)                  -->
+      <!-- ============================================================== -->
+      <section id="tab-buku3" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Arus Kas & Laba Bersih (Master Kas A4)</span>
+              </div>
+              <div class="slate-card-subtitle">Pemisahan 2 Amplop Dinamis: Amplop 1 (Operasional Dapur & Buffer) & Amplop 2 (Gaji Bersih Pemilik)</div>
+            </div>
+            <span class="badge-status done">BEP Aman: 81 Pcs/Hari</span>
+          </div>
+
+          <!-- BEP Progress Card -->
+          <div class="bep-card-wrap">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <strong style="color: #FFFFFF; font-size: 0.95rem;">Monitoring Balik Modal Awal Usaha (Target BEP: Rp 190.000)</strong>
+                <div style="font-size: 0.75rem; color: #94A3B8;">Modal perdana dipulihkan dari akumulasi laba murni Amplop 2 (Gaji Bersih Bos)</div>
+              </div>
+              <span class="badge-status done" id="bepStatusBadge">BEP On Track</span>
+            </div>
+            <div class="bep-stats-grid">
+              <div class="bep-stat-pill">
+                <span>Target Modal Awal</span>
+                <strong style="color: #FFFFFF;">Rp 190.000</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>Gaji Terkumpul di Dompet</span>
+                <strong style="color: #34D399;" id="bepAccumulated">Rp 64.500</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>Sisa Menuju Lunas</span>
+                <strong style="color: #FB923C;" id="bepRemaining">Rp 125.500</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>Estimasi Waktu Impas</span>
+                <strong style="color: #38BDF8;" id="bepDaysEstimate">~6 Hari Kerja</strong>
+              </div>
+            </div>
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
+                <span style="color: #94A3B8;">Progress Pemulihan Modal:</span>
+                <span style="color: #38BDF8;" id="bepPercent">33.9%</span>
+              </div>
+              <div class="bep-progress-bar-bg">
+                <div class="bep-progress-bar-fill" id="bepBarFill" style="width: 33.9%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-responsive-wrapper">
+            <table class="slate-table">
+              <thead>
+                <tr>
+                  <th>Tgl</th>
+                  <th>Hari</th>
+                  <th>Kirim</th>
+                  <th>Retur</th>
+                  <th>Laku</th>
+                  <th>Total Kas (Rp)</th>
+                  <th>Amplop 1 (Modal Dapur)</th>
+                  <th>Amplop 2 (Gaji Bersih)</th>
+                  <th>Belanja Riil</th>
+                  <th>Endapan Cadangan</th>
+                </tr>
+              </thead>
+              <tbody id="buku3TableBody"></tbody>
+              <tfoot id="buku3TableFoot"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB: MASTER BAHAN BAKU & HARGA (STAGE 2)                       -->
+      <!-- ============================================================== -->
+      <section id="tab-master-bahan" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Master Bahan Baku & Rekam Jejak Harga</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Katalog Resmi</span>
+              </div>
+              <div class="slate-card-subtitle">Database harga beli terakhir, satuan standar, dan toko vendor seluruh bahan operasional Dapur Mom Fitri.</div>
+            </div>
+            <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
+          </div>
+
+          <!-- Filter & Search Toolbar -->
+          <div class="master-bahan-toolbar no-print">
+            <div class="search-input-wrap">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input type="text" id="searchMasterBahan" class="search-input-field" placeholder="Cari bahan baku (contoh: Ubi, Roti, Minyak)..." oninput="window.renderMasterBahanTable()">
+            </div>
+
+            <div class="filter-pills-wrap">
+              <button type="button" class="filter-pill active" data-cat="all" onclick="window.filterMasterBahanCat('all')">Semua Kategori</button>
+              <button type="button" class="filter-pill" data-cat="Pasar Subuh" onclick="window.filterMasterBahanCat('Pasar Subuh')">Pasar Subuh</button>
+              <button type="button" class="filter-pill" data-cat="Toko / Minimarket" onclick="window.filterMasterBahanCat('Toko / Minimarket')">Toko / Minimarket</button>
+              <button type="button" class="filter-pill" data-cat="Operasional & Gas" onclick="window.filterMasterBahanCat('Operasional & Gas')">Operasional & Gas</button>
+              <button type="button" class="filter-pill" data-cat="Kemasan" onclick="window.filterMasterBahanCat('Kemasan')">Kemasan</button>
+            </div>
+          </div>
+
+          <!-- Master Table -->
+          <div class="table-responsive-wrapper">
+            <table class="slate-table master-bahan-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">No</th>
+                  <th>Nama Bahan Baku</th>
+                  <th style="width: 150px;">Kategori</th>
+                  <th style="width: 240px;">Satuan Kemasan &amp; Konversi Gram</th>
+                  <th style="width: 150px; text-align: right;">Harga Terakhir (Rp)</th>
+                  <th style="width: 160px;">Toko / Vendor Langganan</th>
+                  <th style="width: 110px; text-align: center;">Tgl Update</th>
+                  <th style="width: 90px; text-align: center;" class="no-print">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="masterBahanTableBody">
+                <!-- Rendered Dynamically via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 6: INVENTARIS BAHAN & PENGADAAN (SUPPLY CHAIN)             -->
+      <!-- ============================================================== -->
+      <section id="tab-stok" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>Inventaris Bahan & Pengadaan Dapur</span>
+              </div>
+              <div class="slate-card-subtitle">Kontrol ketersediaan bahan fisik dapur, pesanan Pasar Subuh, dan belanja Toko / Minimarket</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
+              <button class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
+            </div>
+          </div>
+
+          <!-- RINGKASAN STATUS STOK (TANPA EMOJI) -->
+          <div class="stock-kpi-grid">
+            <div class="stock-kpi-card stock-aman">
+              <div class="stock-kpi-info">
+                <span>Stok Aman</span>
+                <strong id="stockCountAman">9 Bahan</strong>
+              </div>
+            </div>
+            <div class="stock-kpi-card stock-menipis">
+              <div class="stock-kpi-info">
+                <span>Stok Menipis</span>
+                <strong id="stockCountMenipis">2 Bahan</strong>
+              </div>
+            </div>
+            <div class="stock-kpi-card stock-kritis">
+              <div class="stock-kpi-info">
+                <span>Habis / Wajib Beli</span>
+                <strong id="stockCountKritis">3 Bahan</strong>
+              </div>
+            </div>
+            <div class="stock-kpi-card stock-anggaran">
+              <div class="stock-kpi-info">
+                <span>Estimasi Belanja Malam Ini</span>
+                <strong id="stockEstBelanja">Rp 57.500</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- RINGKASAN DAFTAR BELANJA TERPISAH (TANPA EMOJI, BERSIH & TERSTRUKTUR) -->
+          <div class="dispatch-grid">
+            <div class="dispatch-card pasar">
+              <div class="dispatch-card-head">
+                <h4>Pesanan Pasar Subuh (Siklus L+2)</h4>
+                <span class="dispatch-meta">Pesan malam ini untuk stok produksi lusa</span>
+              </div>
+              <ul class="dispatch-list" id="dispatchPasarList">
+                <li><span>Kulit Lumpia Segar</span><strong>4 bungkus (isi 36 lbr)</strong></li>
+                <li><span>Telur Ayam Ras</span><strong>1 paket (4 butir / Rp 5.000)</strong></li>
+                <li><span>Daun Bawang & Seledri</span><strong>1 ikat kecil segar</strong></li>
+              </ul>
+            </div>
+
+            <div class="dispatch-card toko">
+              <div class="dispatch-card-head">
+                <h4>Belanja Toko & Minimarket (Malam Ini)</h4>
+                <span class="dispatch-meta">Dibeli malam ini untuk produksi besok subuh</span>
+              </div>
+              <ul class="dispatch-list" id="dispatchTokoList">
+                <li><span>Keju Prochiz Spready</span><strong>1 pouch (160g)</strong></li>
+                <li><span>Roti Tawar Kupas</span><strong>2 bungkus (@ Rp 10.000)</strong></li>
+                <li><span>Minyak Goreng Sawit</span><strong>1 pouch (1L / 2L)</strong></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- TABEL STOK FISIK DENGAN SATUAN EKSPLISIT -->
+          <div class="table-responsive-wrapper">
+            <table class="slate-table stok-table">
+              <thead>
+                <tr>
+                  <th style="width: 44px; text-align: center;">No</th>
+                  <th>Nama Bahan Baku</th>
+                  <th style="width: 145px;">Jalur Pengadaan</th>
+                  <th style="width: 280px; text-align: center;">Stok Fisik &amp; Konversi Gram (2 Arah)</th>
+                  <th style="width: 110px; text-align: center;">Status</th>
+                  <th>Catatan Restock</th>
+                </tr>
+              </thead>
+              <tbody id="stokTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- TAB 7: SOP & TAKARAN PRODUKSI PRESISI                          -->
+      <!-- ============================================================== -->
+      <section id="tab-resep" class="app-tab-panel">
+        <div class="slate-card">
+          <div class="slate-card-header">
+            <div>
+              <div class="slate-card-title">
+                <span>SOP & Takaran Produksi Presisi</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Formula Dinamis</span>
+              </div>
+              <div class="slate-card-subtitle">Standar Operasional Produksi Anti-Tekor Dapur Mom Fitri: Gramasi, Suhu, dan Waktu Penggorengan</div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn" onclick="window.openManageFormulaModal()">Kelola Formula Resep</button>
+              <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddProductModal()">+ Tambah Produk Baru</button>
+            </div>
+          </div>
+
+          <!-- ZONE 1: KALKULATOR TAKARAN DAPUR SUBUH PRESISI -->
+          <div class="form-card-wrap">
+            <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <span>Bagian 1: Kalkulator Takaran Dapur Subuh & Audit HPP</span>
+              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.syncRecipeFromBuku1(true)">Tarik Target dari Distribusi Mitra</button>
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px;">
+              Target produksi otomatis mengikuti rencana jatah kirim + bonus di Distribusi Mitra (atau ketik manual di bawah). Sistem menghitung gramasi bahan presisi sekaligus mengaudit HPP per pcs berdasarkan harga terbaru di Master Bahan.
+            </p>
+
+            <!-- Input Rencana Pcs -->
+            <div class="form-grid-4">
+              <div>
+                <label class="form-label" style="color: #818CF8;">1. Lumpia Ubi Ungu (Pcs)</label>
+                <input type="number" id="calcUbiPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #818CF8;" value="66" min="0" oninput="window.calculateTakaran()">
+              </div>
+              <div>
+                <label class="form-label" style="color: #34D399;">2. Lumpia Sayur Sosis (Pcs)</label>
+                <input type="number" id="calcSayurPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #34D399;" value="32" min="0" oninput="window.calculateTakaran()">
+              </div>
+              <div>
+                <label class="form-label" style="color: #FBBF24;">3. Roti Goreng Collins (Pcs)</label>
+                <input type="number" id="calcRotiPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #FBBF24;" value="32" min="0" oninput="window.calculateTakaran()">
+              </div>
+              <div>
+                <label class="form-label">Total Produksi Target</label>
+                <input type="text" id="calcTotalPcs" class="form-control-slate" style="font-weight: 900; font-family: var(--font-mono); color: #38BDF8;" value="130 pcs" readonly>
+              </div>
+            </div>
+
+            <!-- Presets & Actions -->
+            <div class="calc-preset-btns" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
+              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.syncRecipeFromBuku1(true)">Sesuai Target Distribusi</button>
+              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.applyRecipePreset(66, 32, 32)">Paket Standar (130 Pcs)</button>
+              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.applyRecipePreset(44, 44, 42)">Trio Seimbang (130 Pcs)</button>
+              <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--card-border); border-radius: 6px; padding: 3px 6px;">
+                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700; margin-right: 2px;">Satuan:</span>
+                <button type="button" class="filter-pill active" id="btnUnitModeAll" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('all')">Gram + Tbsp/Tsp</button>
+                <button type="button" class="filter-pill" id="btnUnitModeSpoon" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('spoon')">Fokus Tbsp / Tsp</button>
+                <button type="button" class="filter-pill" id="btnUnitModeGram" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('gram')">Fokus Gram</button>
+              </div>
+              <button type="button" class="tool-btn tool-btn-success" id="btnCopyTakaran" style="margin-left: auto;">Salin Checklist Takaran Subuh</button>
+            </div>
+
+            <!-- Dynamic Symmetrical Result Grid -->
+            <div class="takaran-result-grid" id="takaranResultContainer">
+              <!-- Rendered Dynamically via app.js -->
+            </div>
+
+            <!-- Dynamic HPP & Profitabilidad Audit Bar -->
+            <div id="hppAuditContainer" style="margin-top: 16px;">
+              <!-- Rendered Dynamically via app.js -->
+            </div>
+          </div>
+
+          <!-- ZONE 2: SIMETRIS VISUAL RECIPE & SOP CARDS (DYNAMIC) -->
+          <div style="margin-top: 24px;">
+            <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+              <span>Bagian 2: Standar Operasional Produksi (SOP) & Panduan Visual Produk</span>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.openManageFormulaModal()">Edit Gramasi Bahan</button>
+                <button type="button" class="tool-btn tool-btn-success" style="font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Varian Baru</button>
+              </div>
+            </div>
+
+            <div class="recipe-visual-grid" id="recipeVisualGridContainer">
+              <!-- Rendered Dynamically via app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Mobile Bottom Navigation: Akses Seluruh Modul -->
+  <nav class="mobile-bottom-nav">
+    <button type="button" class="mobile-nav-btn active" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
+        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
+        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
+        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+      </svg>
+      <span>Dash</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tab-buku1" onclick="window.switchTab('tab-buku1')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l1-6h16l1 6"></path>
+        <path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"></path>
+        <path d="M9 22V12h6v10"></path>
+      </svg>
+      <span>Mitra</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tab-buku2" onclick="window.switchTab('tab-buku2')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      <span>Belanja</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tab-master-bahan" onclick="window.switchTab('tab-master-bahan')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+      </svg>
+      <span>Master</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+        <polyline points="2 17 12 22 22 17"></polyline>
+        <polyline points="2 12 12 17 22 12"></polyline>
+      </svg>
+      <span>Inventaris</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
+      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <span>Produksi</span>
+    </button>
+  </nav>
+
+  <!-- ============================================================== -->
+  <!-- UNIVERSAL CUSTOM MODAL SYSTEM (STAGE 4: NO BROWSER ALERTS)     -->
+  <!-- ============================================================== -->
+  <div class="app-modal-overlay" id="appModalOverlay" style="display: none;" onclick="window.handleModalBackdropClick(event)">
+    <div class="app-modal-dialog" id="appModalDialog" role="dialog" aria-modal="true">
+      <div class="app-modal-header">
+        <div class="app-modal-title-wrap">
+          <span class="app-modal-icon" id="appModalIcon" style="display: none;"></span>
+          <h3 class="app-modal-title" id="appModalTitle">Notifikasi Sistem</h3>
+        </div>
+        <button type="button" class="app-modal-close" onclick="window.closeAppModal()" aria-label="Tutup">&times;</button>
+      </div>
+      <div class="app-modal-body" id="appModalBody">
+        <!-- Dynamic message or form -->
+      </div>
+      <div class="app-modal-footer" id="appModalFooter">
+        <!-- Dynamic actions -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Compat App & Firestore SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
