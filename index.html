@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.2.0</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.0</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 15:42 WIB
+          Update: 24/10/2026 16:00 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -285,7 +285,7 @@
         <div style="display: flex; gap: 8px; align-items: center;">
           <div class="cloud-sync-pill" id="cloudSyncPillMobile" onclick="window.triggerCloudSync()" title="Status Cloud Firestore">
             <span class="cloud-sync-dot"></span>
-            <span class="cloud-sync-text">Cloud</span>
+            <span class="cloud-sync-text">Online</span>
           </div>
           <button type="button" class="btn-pwa-install-mobile" id="btnPwaInstallMobile" onclick="window.triggerPwaInstall()" title="Pasang Aplikasi">Pasang</button>
           <button class="menu-toggle-btn" id="btnToggleSidebar" aria-label="Buka Menu Navigasi">
@@ -662,9 +662,9 @@
                 </tbody>
                 <tfoot>
                   <tr class="kuitansi-total-row">
-                    <td colspan="4" style="text-align: right; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL PENGELUARAN KUITANSI HARI INI:</td>
-                    <td style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 900; color: #FB7185; text-align: right;" id="kuitansiTableTotal">Rp 0</td>
-                    <td class="no-print"></td>
+                    <td data-label="Keterangan" colspan="4" style="text-align: right; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">TOTAL PENGELUARAN KUITANSI HARI INI:</td>
+                    <td data-label="Total Belanja" style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 900; color: #FB7185; text-align: right;" id="kuitansiTableTotal">Rp 0</td>
+                    <td data-label="" class="no-print"></td>
                   </tr>
                 </tfoot>
               </table>
@@ -825,7 +825,7 @@
           </div>
 
           <div class="table-responsive-wrapper">
-            <table class="slate-table">
+            <table class="slate-table buku3-table">
               <thead>
                 <tr>
                   <th>Tgl</th>

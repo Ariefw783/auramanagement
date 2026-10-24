@@ -30,14 +30,31 @@ function setCloudStatusUI(status, label) {
     pill.classList.remove('syncing', 'offline', 'error', 'connected');
     pill.classList.add(status);
     const textEl = pill.querySelector('.cloud-sync-text');
-    if (textEl) textEl.innerText = label;
+    if (textEl) {
+      if (pill.id === 'cloudSyncPillMobile') {
+        if (status === 'connected') textEl.innerText = 'Online';
+        else if (status === 'syncing') textEl.innerText = 'Sync';
+        else textEl.innerText = 'Lokal';
+      } else {
+        textEl.innerText = label;
+      }
+    }
   });
 }
 
-function initFirestoreSync() {
-  if (typeof firebase === 'undefined') {
-    console.info('[Firestore] SDK belum termuat atau berjalan offline.');
-    setCloudStatusUI('offline', 'Mode Offline');
+function initFirestoreSync(retryCount = 0) {
+  // Jika SDK belum selesai dimuat oleh browser perangkat HP
+  if (typeof firebase === 'undefined' || !firebase.firestore) {
+    if (retryCount < 15) {
+      setCloudStatusUI('syncing', 'Menghubungkan...');
+      setTimeout(() => initFirestoreSync(retryCount + 1), 400);
+      return;
+    }
+    if (!navigator.onLine) {
+      setCloudStatusUI('offline', 'Mode Offline');
+    } else {
+      setCloudStatusUI('connected', 'Penyimpanan Lokal');
+    }
     return;
   }
 
@@ -47,13 +64,10 @@ function initFirestoreSync() {
     }
     firestoreDb = firebase.firestore();
 
+    // Persistensi IndexedDB yang aman terhadap multi-tab browser HP
     try {
       firestoreDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
-        if (err.code === 'failed-precondition') {
-          console.warn('[Firestore] Multi-tab terbuka, persistensi berjalan di tab primer.');
-        } else if (err.code === 'unimplemented') {
-          console.warn('[Firestore] Browser tidak mendukung IndexedDB persistence.');
-        }
+        console.warn('[Firestore] Multi-tab persistence note:', err.code);
       });
     } catch (e) {}
 
@@ -84,13 +98,33 @@ function initFirestoreSync() {
       setCloudStatusUI('connected', 'Cloud Terhubung');
     }, err => {
       console.warn('[Firestore] Realtime snapshot listener:', err.message);
-      setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
+      if (!navigator.onLine) {
+        setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
+      } else {
+        setCloudStatusUI('syncing', 'Menyinkronkan...');
+        setTimeout(() => pushToFirestoreCloud(false), 3000);
+      }
     });
 
   } catch (err) {
     console.warn('[Firestore] Inisialisasi error:', err);
-    setCloudStatusUI('offline', 'Mode Offline');
+    if (!navigator.onLine) {
+      setCloudStatusUI('offline', 'Mode Offline');
+    }
   }
+}
+
+// Event listener status koneksi jaringan fisik browser
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    console.log('[App] Koneksi internet online');
+    setCloudStatusUI('syncing', 'Menghubungkan...');
+    initFirestoreSync(0);
+  });
+  window.addEventListener('offline', () => {
+    console.log('[App] Koneksi internet offline');
+    setCloudStatusUI('offline', 'Mode Offline');
+  });
 }
 
 function pushToFirestoreCloud(immediate = false) {
@@ -106,7 +140,7 @@ function pushToFirestoreCloud(immediate = false) {
     firestoreDb.collection('dapur_mom_fitri').doc('production_data').set({
       lastUpdated: now,
       clientAgent: 'PWA Dapur Mom Fitri Web',
-      version: '5.0.0',
+      version: '6.3.0',
       payload: cleanPayload
     }, { merge: true })
     .then(() => {
@@ -115,7 +149,9 @@ function pushToFirestoreCloud(immediate = false) {
     })
     .catch(err => {
       console.warn('[Firestore] Gagal push ke cloud:', err.message);
-      setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
+      if (!navigator.onLine) {
+        setCloudStatusUI('offline', 'Offline (Disimpan Lokal)');
+      }
     });
   };
 
@@ -1747,20 +1783,20 @@ window.renderMasterBahanTable = function() {
 
     const tr = document.createElement('tr');
     tr.innerHTML = 
-      '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-      '<td><strong style="color: #FFFFFF;">' + item.nama + '</strong></td>' +
-      '<td><span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span></td>' +
-      '<td>' +
+      '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+      '<td data-label="Bahan"><strong style="color: #FFFFFF;">' + item.nama + '</strong></td>' +
+      '<td data-label="Kategori"><span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span></td>' +
+      '<td data-label="Satuan & Gram">' +
         '<div style="font-size: 0.82rem; color: #F8FAFC; font-weight: 600;">' + item.satuan + '</div>' +
         '<div style="font-size: 0.71rem; color: #38BDF8; font-family: var(--font-mono); margin-top: 2px;">' + gramInfoText + '</div>' +
       '</td>' +
-      '<td style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">' +
+      '<td data-label="Harga" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">' +
         '<div>Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</div>' +
         '<div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">Rp ' + Math.round((item.harga || 0) / Math.max(1, qtyPerBeli)).toLocaleString('id-ID') + '/' + unitFisik + ' • Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + '/g</div>' +
       '</td>' +
-      '<td style="color: var(--text-secondary); font-size: 0.8rem;">' + (item.vendor || '-') + '</td>' +
-      '<td style="text-align: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">' + (item.tglUpdate || '-') + '</td>' +
-      '<td style="text-align: center;" class="no-print">' +
+      '<td data-label="Vendor" style="color: var(--text-secondary); font-size: 0.8rem;">' + (item.vendor || '-') + '</td>' +
+      '<td data-label="Update" style="text-align: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">' + (item.tglUpdate || '-') + '</td>' +
+      '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
         '<div style="display: flex; gap: 4px; justify-content: center;">' +
           '<button type="button" class="btn-del-row" style="color: #38BDF8;" onclick="window.openEditMasterBahanModal(' + globalIdx + ')" title="Edit Bahan"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>' +
           '<button type="button" class="btn-del-row" onclick="window.handleDeleteMasterBahan(' + globalIdx + ')" title="Hapus Bahan"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>' +
@@ -3244,47 +3280,47 @@ function renderAllViews() {
       const tr = document.createElement('tr');
       if (isEditingAllowed) {
         tr.innerHTML = 
-          '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
-          '<td style="text-align: center;">' +
+          '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Ubi" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)" title="Rencana kirim Ubi">' +
           '</td>' +
-          '<td style="text-align: center;">' +
+          '<td data-label="Sayur" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #34D399; font-weight: 700;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)" title="Rencana kirim Sayur">' +
           '</td>' +
-          '<td style="text-align: center;">' +
+          '<td data-label="Roti" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 56px; text-align: center; color: #FBBF24; font-weight: 700;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)" title="Rencana kirim Roti">' +
           '</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
-          '<td style="text-align: center;">' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
+          '<td data-label="Bonus" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 52px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)" title="Bonus gratis pemilik">' +
           '</td>' +
-          '<td style="text-align: center;">' +
+          '<td data-label="Retur Sore" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 60px; text-align: center;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
           '</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
-          '<td style="text-align: right;">' +
+          '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
+          '<td data-label="Setoran Net" style="text-align: right;">' +
             '<div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">' +
               '<span style="font-size: 0.75rem; color: #64748B; font-family: var(--font-mono);">Rp</span>' +
               '<input type="number" inputmode="numeric" class="dark-input" style="width: 96px; text-align: right; color: #34D399; font-weight: 800; font-family: var(--font-mono); padding: 5px 8px;" value="' + r.setor + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">' +
             '</div>' +
           '</td>' +
-          '<td style="text-align: center;" class="no-print">' +
+          '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
             '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
           '</td>';
       } else {
         tr.innerHTML = 
-          '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
-          '<td style="font-family: var(--font-mono); text-align: center; color: #818CF8; font-weight: 700;">' + r.ubi + '</td>' +
-          '<td style="font-family: var(--font-mono); text-align: center; color: #34D399; font-weight: 700;">' + r.sayur + '</td>' +
-          '<td style="font-family: var(--font-mono); text-align: center; color: #FBBF24; font-weight: 700;">' + r.roti + '</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #818CF8; font-weight: 700; text-align: center;">+' + r.bonus + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #FB923C; font-weight: 700; text-align: center;">' + r.retur + '</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</td>' +
-          '<td style="text-align: center;" class="no-print">' +
+          '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Ubi" style="font-family: var(--font-mono); text-align: center; color: #818CF8; font-weight: 700;">' + r.ubi + '</td>' +
+          '<td data-label="Sayur" style="font-family: var(--font-mono); text-align: center; color: #34D399; font-weight: 700;">' + r.sayur + '</td>' +
+          '<td data-label="Roti" style="font-family: var(--font-mono); text-align: center; color: #FBBF24; font-weight: 700;">' + r.roti + '</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
+          '<td data-label="Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 700; text-align: center;">+' + r.bonus + '</td>' +
+          '<td data-label="Retur Sore" style="font-family: var(--font-mono); color: #FB923C; font-weight: 700; text-align: center;">' + r.retur + '</td>' +
+          '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
+          '<td data-label="Setoran Net" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
             '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 8px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
           '</td>';
       }
@@ -3294,13 +3330,13 @@ function renderAllViews() {
     if (b1Foot) {
       b1Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-          '<td colspan="5" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL KONSINYASI:</td>' +
-          '<td style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumKirim + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #818CF8; font-weight: 800; padding: 12px 14px; text-align: center;">+' + sumBonus + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #FB923C; font-weight: 800; padding: 12px 14px; text-align: center;">' + sumRetur + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumLaku + ' pcs</td>' +
-          '<td style="font-family: var(--font-mono); color: #34D399; font-size: 0.95rem; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + sumSetor.toLocaleString('id-ID') + '</td>' +
-          '<td class="no-print"></td>' +
+          '<td data-label="Keterangan" colspan="5" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL KONSINYASI:</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumKirim + '</td>' +
+          '<td data-label="Total Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 800; padding: 12px 14px; text-align: center;">+' + sumBonus + '</td>' +
+          '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FB923C; font-weight: 800; padding: 12px 14px; text-align: center;">' + sumRetur + '</td>' +
+          '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumLaku + ' pcs</td>' +
+          '<td data-label="Total Setor" style="font-family: var(--font-mono); color: #34D399; font-size: 0.95rem; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + sumSetor.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="" class="no-print"></td>' +
         '</tr>';
     }
   }
@@ -3439,12 +3475,12 @@ function renderAllViews() {
 
         const tr = document.createElement('tr');
         tr.innerHTML = 
-          '<td style="text-align: center; font-family: var(--font-mono);">' + (localIdx + 1) + '</td>' +
-          '<td><strong style="color: #FFFFFF;">' + b.nama + '</strong></td>' +
-          '<td>' + badge + '</td>' +
-          '<td style="color: var(--text-secondary);">' + b.qty + '</td>' +
-          '<td style="font-family: var(--font-mono); font-weight: 800; color: #FB7185; text-align: right;">Rp ' + (b.biaya || 0).toLocaleString('id-ID') + '</td>' +
-          '<td style="text-align: center;" class="no-print">' +
+          '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (localIdx + 1) + '</td>' +
+          '<td data-label="Rincian Belanja"><strong style="color: #FFFFFF;">' + b.nama + '</strong></td>' +
+          '<td data-label="Kategori">' + badge + '</td>' +
+          '<td data-label="Kuantitas" style="color: var(--text-secondary);">' + b.qty + '</td>' +
+          '<td data-label="Biaya Riil" style="font-family: var(--font-mono); font-weight: 800; color: #FB7185; text-align: right;">Rp ' + (b.biaya || 0).toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
             '<div style="display: flex; gap: 4px; justify-content: center;">' +
               '<button type="button" class="btn-del-row" style="color: #38BDF8;" onclick="window.openEditBelanjaModal(' + globalIdx + ')" title="Edit item belanja ini"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>' +
               '<button type="button" class="btn-del-row" onclick="window.handleDeleteBelanjaFromKuitansi(' + globalIdx + ')" title="Hapus belanja ini"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>' +
@@ -3507,31 +3543,31 @@ function renderAllViews() {
         tr.style.background = 'rgba(56, 189, 248, 0.08)';
       }
       tr.innerHTML = 
-        '<td style="font-family: var(--font-mono); font-weight: 700;">' + k.tgl + '</td>' +
-        '<td>' + hariLabel + '</td>' +
-        '<td style="font-family: var(--font-mono);">' + k.kirim + '</td>' +
-        '<td style="font-family: var(--font-mono); color: #FBBF24;">' + k.retur + '</td>' +
-        '<td style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8;">' + k.laku + '</td>' +
-        '<td style="font-family: var(--font-mono); font-weight: 800; color: #34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
-        '<td style="font-family: var(--font-mono); color: #94A3B8;">Rp ' + (k.modal || 0).toLocaleString('id-ID') + '</td>' +
-        '<td style="font-family: var(--font-mono); font-weight: 800; color: #818CF8;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</td>' +
-        '<td style="font-family: var(--font-mono); color: #F87171;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
-        '<td style="font-family: var(--font-mono); font-weight: 800; color: ' + endapanColor + ';">' + endapanFormatted + '</td>';
+        '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + k.tgl + '</td>' +
+        '<td data-label="Hari">' + hariLabel + '</td>' +
+        '<td data-label="Kirim" style="font-family: var(--font-mono);">' + k.kirim + '</td>' +
+        '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24;">' + k.retur + '</td>' +
+        '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8;">' + k.laku + '</td>' +
+        '<td data-label="Total Kas" style="font-family: var(--font-mono); font-weight: 800; color: #34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Amplop 1 (Modal)" style="font-family: var(--font-mono); color: #94A3B8;">Rp ' + (k.modal || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #F87171;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Endapan Kas" style="font-family: var(--font-mono); font-weight: 800; color: ' + endapanColor + ';">' + endapanFormatted + '</td>';
       b3Body.appendChild(tr);
     });
 
     if (b3Foot) {
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-          '<td colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL AKTUAL TERVERIFIKASI:</td>' +
-          '<td style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px;">' + totalKirimAll + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px;">' + totalReturAll + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px;">' + totalLakuAll + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px;">Rp ' + totalModalAll.toLocaleString('id-ID') + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #F87171; font-weight: 800; padding: 12px 14px;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
-          '<td style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalEndapanAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL AKTUAL TERVERIFIKASI:</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px;">' + totalKirimAll + '</td>' +
+          '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px;">' + totalReturAll + '</td>' +
+          '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px;">' + totalLakuAll + '</td>' +
+          '<td data-label="Total Setor" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Modal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px;">Rp ' + totalModalAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Gaji" style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Belanja" style="font-family: var(--font-mono); color: #F87171; font-weight: 800; padding: 12px 14px;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Endapan" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalEndapanAll.toLocaleString('id-ID') + '</td>' +
         '</tr>';
     }
 
@@ -3632,13 +3668,13 @@ function renderAllViews() {
 
       const tr = document.createElement('tr');
       tr.innerHTML = 
-        '<td style="text-align: center; font-family: var(--font-mono); color: var(--text-muted);">' + (idx + 1) + '</td>' +
-        '<td>' +
+        '<td data-label="No" style="text-align: center; font-family: var(--font-mono); color: var(--text-muted);">' + (idx + 1) + '</td>' +
+        '<td data-label="Bahan Baku">' +
           '<span style="color: #F8FAFC; font-weight: 600; display: block;">' + s.nama + '</span>' +
           '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">1 ' + unitLabel + ' ≈ ' + ratio.toLocaleString('id-ID') + 'g</span>' +
         '</td>' +
-        '<td style="color: var(--text-secondary); font-size: 0.8rem;">' + jalurText + '</td>' +
-        '<td style="text-align: center;">' +
+        '<td data-label="Jalur" style="color: var(--text-secondary); font-size: 0.8rem;">' + jalurText + '</td>' +
+        '<td data-label="Sisa Stok" style="text-align: center;">' +
           '<div style="display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap; justify-content: center;">' +
             '<div class="stok-input-wrap" style="margin: 0;">' +
               '<input type="number" step="any" min="0" class="dark-input" style="width: 58px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
@@ -3651,8 +3687,8 @@ function renderAllViews() {
             '</div>' +
           '</div>' +
         '</td>' +
-        '<td style="text-align: center;">' + statusBadge + '</td>' +
-        '<td style="font-size: 0.82rem; ' + actionStyle + '">' + cleanAction + '</td>';
+        '<td data-label="Status" style="text-align: center;">' + statusBadge + '</td>' +
+        '<td data-label="Tindakan" style="font-size: 0.82rem; ' + actionStyle + '">' + cleanAction + '</td>';
       stokBody.appendChild(tr);
     });
 
@@ -3820,8 +3856,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.2.0';
-const APP_BUILD_TIME = '24/10/2026 15:42 WIB';
+const APP_VERSION = 'v6.3.0';
+const APP_BUILD_TIME = '24/10/2026 16:00 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
