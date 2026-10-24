@@ -467,6 +467,7 @@
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Lompat ke tanggal kalender hari ini">📅 Ke Hari Ini</button>
               <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku1')" title="Simpan data mitra dan sinkronkan ke database cloud">💾 Simpan & Sinkronkan</button>
+              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetBuku1CurrentDay()" title="Kosongkan seluruh data distribusi hari ini">🧹 Reset Lembar</button>
               <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
               <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">🔓 Buka Kunci (Edit)</button>
               <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()" title="Kunci data konsinyasi dan tutup buku harian">🔒 Kunci Lembar</button>
@@ -576,6 +577,7 @@
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('kuitansi')" title="Simpan kuitansi belanja dan sinkronkan ke cloud">💾 Simpan & Sinkronkan</button>
+              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetKuitansiCurrentDay()" title="Kosongkan seluruh belanja hari ini">🧹 Reset Belanja</button>
               <button type="button" class="tool-btn tool-btn-success" onclick="window.printKuitansi()">Cetak Kuitansi A5</button>
               <button type="button" class="tool-btn" onclick="window.handleCreateNewKuitansiDay()">+ Buat Lembar Hari Baru</button>
             </div>

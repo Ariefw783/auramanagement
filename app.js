@@ -413,10 +413,12 @@ const INITIAL_AURA_DATA = {
 };
 
 let auraData = JSON.parse(localStorage.getItem(AURA_DB_KEY)) || INITIAL_AURA_DATA;
-let activeDate = DEFAULT_CYCLE_START_ISO;
-if (REAL_TODAY_ISO >= DEFAULT_CYCLE_START_ISO && OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === REAL_TODAY_ISO)) {
-  activeDate = REAL_TODAY_ISO;
+// Inisialisasi Tanggal Realtime Kalender Sistem
+if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === REAL_TODAY_ISO)) {
+  const todayMeta = buildDayMetaFromIso(REAL_TODAY_ISO, OPERATIONAL_DAYS_CONFIG.length + 1);
+  OPERATIONAL_DAYS_CONFIG.push(todayMeta);
 }
+let activeDate = REAL_TODAY_ISO;
 const activeDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || OPERATIONAL_DAYS_CONFIG[0];
 let selectedBuku2Date = activeDayCfg.b2Key;
 let currentChartPeriod = 'mingguan';
@@ -1219,6 +1221,52 @@ window.openAddBuku1DateModal = function() {
 };
 
 // Simpan & Kunci Data Hari Aktif di Buku 1
+
+// ==============================================================
+// FITUR RESET SELURUH LEMBAR (BUKU 1 & KAS KELUAR)
+// ==============================================================
+window.resetBuku1CurrentDay = function() {
+  const activeCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
+  const dayName = activeCfg ? activeCfg.namaHari : activeDate;
+
+  window.showConfirmModal(
+    "Reset Lembar Distribusi",
+    "Apakah Anda yakin ingin mengosongkan seluruh isian data distribusi mitra untuk " + dayName + "?\n\nSemua angka jatah kirim, bonus, retur, dan setoran akan di-reset menjadi 0. Nama warung mitra tetap aman.",
+    function() {
+      const rows = getActiveBuku1Rows();
+      rows.forEach(r => {
+        r.ubi = 0;
+        r.sayur = 0;
+        r.roti = 0;
+        r.kirim = 0;
+        r.bonus = 0;
+        r.retur = 0;
+        r.laku = 0;
+        r.setor = 0;
+      });
+      auraData.buku1Days[activeDate] = rows;
+      saveLocalAuraData();
+      renderAllViews();
+      window.showSuccessModal("Lembar Direset", "Seluruh data distribusi mitra untuk " + dayName + " telah dikosongkan.");
+    }
+  );
+};
+
+window.resetKuitansiCurrentDay = function() {
+  window.showConfirmModal(
+    "Reset Belanja Hari Ini",
+    "Apakah Anda yakin ingin menghapus seluruh catatan belanja pada lembar kuitansi (" + selectedBuku2Date + ")?\n\nSemua item belanja hari ini akan dibersihkan dan saldo pengeluaran kembali ke Rp 0.",
+    function() {
+      if (Array.isArray(auraData.buku2Belanja)) {
+        auraData.buku2Belanja = auraData.buku2Belanja.filter(b => b.tgl !== selectedBuku2Date);
+      }
+      saveLocalAuraData();
+      renderAllViews();
+      window.showSuccessModal("Belanja Direset", "Seluruh catatan belanja lembar " + selectedBuku2Date + " telah dibersihkan.");
+    }
+  );
+};
+
 window.saveAndLockBuku1Day = function() {
   if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
   auraData.buku1SavedDates[activeDate] = true;
@@ -2726,6 +2774,49 @@ window.applyRecipePreset = function(ubi, sayur, roti) {
 // ==============================================================
 // STAGE 5B: SISTEM FORMULA RESEP DINAMIS (EDIT TAKARAN & TAMBAH PRODUK BARU)
 // ==============================================================
+
+// ==============================================================
+// FITUR SALIN RESEP PRODUK KE CLIPBOARD (FORMAT WHATSAPP READY)
+// ==============================================================
+window.copyRecipeToClipboard = function(prodId) {
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+  const p = recipes.find(r => r.id === prodId) || recipes[0];
+  if (!p) return;
+
+  const hpp = getProductUnitHPP(p);
+  const bahanList = (p.komposisi || []).map((k, i) => {
+    const unitLabel = k.unit || (k.isGram ? 'gram' : 'unit');
+    return (i + 1) + '. ' + k.nama + ': ' + k.qtyPerPcs + ' ' + unitLabel;
+  }).join('\n');
+
+  const text = 
+    '*SOP RESEP PRODUKSI — DAPUR MOM FITRI*\n' +
+    'Produk: *' + p.nama + '*\n' +
+    'Model Lipatan / Bentuk: ' + (p.lipatModel || '-') + '\n' +
+    'Estimasi HPP Bahan: Rp ' + hpp.toLocaleString('id-ID') + ' / pcs\n' +
+    '----------------------------------------\n' +
+    '*KOMPOSISI TAKARAN PER PCS:*\n' +
+    bahanList + '\n' +
+    '----------------------------------------\n' +
+    '*TEKNIK PENGGORENGAN & SUHU:*\n' +
+    '• Suhu & Durasi: ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '\n' +
+    '• Catatan SOP: ' + (p.catatanSOP || 'Goreng hingga keemasan, tiriskan miring.') + '\n' +
+    '----------------------------------------\n' +
+    '_Disalin dari Aplikasi PWA Dapur Mom Fitri_';
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      window.showSuccessModal("Resep Berhasil Disalin", "SOP Resep *" + p.nama + "* berhasil disalin ke clipboard! Siap ditempel ke WhatsApp atau catatan dapur.");
+    }).catch(() => {
+      fallbackCopyText(text, "SOP Resep *" + p.nama + "*");
+    });
+  } else {
+    fallbackCopyText(text, "SOP Resep *" + p.nama + "*");
+  }
+};
+
 function renderRecipeVisualGrid() {
   const container = document.getElementById('recipeVisualGridContainer');
   if (!container) return;
@@ -2777,6 +2868,7 @@ function renderRecipeVisualGrid() {
           videoHtml +
         '</ul>' +
         '<div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; gap: 6px;">' +
+          '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">📋 Salin Resep</button>' +
           '<button type="button" class="tool-btn tool-btn-success" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Formula Takaran</button>' +
           deleteBtnHtml +
         '</div>' +
@@ -3257,7 +3349,8 @@ window.cardsCollapsedState = window.cardsCollapsedState || {
 
 window.toggleCardItem = function(group, idx) {
   window.cardsCollapsedState[group] = window.cardsCollapsedState[group] || {};
-  window.cardsCollapsedState[group][idx] = !window.cardsCollapsedState[group][idx];
+  const currentVal = window.cardsCollapsedState[group][idx] !== undefined ? window.cardsCollapsedState[group][idx] : true;
+  window.cardsCollapsedState[group][idx] = !currentVal;
   const card = document.getElementById(group + 'Card_' + idx);
   if (card) {
     const isNowCollapsed = !!window.cardsCollapsedState[group][idx];
@@ -3307,7 +3400,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
   container.appendChild(topBar);
 
   rows.forEach((r, idx) => {
-    const isCollapsed = !!(window.cardsCollapsedState.buku1 && window.cardsCollapsedState.buku1[idx]);
+    const isCollapsed = (window.cardsCollapsedState.buku1 && window.cardsCollapsedState.buku1[idx] !== undefined) ? !!window.cardsCollapsedState.buku1[idx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'buku1Card_' + idx;
@@ -3417,7 +3510,7 @@ function renderKuitansiCards(items, total) {
 
   items.forEach((b, localIdx) => {
     const globalIdx = auraData.buku2Belanja.findIndex(item => item === b);
-    const isCollapsed = !!(window.cardsCollapsedState.kuitansi && window.cardsCollapsedState.kuitansi[localIdx]);
+    const isCollapsed = (window.cardsCollapsedState.kuitansi && window.cardsCollapsedState.kuitansi[localIdx] !== undefined) ? !!window.cardsCollapsedState.kuitansi[localIdx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'kuitansiCard_' + localIdx;
@@ -3484,7 +3577,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
   container.appendChild(topBar);
 
   kasList.forEach((k, idx) => {
-    const isCollapsed = !!(window.cardsCollapsedState.buku3 && window.cardsCollapsedState.buku3[idx]);
+    const isCollapsed = (window.cardsCollapsedState.buku3 && window.cardsCollapsedState.buku3[idx] !== undefined) ? !!window.cardsCollapsedState.buku3[idx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'buku3Card_' + idx;
@@ -3553,7 +3646,7 @@ function renderMasterBahanCards(list) {
 
   list.forEach((item, idx) => {
     const globalIdx = auraData.masterBahan.findIndex(m => m === item);
-    const isCollapsed = !!(window.cardsCollapsedState.master && window.cardsCollapsedState.master[idx]);
+    const isCollapsed = (window.cardsCollapsedState.master && window.cardsCollapsedState.master[idx] !== undefined) ? !!window.cardsCollapsedState.master[idx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'masterCard_' + idx;
@@ -3613,7 +3706,7 @@ function renderStokCards(list) {
   }
 
   list.forEach((s, idx) => {
-    const isCollapsed = !!(window.cardsCollapsedState.stok && window.cardsCollapsedState.stok[idx]);
+    const isCollapsed = (window.cardsCollapsedState.stok && window.cardsCollapsedState.stok[idx] !== undefined) ? !!window.cardsCollapsedState.stok[idx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'stokCard_' + idx;
@@ -4007,13 +4100,13 @@ function renderAllViews() {
       b3Body.appendChild(tr);
     });
 
-    if (b3Foot) {
-      // Saldo akhir kas dapur adalah saldo berjalan kas Amplop 1 hari terverifikasi terakhir (bukan penjumlahan kolom)
-      const latestVerifiedEndapan = allDaysAccounting.length > 0 
-        ? allDaysAccounting[allDaysAccounting.length - 1].cumEndapan 
-        : 100000;
-      const modalPlafonAktif = 100000;
+        // Saldo akhir kas dapur adalah saldo berjalan kas Amplop 1 hari terverifikasi terakhir
+    const latestVerifiedEndapan = allDaysAccounting.length > 0 
+      ? allDaysAccounting[allDaysAccounting.length - 1].cumEndapan 
+      : 100000;
+    const modalPlafonAktif = 100000;
 
+    if (b3Foot) {
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
           '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL AKTUAL TERVERIFIKASI:</td>' +
@@ -4347,7 +4440,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '24/10/2026 21:40 WIB';
+const APP_BUILD_TIME = '24/10/2026 22:45 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
@@ -4463,7 +4556,7 @@ function isPwaAppInstalled() {
          window.matchMedia('(display-mode: fullscreen)').matches ||
          window.matchMedia('(display-mode: minimal-ui)').matches ||
          window.navigator.standalone === true ||
-         document.referrer.includes('android-app://') ||
+         (document.referrer && document.referrer.includes('android-app://')) ||
          localStorage.getItem('dapur_pwa_installed') === 'true';
 }
 
