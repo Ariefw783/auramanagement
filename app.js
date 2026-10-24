@@ -1858,7 +1858,8 @@ window.openAddMasterBahanModal = function() {
 
   if (!overlay) return;
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-  if (titleEl) titleEl.innerText = 'Tambah Master Bahan Baku (Multi-Satuan & Gram)';
+  if (titleEl) titleEl.innerText = 'Tambah Bahan ke Katalog Acuan (Harga & Toko)';
+  const sub = document.getElementById('appModalSubtitle'); if (sub) sub.innerText = 'Daftarkan harga beli terakhir, isi kemasan standar, dan toko langganan';
 
   body.innerHTML = 
     '<form id="formModalMasterBahan">' +
@@ -1971,7 +1972,8 @@ window.openEditMasterBahanModal = function(idx) {
 
   if (!overlay) return;
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-  if (titleEl) titleEl.innerText = 'Edit Master Bahan & Konversi Gram';
+  if (titleEl) titleEl.innerText = 'Edit Katalog Harga Bahan & Toko Langganan';
+  const sub = document.getElementById('appModalSubtitle'); if (sub) sub.innerText = 'Perbarui harga beli terbaru jika harga di pasar/toko mengalami perubahan';
 
   const uFisik = item.unitFisik || 'pcs';
   const qBeli = item.qtyPerBeli || 1;
@@ -3513,7 +3515,7 @@ function renderMasterBahanCards(list) {
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>MASTER BAHAN (KARTU RINGKAS)</span>' +
+      '<span>KATALOG HARGA & TOKO LANGGANAN (ACUAN)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', true)">Buka Semua</button>' +
@@ -3573,7 +3575,7 @@ function renderStokCards(list) {
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>INVENTARIS BAHAN (KARTU STOK)</span>' +
+      '<span>STOK FISIK DAPUR & JADWAL BELANJA (KARTU)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
@@ -4284,8 +4286,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.4';
-const APP_BUILD_TIME = '24/10/2026 17:05 WIB';
+const APP_VERSION = 'v6.3.5';
+const APP_BUILD_TIME = '24/10/2026 17:25 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

@@ -176,7 +176,7 @@
                     <polyline points="10 9 9 9 8 9"></polyline>
                   </svg>
                 </span>
-                <span class="nav-item-label">Master Bahan & Harga</span>
+                <span class="nav-item-label">Katalog Harga & Toko</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -192,7 +192,7 @@
                     <polyline points="2 12 12 17 22 12"></polyline>
                   </svg>
                 </span>
-                <span class="nav-item-label">Inventaris & Pengadaan</span>
+                <span class="nav-item-label">Stok Dapur & Belanja Malam</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.4</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.5</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 24/10/2026 17:05 WIB
+          Update: 24/10/2026 17:25 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -870,12 +870,18 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Master Bahan Baku & Rekam Jejak Harga</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Katalog Resmi</span>
+                <span>Katalog Harga & Toko Langganan</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">📖 Buku Acuan Harga</span>
               </div>
-              <div class="slate-card-subtitle">Database harga beli terakhir, satuan standar, dan toko vendor seluruh bahan operasional Dapur Mom Fitri.</div>
+              <div class="slate-card-subtitle">Daftar harga beli terakhir, isi kemasan standar, dan nama toko/pasar langganan. Hanya diubah jika harga pasar naik/turun.</div>
             </div>
             <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
+          </div>
+
+          <!-- PANDUAN PENGGUNA: PERAN MENU KATALOG -->
+          <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38BDF8; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
+            <strong style="color: #38BDF8;">💡 Fungsi Menu Ini (Katalog Acuan):</strong>
+            Tempat menyimpan standar harga acuan & nama toko/pasar vendor belanja Anda. <em>Menu ini bersifat statis (jarang diubah)</em>. Untuk mengecek sisa bahan fisik di dapur dan menyusun daftar belanja malam ini, buka menu <strong>Stok Dapur & Belanja Malam</strong>.
           </div>
 
           <!-- Filter & Search Toolbar -->
@@ -928,14 +934,21 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Inventaris Bahan & Pengadaan Dapur</span>
+                <span>Stok Dapur & Jadwal Belanja Malam</span>
+                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">🧊 Cek Kulkas & Rak</span>
               </div>
-              <div class="slate-card-subtitle">Kontrol ketersediaan bahan fisik dapur, pesanan Pasar Subuh, dan belanja Toko / Minimarket</div>
+              <div class="slate-card-subtitle">Cek sisa fisik bahan di kulkas/rak dapur dan rekomendasi daftar belanja malam ini (Pasar Subuh & Toko/Minimarket) untuk produksi besok.</div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
               <button class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
             </div>
+          </div>
+
+          <!-- PANDUAN PENGGUNA: PERAN MENU STOK & JADWAL BELANJA -->
+          <div style="background: rgba(52, 211, 153, 0.08); border-left: 3px solid #34D399; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
+            <strong style="color: #34D399;">🧊 Fungsi Menu Ini (Cek Sisa Dapur):</strong>
+            Buka menu ini setiap sore/malam untuk mengecek sisa bahan dapur. Anda bisa memasukkan sisa dalam <strong>satuan fisik</strong> (buah, tongkol, bungkus) atau <strong>gram (g)</strong> hasil timbangan. Sistem otomatis memberitahu bahan mana yang habis/menipis dan menyusun daftar belanja malam ini.
           </div>
 
           <!-- RINGKASAN STATUS STOK (TANPA EMOJI) -->
@@ -1142,7 +1155,7 @@
         <polyline points="14 2 14 8 20 8"></polyline>
         <line x1="16" y1="13" x2="8" y2="13"></line>
       </svg>
-      <span>Master</span>
+      <span>Katalog</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
       <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1150,7 +1163,7 @@
         <polyline points="2 17 12 22 22 17"></polyline>
         <polyline points="2 12 12 17 22 12"></polyline>
       </svg>
-      <span>Inventaris</span>
+      <span>Stok Dapur</span>
     </button>
     <button type="button" class="mobile-nav-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
       <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
