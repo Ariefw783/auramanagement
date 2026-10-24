@@ -1491,6 +1491,79 @@ window.restoreData = function(event) {
 // ==============================================================
 // UPDATE BUKU 1 ROWS (RENCANA PRODUKSI, RETUR, SETOR) & SINKRONISASI REAKTIF
 // ==============================================================
+function getRowDrops(row) {
+  if (!row) return {};
+  if (!row.drops || typeof row.drops !== 'object') {
+    row.drops = {
+      prod_ubi: row.ubi || 0,
+      prod_sayur: row.sayur || 0,
+      prod_roti: row.roti || 0
+    };
+  }
+  return row.drops;
+}
+
+window.updateBuku1DropQty = function(idx, prodId, val) {
+  const num = Math.max(0, parseInt(val, 10) || 0);
+  const rows = getActiveBuku1Rows();
+  const row = rows[idx];
+  if (!row) return;
+
+  const drops = getRowDrops(row);
+  drops[prodId] = num;
+
+  if (prodId === 'prod_ubi') row.ubi = num;
+  if (prodId === 'prod_sayur') row.sayur = num;
+  if (prodId === 'prod_roti') row.roti = num;
+
+  let totKirim = 0;
+  Object.values(drops).forEach(v => { totKirim += (parseInt(v, 10) || 0); });
+  row.kirim = totKirim;
+  if (row.retur > row.kirim) row.retur = row.kirim;
+  row.laku = Math.max(0, row.kirim - (row.retur || 0));
+  const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
+  row.setor = row.laku * unitRate;
+
+  window.syncRecipeFromBuku1(false);
+  saveLocal();
+  renderAllViews();
+};
+
+window.addBuku1DropProduct = function(idx, prodId) {
+  if (!prodId) return;
+  const rows = getActiveBuku1Rows();
+  const row = rows[idx];
+  if (!row) return;
+  const drops = getRowDrops(row);
+  if (drops[prodId] === undefined) {
+    drops[prodId] = 5;
+  }
+  window.updateBuku1DropQty(idx, prodId, drops[prodId]);
+};
+
+window.removeBuku1DropProduct = function(idx, prodId) {
+  const rows = getActiveBuku1Rows();
+  const row = rows[idx];
+  if (!row) return;
+  const drops = getRowDrops(row);
+  delete drops[prodId];
+  if (prodId === 'prod_ubi') row.ubi = 0;
+  if (prodId === 'prod_sayur') row.sayur = 0;
+  if (prodId === 'prod_roti') row.roti = 0;
+
+  let totKirim = 0;
+  Object.values(drops).forEach(v => { totKirim += (parseInt(v, 10) || 0); });
+  row.kirim = totKirim;
+  if (row.retur > row.kirim) row.retur = row.kirim;
+  row.laku = Math.max(0, row.kirim - (row.retur || 0));
+  const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
+  row.setor = row.laku * unitRate;
+
+  window.syncRecipeFromBuku1(false);
+  saveLocal();
+  renderAllViews();
+};
+
 window.updateBuku1RowPlan = function(idx, field, val) {
   const num = Math.max(0, parseInt(val, 10) || 0);
   const rows = getActiveBuku1Rows();
@@ -1498,7 +1571,14 @@ window.updateBuku1RowPlan = function(idx, field, val) {
   if (!row) return;
 
   row[field] = num;
-  row.kirim = (row.ubi || 0) + (row.sayur || 0) + (row.roti || 0);
+  const drops = getRowDrops(row);
+  if (field === 'ubi') drops.prod_ubi = num;
+  if (field === 'sayur') drops.prod_sayur = num;
+  if (field === 'roti') drops.prod_roti = num;
+
+  let totKirim = 0;
+  Object.values(drops).forEach(v => { totKirim += (parseInt(v, 10) || 0); });
+  row.kirim = totKirim;
   if (row.retur > row.kirim) row.retur = row.kirim;
   row.laku = Math.max(0, row.kirim - (row.retur || 0));
   const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
@@ -1510,15 +1590,22 @@ window.updateBuku1RowPlan = function(idx, field, val) {
 
 window.syncRecipeFromBuku1 = function(showNotice) {
   const rows = getActiveBuku1Rows();
-  let sumUbi = 0, sumSayur = 0, sumRoti = 0, sumBonus = 0;
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+
+  let sumBonus = 0;
+  const sumsByProd = {};
+  recipes.forEach(p => { sumsByProd[p.id] = 0; });
+
   rows.forEach(r => {
-    sumUbi += (r.ubi || 0);
-    sumSayur += (r.sayur || 0);
-    sumRoti += (r.roti || 0);
     sumBonus += (r.bonus || 0);
+    const drops = getRowDrops(r);
+    Object.keys(drops).forEach(pId => {
+      sumsByProd[pId] = (sumsByProd[pId] || 0) + (parseInt(drops[pId], 10) || 0);
+    });
   });
 
-  // Alokasikan bonus secara proporsional atau ke varian utama (Ubi & Sayur)
   const bonusUbi = Math.ceil(sumBonus / 2);
   const bonusSayur = sumBonus - bonusUbi;
 
@@ -1526,19 +1613,27 @@ window.syncRecipeFromBuku1 = function(showNotice) {
   const sayurInput = document.getElementById('calcSayurPcs');
   const rotiInput = document.getElementById('calcRotiPcs');
 
-  if (ubiInput) ubiInput.value = sumUbi + bonusUbi;
-  if (sayurInput) sayurInput.value = sumSayur + bonusSayur;
-  if (rotiInput) rotiInput.value = sumRoti;
+  if (ubiInput) ubiInput.value = (sumsByProd['prod_ubi'] || 0) + bonusUbi;
+  if (sayurInput) sayurInput.value = (sumsByProd['prod_sayur'] || 0) + bonusSayur;
+  if (rotiInput) rotiInput.value = (sumsByProd['prod_roti'] || 0);
+
+  // Set any custom product inputs in takaran calculator
+  recipes.filter(p => p.isCustom).forEach(cp => {
+    const cpInput = document.getElementById('calcPcs_' + cp.id);
+    if (cpInput && sumsByProd[cp.id] !== undefined) {
+      cpInput.value = sumsByProd[cp.id];
+    }
+  });
 
   window.calculateTakaran();
   if (showNotice) {
+    let totAll = Object.values(sumsByProd).reduce((a, b) => a + b, 0);
     window.showSuccessModal(
       "Target Produksi Disinkronkan",
-      "Rencana produksi subuh berhasil ditarik dari Distribusi Mitra (" + (sumUbi + sumSayur + sumRoti) + " pcs jatah jual + " + sumBonus + " pcs bonus pemilik = " + (sumUbi + sumSayur + sumRoti + sumBonus) + " pcs total)."
+      "Rencana produksi subuh berhasil ditarik dari Distribusi Mitra (" + totAll + " pcs jatah jual + " + sumBonus + " pcs bonus pemilik = " + (totAll + sumBonus) + " pcs total)."
     );
   }
 };
-
 window.updateBuku1RowRetur = function(idx, val) {
   const r = parseInt(val, 10) || 0;
   const rows = getActiveBuku1Rows();
@@ -2456,15 +2551,28 @@ window.setTakaranUnitMode = function(mode) {
   window.calculateTakaran();
 };
 
-function fmtTakaranVal(gramText, spoonText, fisikText) {
-  if (currentTakaranUnitMode === 'spoon') {
-    return spoonText + (gramText ? ' (' + gramText + (fisikText ? ' • ' + fisikText : '') + ')' : '');
+function renderTakaranItemRow(label, mainVal, subNote) {
+  let subHtml = '';
+  if (subNote && String(subNote).trim()) {
+    subHtml = '<div class="takaran-item-sub">' + subNote + '</div>';
   }
-  if (currentTakaranUnitMode === 'gram') {
+  return '<li class="takaran-item-row">' +
+    '<div class="takaran-item-main">' +
+      '<span class="takaran-item-label">' + label + '</span>' +
+      '<strong class="takaran-item-val">' + mainVal + '</strong>' +
+    '</div>' +
+    subHtml +
+  '</li>';
+}
+
+function fmtTakaranVal(gramText, spoonText, fisikText) {
+  if (currentTakaranUnitMode === 'spoon' && spoonText) {
+    return spoonText + (gramText ? ' (' + gramText + ')' : '');
+  }
+  if (currentTakaranUnitMode === 'gram' && gramText) {
     return gramText + (fisikText ? ' (' + fisikText + ')' : '');
   }
-  // Default 'all': Gram + Tbsp/Tsp + Fisik
-  return gramText + (spoonText ? ' • ' + spoonText : '') + (fisikText ? ' (' + fisikText + ')' : '');
+  return gramText + (fisikText ? ' • ' + fisikText : '');
 }
 
 function formatMarginLine(marginVal) {
@@ -2537,7 +2645,6 @@ window.calculateTakaran = function() {
   const ubiGram = Math.round(ubiPcs * ubiPerPcs);
   const ubiKg = (ubiGram / 1000).toFixed(2);
   const ubiBuah = (ubiGram / Math.max(1, metaUbi.gramPerUnit || 200)).toFixed(1);
-  const ubiTbsp = Math.round(ubiGram / 15);
   const gulaGram = Math.round(ubiPcs * gulaPerPcs);
   const gulaTbsp = (gulaGram / 10).toFixed(1);
   const gulaTsp = (gulaGram / 3.3).toFixed(1);
@@ -2546,10 +2653,8 @@ window.calculateTakaran = function() {
   const skmTsp = (skmGram / 5).toFixed(1);
   const susuBubukGram = Math.round(ubiPcs * susuBubukPerPcs);
   const susuBubukTbsp = (susuBubukGram / 10).toFixed(1);
-  const susuBubukTsp = (susuBubukGram / 3.3).toFixed(1);
   const kejuGram = Math.round(ubiPcs * kejuPerPcs);
-  const kejuTbsp = (kejuGram / 15).toFixed(1);
-  const kejuTsp = (kejuGram / 5).toFixed(1);
+  const ubiKulitBks = Math.ceil(ubiPcs / (metaKulit.qty || 36));
 
   // 2. Takaran Lumpia Segitiga Sayur Telur Sosis (Dinamis dari masterResep)
   const wortelPerPcs = getRecipeIngredientQty(sayurProd, 'Wortel', 5.0);
@@ -2561,23 +2666,20 @@ window.calculateTakaran = function() {
 
   const wortelGram = Math.round(sayurPcs * wortelPerPcs);
   const wortelBuah = (wortelGram / Math.max(1, metaWortel.gramPerUnit || 125)).toFixed(1);
-  const wortelTbsp = Math.round(wortelGram / 10);
-  const wortelTsp = Math.round(wortelGram / 3.3);
   const jagungGram = Math.round(sayurPcs * jagungPerPcs);
-  const jagungTongkol = (jagungGram / Math.max(1, metaJagung.gramPerUnit || 100)).toFixed(1);
-  const jagungTbsp = Math.round(jagungGram / 10);
+  const jagungTongkol = (jagungGram / Math.max(1, metaJagung.gramPerUnit || 130)).toFixed(1);
   const sosisGram = Math.round(sayurPcs * sosisPerPcs);
-  const sosisBatang = (sosisGram / Math.max(1, metaSosis.gramPerUnit || 22)).toFixed(1);
-  const sosisTbsp = Math.round(sosisGram / 10);
+  const sosisBatangBulat = Math.max(1, Math.ceil(sayurPcs / 8));
+  
+  // LOGIKA SATUAN BULAT TELUR: Dapur tidak memecahkan 1.3 butir telur!
   const telurGram = Math.round(sayurPcs * telurPerPcs);
-  const telurButir = (telurGram / Math.max(1, metaTelur.gramPerUnit || 55)).toFixed(1);
-  const telurTbsp = (telurGram / 15).toFixed(1);
+  const butirTelurUtuh = sayurPcs > 0 ? Math.max(1, Math.ceil(telurGram / (metaTelur.gramPerUnit || 55))) : 0;
+  
   const bwgPutihGram = Math.round(sayurPcs * bwgPutihPerPcs);
   const bwgPutihSiung = Math.max(1, Math.round(bwgPutihGram / Math.max(1, metaBawangPutih.gramPerUnit || 5)));
-  const bwgPutihTsp = bwgPutihSiung;
   const sausTiramGram = Math.round(sayurPcs * sausTiramPerPcs);
   const sausTiramTbsp = (sausTiramGram / 15).toFixed(1);
-  const sausTiramTsp = (sausTiramGram / 5).toFixed(1);
+  const sayurKulitBks = Math.ceil(sayurPcs / (metaKulit.qty || 36));
 
   // 3. Takaran Roti Goreng Kantong Collins (Dinamis dari masterResep)
   const rotiPerPcs = getRecipeIngredientQty(rotiProd, 'Roti Tawar', 0.5);
@@ -2585,29 +2687,25 @@ window.calculateTakaran = function() {
   const panirPerPcs = getRecipeIngredientQty(rotiProd, 'Panir', 4.0);
   const teriguPerPcs = getRecipeIngredientQty(rotiProd, 'Terigu', 2.5);
 
+  // LOGIKA SATUAN LEMBAR & BUNGKUS BULAT ROTI
   const rotiLembar = Math.ceil(rotiPcs * rotiPerPcs);
-  const rotiGram = Math.round(rotiLembar * (metaRoti.gramPerUnit || 35));
+  const rotiIsiPerBks = metaRoti.qty || 14;
+  const rotiBks = Math.ceil(rotiLembar / rotiIsiPerBks);
+  const rotiSisaLbr = (rotiBks * rotiIsiPerBks) - rotiLembar;
   const rotiBagianGoreng = Math.ceil(rotiPcs / 2);
-  const rotiIsiPerBks = metaRoti.qty;
-  const rotiBks = (rotiLembar / rotiIsiPerBks).toFixed(1);
   const collinsGram = Math.round(rotiPcs * collinsPerPcs);
-  const collinsTbsp = (collinsGram / 15).toFixed(1);
-  const collinsTsp = (collinsGram / 5).toFixed(1);
   const panirGram = Math.round(rotiPcs * panirPerPcs);
-  const panirTbsp = Math.round(panirGram / 8);
-  const panirTsp = Math.round(panirGram / 2.7);
   const teriguCelupGram = Math.round(rotiPcs * teriguPerPcs);
   const teriguCelupTbsp = Math.max(1, Math.round((rotiLembar / 9) * 10));
-  const teriguCelupTsp = teriguCelupTbsp * 3;
   const garamCelupTsp = ((rotiLembar / 9) * 0.5).toFixed(1);
 
   // 4. Total Kemasan Kulit & Minyak
   const totalKulit = ubiPcs + sayurPcs;
-  const totalKulitGram = Math.round(totalKulit * (metaKulit.gramPerUnit || 7));
-  const kulitIsiPerBks = metaKulit.qty;
+  const kulitIsiPerBks = metaKulit.qty || 36;
   const kulitBks = Math.ceil(totalKulit / kulitIsiPerBks);
+  const kulitSisaLbr = (kulitBks * kulitIsiPerBks) - totalKulit;
 
-  // Boxes
+  // Custom Products Boxes
   let customBoxesHtml = '';
   customProducts.forEach((cp, cIdx) => {
     const cpInput = document.getElementById('calcPcs_' + cp.id);
@@ -2615,17 +2713,28 @@ window.calculateTakaran = function() {
     const cpHpp = getProductUnitHPP(cp);
     let itemsLi = '';
     (cp.komposisi || []).forEach(k => {
-      const tot = ((k.qtyPerPcs || 0) * cpPcs).toFixed(1);
-      const isLiquid = /keju|selai|saus|minyak|susu|telur/i.test(k.bahanKey);
-      const tbsp = isLiquid ? (tot / 15).toFixed(1) : (tot / 10).toFixed(1);
-      const tsp = isLiquid ? (tot / 5).toFixed(1) : (tot / 3.3).toFixed(1);
-      const valStr = k.isGram
-        ? fmtTakaranVal(tot + 'g', tbsp + ' tbsp (' + tsp + ' tsp)', '(' + k.qtyPerPcs + 'g/pcs)')
-        : tot + ' ' + (k.unit || 'unit');
-      itemsLi += '<li><span>' + k.nama + ':</span> <strong>' + valStr + '</strong></li>';
+      const isDiscrete = /lembar|butir|batang|buah|ikat|bungkus/i.test(k.unit);
+      const tot = ((k.qtyPerPcs || 0) * cpPcs);
+      let mainVal = '';
+      let subNote = '';
+      if (isDiscrete) {
+        const roundedTot = Math.ceil(tot);
+        mainVal = roundedTot + ' ' + (k.unit || 'unit');
+        subNote = '(' + k.qtyPerPcs + ' ' + k.unit + ' / pcs)';
+      } else {
+        const gramTot = Math.round(tot);
+        const kgStr = gramTot >= 1000 ? ' (' + (gramTot / 1000).toFixed(2) + ' kg)' : '';
+        mainVal = gramTot + 'g' + kgStr;
+        const isLiquid = /keju|selai|saus|minyak|susu|madu/i.test(k.bahanKey);
+        const tbsp = isLiquid ? (gramTot / 15).toFixed(1) : (gramTot / 10).toFixed(1);
+        const tsp = isLiquid ? (gramTot / 5).toFixed(1) : (gramTot / 3.3).toFixed(1);
+        subNote = (gramTot < 50 ? tbsp + ' sdm (' + tsp + ' sdt) • ' : '') + k.qtyPerPcs + 'g / pcs';
+      }
+      itemsLi += renderTakaranItemRow(k.nama, mainVal, subNote);
     });
+
     customBoxesHtml +=
-      '<div class="takaran-box">' +
+      '<div class="takaran-box ' + (window.currentTakaranTab === (4 + cIdx) ? 'active-mobile' : '') + '">' +
         '<div class="takaran-box-header">' +
           '<div class="takaran-box-title" style="color: ' + (cp.badgeColor || '#38BDF8') + ';">' + (cIdx + 4) + '. ' + cp.nama + ' (' + cpPcs + ' pcs)</div>' +
           '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: ' + (cp.badgeColor || '#38BDF8') + ';">HPP Rp ' + cpHpp.toLocaleString('id-ID') + '/pcs</span>' +
@@ -2660,67 +2769,64 @@ window.calculateTakaran = function() {
     '<div class="takaran-box ' + (window.currentTakaranTab === 0 ? 'active-mobile' : '') + '">' +
       '<div class="takaran-box-header">' +
         '<div class="takaran-box-title" style="color: #818CF8;">1. ' + ubiProd.nama + ' (' + ubiPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(129, 140, 248, 0.2); color: #818CF8;">' + ubiPerPcs + 'g • 1 tbsp / 2.5 tsp</span>' +
+        '<span class="mini-tag" style="background: rgba(129, 140, 248, 0.2); color: #818CF8;">' + ubiPerPcs + 'g / pcs • Lipat Bantal</span>' +
       '</div>' +
       '<ul class="takaran-list">' +
-        '<li><span>Ubi Ungu Kukus Empuk:</span> <strong>' + fmtTakaranVal(ubiKg + ' kg (' + ubiGram + 'g)', ubiTbsp + ' tbsp lumat', '≈ ' + ubiBuah + ' buah') + '</strong></li>' +
-        '<li><span>Takaran Isian per Pcs:</span> <strong>' + fmtTakaranVal(ubiPerPcs + 'g ubi', '1 tbsp peres / 2.5 tsp', 'lipat bantal') + '</strong></li>' +
-        '<li><span>Gula Pasir:</span> <strong>' + fmtTakaranVal(gulaGram + 'g', gulaTbsp + ' tbsp (' + gulaTsp + ' tsp)', '') + '</strong></li>' +
-        '<li><span>SKM Putih:</span> <strong>' + fmtTakaranVal(skmGram + 'g', skmTbsp + ' tbsp (' + skmTsp + ' tsp)', '') + '</strong></li>' +
-        '<li><span>Susu Bubuk Putih (Opsional):</span> <strong>' + fmtTakaranVal(susuBubukGram + 'g', susuBubukTbsp + ' tbsp (' + susuBubukTsp + ' tsp)', '') + '</strong></li>' +
-        '<li><span>Keju Oles Prochiz:</span> <strong>' + fmtTakaranVal(kejuGram + 'g', kejuTbsp + ' tbsp / ' + kejuTsp + ' tsp', kejuPerPcs + 'g/pcs') + '</strong></li>' +
-        '<li><span>Kulit Lumpia Segar:</span> <strong>' + ubiPcs + ' lbr (≈ ' + Math.round(ubiPcs * (metaKulit.gramPerUnit || 7)) + 'g)</strong></li>' +
+        renderTakaranItemRow('Ubi Ungu Kukus Empuk', ubiGram + 'g (' + ubiKg + ' kg)', '≈ ' + ubiBuah + ' buah sedang • timbang kukus matang') +
+        renderTakaranItemRow('Takaran Isian per Pcs', ubiPerPcs + 'g ubi', '1 sdt munjung / 1 sdm peres • lipat bantal mini') +
+        renderTakaranItemRow('Gula Pasir Kristal', gulaGram + 'g', gulaTbsp + ' sdm (' + gulaTsp + ' sdt)') +
+        renderTakaranItemRow('SKM Putih', skmGram + 'g', skmTbsp + ' sdm (' + skmTsp + ' sdt)') +
+        renderTakaranItemRow('Susu Bubuk Putih (Opsional)', susuBubukGram + 'g', susuBubukTbsp + ' sdm') +
+        renderTakaranItemRow('Keju Oles Prochiz Spready', kejuGram + 'g', kejuPerPcs + 'g/pcs • semprot plastik segitiga') +
+        renderTakaranItemRow('Kulit Lumpia Segar', ubiPcs + ' lembar', ubiKulitBks + ' bungkus (isi 36 lbr • sisa ' + ((ubiKulitBks * 36) - ubiPcs) + ' lbr)') +
       '</ul>' +
     '</div>' +
 
-    '<div class="takaran-box">' +
+    '<div class="takaran-box ' + (window.currentTakaranTab === 1 ? 'active-mobile' : '') + '">' +
       '<div class="takaran-box-header">' +
         '<div class="takaran-box-title" style="color: #34D399;">2. ' + sayurProd.nama + ' (' + sayurPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">' + (wortelPerPcs + jagungPerPcs + sosisPerPcs).toFixed(1) + 'g • 1 tbsp / 2 tsp</span>' +
+        '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">' + (wortelPerPcs + jagungPerPcs + sosisPerPcs).toFixed(1) + 'g / pcs • Lipat Segitiga</span>' +
       '</div>' +
       '<ul class="takaran-list">' +
-        '<li><span>Wortel Potong Dadu Kecil:</span> <strong>' + fmtTakaranVal(wortelGram + 'g', wortelTbsp + ' tbsp (' + wortelTsp + ' tsp)', '≈ ' + wortelBuah + ' buah') + '</strong></li>' +
-        '<li><span>Jagung Manis Pipil:</span> <strong>' + fmtTakaranVal(jagungGram + 'g', jagungTbsp + ' tbsp pipil', '≈ ' + jagungTongkol + ' tongkol') + '</strong></li>' +
-        '<li><span>Sosis Dadu Mikro:</span> <strong>' + fmtTakaranVal(sosisGram + 'g', sosisTbsp + ' tbsp dadu', sosisBatang + ' batang') + '</strong></li>' +
-        '<li><span>Telur Kocok (Tuang Akhir):</span> <strong>' + fmtTakaranVal(telurGram + 'g', telurTbsp + ' tbsp kocok', telurButir + ' butir') + '</strong></li>' +
-        '<li><span>Bawang Putih Cincang:</span> <strong>' + fmtTakaranVal(bwgPutihGram + 'g', bwgPutihTsp + ' tsp', bwgPutihSiung + ' siung') + '</strong></li>' +
-        '<li><span>Saus Tiram &amp; Bumbu:</span> <strong>' + fmtTakaranVal(sausTiramGram + 'g Saus Tiram', sausTiramTbsp + ' tbsp (' + sausTiramTsp + ' tsp)', '') + '</strong></li>' +
-        '<li><span>Isian per Kulit (Lipat Segitiga):</span> <strong>' + fmtTakaranVal((wortelPerPcs + jagungPerPcs + sosisPerPcs).toFixed(1) + 'g/pcs', '1 tbsp peres / 2 tsp', sayurPcs + ' lbr kulit') + '</strong></li>' +
+        renderTakaranItemRow('Wortel Dadu Kecil', wortelGram + 'g', '≈ ' + wortelBuah + ' buah sedang • tumis dadu kecil') +
+        renderTakaranItemRow('Jagung Manis Pipil', jagungGram + 'g', '≈ ' + jagungTongkol + ' tongkol pipil manis') +
+        renderTakaranItemRow('Sosis Dadu Mikro', sosisBatangBulat + ' batang (' + sosisGram + 'g)', '1 batang sosis potong dadu untuk 8 pcs lumpia') +
+        renderTakaranItemRow('Telur Ayam (Pengikat Tumisan)', butirTelurUtuh + ' butir utuh', telurGram + 'g kocokan • tuang akhir saat isian hampir asat') +
+        renderTakaranItemRow('Bawang Putih Cincang', bwgPutihGram + 'g', bwgPutihSiung + ' siung cincang halus') +
+        renderTakaranItemRow('Saus Tiram & Bumbu', sausTiramGram + 'g', sausTiramTbsp + ' sdm saus tiram + kaldu garam') +
+        renderTakaranItemRow('Kulit Lumpia Segar', sayurPcs + ' lembar', sayurKulitBks + ' bungkus (isi 36 lbr • sisa ' + ((sayurKulitBks * 36) - sayurPcs) + ' lbr)') +
       '</ul>' +
     '</div>' +
 
-    '<div class="takaran-box">' +
+    '<div class="takaran-box ' + (window.currentTakaranTab === 2 ? 'active-mobile' : '') + '">' +
       '<div class="takaran-box-header">' +
         '<div class="takaran-box-title" style="color: #FBBF24;">3. ' + rotiProd.nama + ' (' + rotiPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">1 Lbr = 2 Kantong</span>' +
+        '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">1 Lembar = 2 Kantong</span>' +
       '</div>' +
       '<ul class="takaran-list">' +
-        '<li><span>Roti Tawar Utuh:</span> <strong>' + rotiLembar + ' lbr (≈ ' + rotiGram + 'g • ' + rotiBks + ' bks @ ' + rotiIsiPerBks + ' lbr)</strong></li>' +
-        '<li><span>Potong 2 &amp; Tumpuk Kering:</span> <strong>' + rotiBagianGoreng + ' blok tumpuk goreng</strong></li>' +
-        '<li><span>Adonan Terigu Celup Cepat:</span> <strong>' + fmtTakaranVal('serapan ~' + teriguCelupGram + 'g', teriguCelupTbsp + ' tbsp (' + teriguCelupTsp + ' tsp) terigu + ' + garamCelupTsp + ' tsp garam', '') + '</strong></li>' +
-        '<li><span>Tepung Panir Tipis Merata:</span> <strong>' + fmtTakaranVal(panirGram + 'g (~' + panirPerPcs + 'g/pcs)', panirTbsp + ' tbsp (' + panirTsp + ' tsp)', '') + '</strong></li>' +
-        '<li><span>Belah 2 Usai Goreng:</span> <strong>Jadi ' + rotiPcs + ' kantong persegi</strong></li>' +
-        '<li><span>Collins Choco (Trik Bibir Luar):</span> <strong>' + fmtTakaranVal(collinsGram + 'g (~' + collinsPerPcs + 'g/pcs)', collinsTbsp + ' tbsp / ' + collinsTsp + ' tsp', '1/2 tsp/pcs') + '</strong></li>' +
+        renderTakaranItemRow('Roti Tawar Utuh', rotiLembar + ' lembar', rotiBks + ' bungkus (isi ' + rotiIsiPerBks + ' lbr • sisa ' + rotiSisaLbr + ' lbr) • ' + rotiPcs + ' pcs gorengan') +
+        renderTakaranItemRow('Potong 2 Tumpuk Goreng', rotiBagianGoreng + ' blok tumpuk', '1 lembar dipotong 2, ditumpuk sebelum dicelup') +
+        renderTakaranItemRow('Adonan Terigu Celup Cepat', teriguCelupGram + 'g terigu', teriguCelupTbsp + ' sdm terigu encer + ' + garamCelupTsp + ' sdt garam') +
+        renderTakaranItemRow('Tepung Panir Super Krispi', panirGram + 'g', '~' + panirPerPcs + 'g / pcs baluran panir merata') +
+        renderTakaranItemRow('Collins Choco Crunchy', collinsGram + 'g', '~' + collinsPerPcs + 'g / kantong • semprot selagi hangat') +
       '</ul>' +
     '</div>' +
 
-    '<div class="takaran-box">' +
+    '<div class="takaran-box ' + (window.currentTakaranTab === 3 ? 'active-mobile' : '') + '">' +
       '<div class="takaran-box-header">' +
-        '<div class="takaran-box-title" style="color: #38BDF8;">4. Total Kulit & Penggorengan</div>' +
-        '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8;">Operasional Subuh</span>' +
+        '<div class="takaran-box-title" style="color: #38BDF8;">4. Kulit Lumpia & Minyak Goreng Bersama</div>' +
+        '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8;">' + totalKulit + ' Lbr Total (' + kulitBks + ' Bks)</span>' +
       '</div>' +
       '<ul class="takaran-list">' +
-        '<li><span>Total Kebutuhan Kulit Lumpia:</span> <strong>' + totalKulit + ' lembar (≈ ' + totalKulitGram + ' gram)</strong></li>' +
-        '<li><span>Ambil Bungkus Kulit di Kulkas:</span> <strong>' + kulitBks + ' bungkus (@ isi ' + kulitIsiPerBks + ' lbr)</strong></li>' +
-        '<li><span>Larutan Lem Tepung Kulit:</span> <strong>2 tbsp (6 tsp / 20g) terigu + 4 tbsp air</strong></li>' +
-        '<li><span>Minyak Goreng Wajan:</span> <strong>1.5 - 2.0 Liter (1.350 - 1.800g)</strong></li>' +
-        '<li><span>Suhu &amp; Waktu Goreng:</span> <strong>160°C (Api Sedang • 3.5 - 4.0 Menit)</strong></li>' +
+        renderTakaranItemRow('Total Kulit Lumpia (Ubi + Sayur)', totalKulit + ' lembar', kulitBks + ' bungkus (isi ' + kulitIsiPerBks + ' lbr • sisa ' + kulitSisaLbr + ' lbr cadangan)') +
+        renderTakaranItemRow('Tepung Lem Perekat', Math.round(totalKulit * 0.3) + 'g terigu', 'Larutkan kental dengan air untuk rekatkan lipatan') +
+        renderTakaranItemRow('Minyak Goreng Standar', '1 pouch (1 liter)', 'Gunakan api sedang stabil 160°C • tiriskan miring') +
       '</ul>' +
     '</div>' +
     customBoxesHtml;
 
-  // 5. AUDIT HPP & ESTIMASI PROFIT REAL-TIME (DARI DYNAMIC MASTER RESEP)
-  const hppBox = document.getElementById('hppAuditContainer');
+  // Real-Time Unit HPP & Omzet Audit Bar
+  const hppBox = document.getElementById('takaranHppSummaryBox');
   if (hppBox) {
     const hppUbiUnit = getProductUnitHPP(ubiProd);
     const hppSayurUnit = getProductUnitHPP(sayurProd);
@@ -2733,38 +2839,33 @@ window.calculateTakaran = function() {
       totalHPPProduksi += (cpPcs * getProductUnitHPP(cp));
     });
 
-    const rowsB1 = getActiveBuku1Rows();
-    const totalBonusB1 = rowsB1.reduce((s, r) => s + (r.bonus || 0), 0);
-    const totalKirimB1 = rowsB1.reduce((s, r) => s + (r.kirim || 0), 0);
-    const weightedAvgTarif = totalKirimB1 > 0
-      ? Math.round(rowsB1.reduce((s, r) => s + ((r.kirim || 0) * (r.hargaSetor || 800)), 0) / totalKirimB1)
-      : 800;
-    const estPcsJual = Math.max(0, totalPcs - totalBonusB1);
-    const estOmzetSetor = estPcsJual * weightedAvgTarif;
+    const activeRows = getActiveBuku1Rows();
+    let sumSetor = 0, sumLaku = 0;
+    activeRows.forEach(r => {
+      sumSetor += (r.setor || 0);
+      sumLaku += (r.laku || 0);
+    });
+    const weightedAvgTarif = sumLaku > 0 ? Math.round(sumSetor / sumLaku) : 800;
+
+    let estOmzetSetor = 0;
+    estOmzetSetor += (ubiPcs * (ubiProd.hargaSetorDefault || weightedAvgTarif));
+    estOmzetSetor += (sayurPcs * (sayurProd.hargaSetorDefault || weightedAvgTarif));
+    estOmzetSetor += (rotiPcs * (rotiProd.hargaSetorDefault || weightedAvgTarif));
+    customProducts.forEach(cp => {
+      const cpInput = document.getElementById('calcPcs_' + cp.id);
+      const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
+      estOmzetSetor += (cpPcs * (cp.hargaSetorDefault || weightedAvgTarif));
+    });
+
     const estLabaBersih = estOmzetSetor - totalHPPProduksi;
 
-    const formatMarginLine = (margin) => {
-      const col = margin >= 0 ? '#34D399' : '#FB7185';
-      const sign = margin >= 0 ? '+' : '';
-      return '<span style="font-size: 0.72rem; color: ' + col + '; font-weight: 700; display: block; margin-top: 2px;">Margin: ' + sign + 'Rp ' + margin.toLocaleString('id-ID') + ' / pcs</span>';
-    };
-
-    // Sisa stok check
-    const getStokGramByKey = (kw) => {
-      const foundStok = (auraData.stokBahan || []).find(s => s.nama.toLowerCase().includes(kw.toLowerCase()));
-      if (!foundStok) return 0;
-      const r = getStokGramRatio(foundStok);
-      return foundStok.stokGram !== undefined ? foundStok.stokGram : Math.round((foundStok.stok || 0) * r);
-    };
     const checks = [
-      { label: 'Kulit Lumpia', needG: totalKulitGram, availG: getStokGramByKey('Kulit'), needTxt: totalKulit + ' lbr (' + totalKulitGram + 'g)' },
-      { label: 'Ubi Ungu', needG: ubiGram, availG: getStokGramByKey('Ubi'), needTxt: ubiGram + 'g' },
-      { label: 'Keju Prochiz', needG: kejuGram, availG: getStokGramByKey('Keju'), needTxt: kejuGram + 'g' },
+      { label: 'Kulit Lumpia', needG: totalKulit * 7, availG: getStokGramByKey('Kulit Lumpia'), needTxt: totalKulit + ' lbr (' + kulitBks + ' bks)' },
+      { label: 'Ubi Ungu', needG: ubiGram, availG: getStokGramByKey('Ubi Ungu'), needTxt: ubiGram + 'g' },
       { label: 'Wortel', needG: wortelGram, availG: getStokGramByKey('Wortel'), needTxt: wortelGram + 'g' },
       { label: 'Jagung', needG: jagungGram, availG: getStokGramByKey('Jagung'), needTxt: jagungGram + 'g' },
-      { label: 'Sosis', needG: sosisGram, availG: getStokGramByKey('Sosis'), needTxt: sosisGram + 'g' },
-      { label: 'Telur', needG: telurGram, availG: getStokGramByKey('Telur'), needTxt: telurGram + 'g' },
-      { label: 'Roti Tawar', needG: rotiGram, availG: getStokGramByKey('Roti'), needTxt: rotiLembar + ' lbr (' + rotiGram + 'g)' },
+      { label: 'Telur Ayam', needG: butirTelurUtuh * 55, availG: getStokGramByKey('Telur'), needTxt: butirTelurUtuh + ' butir utuh' },
+      { label: 'Roti Tawar', needG: rotiLembar * 35, availG: getStokGramByKey('Roti Tawar'), needTxt: rotiLembar + ' lbr (' + rotiBks + ' bks)' },
       { label: 'Collins Choco', needG: collinsGram, availG: getStokGramByKey('Collins'), needTxt: collinsGram + 'g' },
       { label: 'Tepung Panir', needG: panirGram, availG: getStokGramByKey('Panir'), needTxt: panirGram + 'g' }
     ];
@@ -2772,7 +2873,7 @@ window.calculateTakaran = function() {
     const stokSyncHtml = kurangList.length === 0
       ? '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.74rem; color: #34D399;"><strong>Integrasi Stok Dapur:</strong> Seluruh sisa stok fisik/gram di dapur mencukupi untuk target produksi ' + totalPcs + ' pcs ini.</div>'
       : '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.74rem; color: #FBBF24;"><strong>Peringatan Integrasi Stok Dapur (Kurang ' + kurangList.length + ' Bahan):</strong> ' +
-        kurangList.map(k => k.label + ' (Butuh ' + k.needTxt + ', Stok ' + k.availG + 'g -> <span style="color:#FB7185;font-weight:700;">Kurang ' + (k.needG - k.availG) + 'g</span>)').join(' • ') +
+        kurangList.map(k => k.label + ' (Butuh ' + k.needTxt + ' -> <span style="color:#FB7185;font-weight:700;">Kurang stok fisik</span>)').join(' • ') +
         '</div>';
 
     hppBox.innerHTML =
@@ -2807,7 +2908,6 @@ window.calculateTakaran = function() {
       '</div>';
   }
 };
-
 window.applyRecipePreset = function(ubi, sayur, roti) {
   const ubiInput = document.getElementById('calcUbiPcs');
   const sayurInput = document.getElementById('calcSayurPcs');
@@ -2833,19 +2933,38 @@ window.copyRecipeToClipboard = function(prodId) {
   if (!p) return;
 
   const hpp = getProductUnitHPP(p);
+  const batchSize = window.formulaModalBatchSize || 50;
+
   const bahanList = (p.komposisi || []).map((k, i) => {
     const unitLabel = k.unit || (k.isGram ? 'gram' : 'unit');
     return (i + 1) + '. ' + k.nama + ': ' + k.qtyPerPcs + ' ' + unitLabel;
+  }).join('\n');
+
+  const batchBahanList = (p.komposisi || []).map(k => {
+    const isDiscrete = /lembar|butir|batang|buah|ikat|bungkus/i.test(k.unit);
+    const tot = ((k.qtyPerPcs || 0) * batchSize);
+    let valStr = '';
+    if (isDiscrete) {
+      valStr = Math.ceil(tot) + ' ' + (k.unit || 'unit');
+    } else {
+      const gramTot = Math.round(tot);
+      valStr = gramTot >= 1000 ? (gramTot / 1000).toFixed(2) + ' kg (' + gramTot + 'g)' : gramTot + 'g';
+    }
+    return '• ' + k.nama + ': ' + valStr;
   }).join('\n');
 
   const text = 
     '*SOP RESEP PRODUKSI — DAPUR MOM FITRI*\n' +
     'Produk: *' + p.nama + '*\n' +
     'Model Lipatan / Bentuk: ' + (p.lipatModel || '-') + '\n' +
-    'Estimasi HPP Bahan: Rp ' + hpp.toLocaleString('id-ID') + ' / pcs\n' +
+    'Estimasi HPP Pokok: Rp ' + hpp.toLocaleString('id-ID') + ' / pcs\n' +
+    'Target Harga Setor Mitra: Rp ' + (p.hargaSetorDefault || 800).toLocaleString('id-ID') + ' / pcs\n' +
     '----------------------------------------\n' +
-    '*KOMPOSISI TAKARAN PER PCS:*\n' +
+    '*STANDAR TAKARAN PER PCS:*\n' +
     bahanList + '\n' +
+    '----------------------------------------\n' +
+    '*ESTIMASI 1 BATCH BASKOM (' + batchSize + ' PCS):*\n' +
+    batchBahanList + '\n' +
     '----------------------------------------\n' +
     '*TEKNIK PENGGORENGAN & SUHU:*\n' +
     '• Suhu & Durasi: ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '\n' +
@@ -2925,6 +3044,69 @@ function renderRecipeVisualGrid() {
   });
 }
 
+window.formulaModalBatchSize = 50;
+
+window.setFormulaBatchSize = function(size, fromInput) {
+  const val = Math.max(1, parseInt(size, 10) || 50);
+  window.formulaModalBatchSize = val;
+  const inputEl = document.getElementById('fBatchSizeInput');
+  if (inputEl && !fromInput) inputEl.value = val;
+
+  [30, 50, 66, 100].forEach(s => {
+    const pill = document.getElementById('btnBatch_' + s);
+    if (pill) {
+      if (s === val && !fromInput) pill.classList.add('active');
+      else pill.classList.remove('active');
+    }
+  });
+
+  const bHeader = document.getElementById('fBatchColHeader');
+  if (bHeader) bHeader.innerText = val + ' pcs';
+  const bCardLabel = document.getElementById('fBatchLabelDisplay');
+  if (bCardLabel) bCardLabel.innerText = 'Modal 1 Batch (' + val + ' pcs)';
+  const bOmzetLabel = document.getElementById('fBatchOmzetLabelDisplay');
+  if (bOmzetLabel) bOmzetLabel.innerText = 'Omzet Setor 1 Batch (' + val + ' pcs)';
+
+  const tableBody = document.getElementById('formulaTableBody');
+  if (tableBody) {
+    const rows = tableBody.querySelectorAll('tr');
+    rows.forEach(r => {
+      const inputQty = r.querySelector('.f-item-qty');
+      const inputBatch = r.querySelector('.f-item-batch-qty');
+      if (inputQty && inputBatch) {
+        const perPcs = parseFloat(inputQty.value) || 0;
+        inputBatch.value = Math.round(perPcs * val * 100) / 100;
+      }
+    });
+  }
+
+  window.recalcFormulaModalLine();
+};
+
+window.onFormulaPerPcsChange = function(inputEl) {
+  const row = inputEl.closest('tr');
+  if (!row) return;
+  const batchInput = row.querySelector('.f-item-batch-qty');
+  const perPcs = parseFloat(inputEl.value) || 0;
+  const batchSize = window.formulaModalBatchSize || 50;
+  if (batchInput) {
+    batchInput.value = Math.round(perPcs * batchSize * 100) / 100;
+  }
+  window.recalcFormulaModalLine();
+};
+
+window.onFormulaBatchQtyChange = function(batchInput) {
+  const row = batchInput.closest('tr');
+  if (!row) return;
+  const qtyInput = row.querySelector('.f-item-qty');
+  const batchQty = parseFloat(batchInput.value) || 0;
+  const batchSize = window.formulaModalBatchSize || 50;
+  if (qtyInput && batchSize > 0) {
+    qtyInput.value = Math.round((batchQty / batchSize) * 1000) / 1000;
+  }
+  window.recalcFormulaModalLine();
+};
+
 window.openManageFormulaModal = function(selectedProdId) {
   const overlay = document.getElementById('appModalOverlay');
   const dialog = document.getElementById('appModalDialog');
@@ -2934,9 +3116,9 @@ window.openManageFormulaModal = function(selectedProdId) {
   const footer = document.getElementById('appModalFooter');
 
   if (!overlay || !dialog) return;
-  dialog.style.maxWidth = '780px';
+  dialog.style.maxWidth = '820px';
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-  if (titleEl) titleEl.innerText = 'Kelola Formula Resep & Takaran Presisi';
+  if (titleEl) titleEl.innerText = 'Kelola Formula Resep & Standar Gramasi Presisi';
 
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
@@ -2944,6 +3126,7 @@ window.openManageFormulaModal = function(selectedProdId) {
   
   let activeId = selectedProdId || recipes[0].id;
   const prod = recipes.find(r => r.id === activeId) || recipes[0];
+  const batchSize = window.formulaModalBatchSize || 50;
 
   const tabsHtml = recipes.map(r => {
     const isActive = r.id === prod.id;
@@ -2956,14 +3139,18 @@ window.openManageFormulaModal = function(selectedProdId) {
 
   let rowsHtml = '';
   (prod.komposisi || []).forEach((k, idx) => {
-    const meta = getMasterItemMeta(k.bahanKey, 10000, 100, k.isGram);
-    const lineCost = k.isGram ? Math.round((k.qtyPerPcs || 0) * meta.gramCost) : Math.round((k.qtyPerPcs || 0) * meta.unitCost);
+    const isGram = (k.unit === 'gram' || k.isGram);
+    const meta = getMasterItemMeta(k.bahanKey, 10000, 100, isGram);
+    const perPcsQty = Number(k.qtyPerPcs) || 0;
+    const batchQty = Math.round(perPcsQty * batchSize * 100) / 100;
+    const lineCostPcs = isGram ? Math.round(perPcsQty * meta.gramCost) : Math.round(perPcsQty * meta.unitCost);
+    const lineCostBatch = Math.round(lineCostPcs * batchSize);
 
     rowsHtml += 
       '<tr>' +
-        '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+        '<td style="text-align: center; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">' + (idx + 1) + '</td>' +
         '<td>' +
-          '<select class="form-control-slate f-item-key" style="padding: 4px 6px; font-size: 0.78rem;" onchange="window.recalcFormulaModalLine()">' +
+          '<select class="form-control-slate f-item-key" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
             allMb.map(m => {
               const sel = (m.nama.toLowerCase() === k.nama.toLowerCase() || m.nama.toLowerCase().includes(k.bahanKey.toLowerCase())) ? 'selected' : '';
               return '<option value="' + m.nama + '" ' + sel + '>' + m.nama + '</option>';
@@ -2971,17 +3158,23 @@ window.openManageFormulaModal = function(selectedProdId) {
           '</select>' +
         '</td>' +
         '<td>' +
-          '<input type="number" step="0.1" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800;" value="' + (k.qtyPerPcs || 0) + '" oninput="window.recalcFormulaModalLine()">' +
+          '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FFFFFF;" value="' + perPcsQty + '" oninput="window.onFormulaPerPcsChange(this)" title="Takaran per 1 pcs">' +
         '</td>' +
         '<td>' +
-          '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem;" onchange="window.recalcFormulaModalLine()">' +
-            ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi'].map(u => {
-              const sel = (k.unit === u || (k.isGram && u === 'gram')) ? 'selected' : '';
+          '<input type="number" step="any" min="0" class="form-control-slate f-item-batch-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #38BDF8;" value="' + batchQty + '" oninput="window.onFormulaBatchQtyChange(this)" title="Total kebutuhan 1 batch baskom">' +
+        '</td>' +
+        '<td>' +
+          '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
+            ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi', 'sdm', 'sdt'].map(u => {
+              const sel = (k.unit === u || (isGram && u === 'gram')) ? 'selected' : '';
               return '<option value="' + u + '" ' + sel + '>' + u + '</option>';
             }).join('') +
           '</select>' +
         '</td>' +
-        '<td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: #38BDF8;" id="fLineCost_' + idx + '">Rp ' + lineCost.toLocaleString('id-ID') + '</td>' +
+        '<td style="text-align: right; font-family: var(--font-mono); font-size: 0.78rem;" class="f-line-cost">' +
+          '<span style="color: #38BDF8; font-weight: 700;">Rp ' + lineCostPcs.toLocaleString('id-ID') + '</span>' +
+          '<span style="font-size: 0.68rem; color: var(--text-muted); display: block;">Rp ' + lineCostBatch.toLocaleString('id-ID') + ' / bsk</span>' +
+        '</td>' +
         '<td style="text-align: center;">' +
           '<button type="button" class="btn-del-row" style="color: #FB7185; padding: 2px 6px; font-size: 0.85rem;" onclick="this.closest(\'tr\').remove(); window.recalcFormulaModalLine();" title="Hapus baris">&times;</button>' +
         '</td>' +
@@ -2992,6 +3185,8 @@ window.openManageFormulaModal = function(selectedProdId) {
   const targetHarga = prod.hargaSetorDefault || 800;
   const marginEst = targetHarga - curHpp;
   const marginColor = marginEst >= 0 ? '#34D399' : '#FB7185';
+  const totalModalBatch = curHpp * batchSize;
+  const omzetBatch = targetHarga * batchSize;
 
   body.innerHTML =
     '<div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--card-border);">' +
@@ -2999,7 +3194,7 @@ window.openManageFormulaModal = function(selectedProdId) {
       '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Varian Baru</button>' +
     '</div>' +
 
-    '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px;">' +
+    '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px;">' +
       '<div>' +
         '<label class="form-label">Nama Produk</label>' +
         '<input type="text" id="fProdNama" class="form-control-slate" value="' + prod.nama + '" required>' +
@@ -3014,21 +3209,40 @@ window.openManageFormulaModal = function(selectedProdId) {
       '</div>' +
     '</div>' +
 
+    '<!-- Batch Simulation Controller -->' +
+    '<div style="background: rgba(30, 41, 59, 0.7); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">' +
+      '<div>' +
+        '<span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block;">Simulasi Skala Batch (Baskom Sekali Aduk)</span>' +
+        '<span style="font-size: 0.78rem; color: #E2E8F0;">Ketik resep skala baskom atau per pcs, sistem menghitung otomatis timbal balik:</span>' +
+      '</div>' +
+      '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">' +
+        '<button type="button" class="filter-pill ' + (batchSize === 30 ? 'active' : '') + '" id="btnBatch_30" onclick="window.setFormulaBatchSize(30)">30 pcs</button>' +
+        '<button type="button" class="filter-pill ' + (batchSize === 50 ? 'active' : '') + '" id="btnBatch_50" onclick="window.setFormulaBatchSize(50)">50 pcs</button>' +
+        '<button type="button" class="filter-pill ' + (batchSize === 66 ? 'active' : '') + '" id="btnBatch_66" onclick="window.setFormulaBatchSize(66)">66 pcs</button>' +
+        '<button type="button" class="filter-pill ' + (batchSize === 100 ? 'active' : '') + '" id="btnBatch_100" onclick="window.setFormulaBatchSize(100)">100 pcs</button>' +
+        '<div style="display: flex; align-items: center; gap: 4px; margin-left: 4px;">' +
+          '<input type="number" id="fBatchSizeInput" class="form-control-slate" style="width: 60px; text-align: center; font-family: var(--font-mono); font-weight: 800; padding: 3px 4px;" value="' + batchSize + '" oninput="window.setFormulaBatchSize(this.value, true)">' +
+          '<span style="font-size: 0.75rem; color: #94A3B8;">pcs</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
-      '<strong style="font-size: 0.82rem; color: #FFFFFF;">Daftar Komposisi Bahan per 1 Pcs:</strong>' +
+      '<strong style="font-size: 0.82rem; color: #FFFFFF;">Daftar Komposisi &amp; Takaran Bahan (Per Pcs &amp; Per Batch):</strong>' +
       '<button type="button" class="tool-btn" style="font-size: 0.72rem; padding: 3px 8px;" onclick="window.addFormulaIngredientLine()">+ Tambah Bahan Baku</button>' +
     '</div>' +
 
-    '<div class="table-responsive-wrapper" style="max-height: 280px; overflow-y: auto; margin-bottom: 14px;">' +
+    '<div class="table-responsive-wrapper" style="max-height: 280px; overflow-y: auto; margin-bottom: 12px;">' +
       '<table class="slate-table">' +
         '<thead>' +
           '<tr>' +
-            '<th style="width: 32px; text-align: center;">No</th>' +
+            '<th style="width: 28px; text-align: center;">No</th>' +
             '<th>Bahan Baku (Dari Master)</th>' +
-            '<th style="width: 100px; text-align: center;">Takaran</th>' +
-            '<th style="width: 95px;">Satuan</th>' +
-            '<th style="width: 105px; text-align: right;">Est. Biaya</th>' +
-            '<th style="width: 40px; text-align: center;">Aksi</th>' +
+            '<th style="width: 90px; text-align: center;">Takaran / Pcs</th>' +
+            '<th style="width: 100px; text-align: center;" id="fBatchColHeader">1 Batch (' + batchSize + ' pcs)</th>' +
+            '<th style="width: 85px;">Satuan</th>' +
+            '<th style="width: 110px; text-align: right;">Est. Biaya</th>' +
+            '<th style="width: 36px; text-align: center;">Aksi</th>' +
           '</tr>' +
         '</thead>' +
         '<tbody id="formulaTableBody">' +
@@ -3037,14 +3251,24 @@ window.openManageFormulaModal = function(selectedProdId) {
       '</table>' +
     '</div>' +
 
-    '<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--card-border); border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">' +
-      '<div>' +
-        '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">Estimasi HPP per Pcs:</span>' +
-        '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: #FFFFFF;" id="fTotalHppDisplay">Rp ' + curHpp.toLocaleString('id-ID') + '</strong>' +
-      '</div>' +
-      '<div>' +
-        '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">Estimasi Margin Mitra:</span>' +
-        '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: ' + marginColor + ';" id="fTotalMarginDisplay">' + (marginEst >= 0 ? '+' : '') + 'Rp ' + marginEst.toLocaleString('id-ID') + '</strong>' +
+    '<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;">' +
+      '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">' +
+        '<div>' +
+          '<span style="font-size: 0.7rem; color: var(--text-muted); display: block;">HPP Pokok per Pcs</span>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: #FFFFFF;" id="fTotalHppDisplay">Rp ' + curHpp.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
+        '<div>' +
+          '<span style="font-size: 0.7rem; color: #38BDF8; display: block;" id="fBatchLabelDisplay">Modal 1 Batch (' + batchSize + ' pcs)</span>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: #38BDF8;" id="fTotalBatchModalDisplay">Rp ' + totalModalBatch.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
+        '<div>' +
+          '<span style="font-size: 0.7rem; color: var(--text-muted); display: block;">Est. Margin Mitra / Pcs</span>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: ' + marginColor + ';" id="fTotalMarginDisplay">' + (marginEst >= 0 ? '+' : '') + 'Rp ' + marginEst.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
+        '<div>' +
+          '<span style="font-size: 0.7rem; color: #FBBF24; display: block;" id="fBatchOmzetLabelDisplay">Omzet Setor 1 Batch (' + batchSize + ' pcs)</span>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: #FBBF24;" id="fTotalBatchOmzetDisplay">Rp ' + omzetBatch.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
       '</div>' +
     '</div>';
 
@@ -3067,37 +3291,53 @@ window.openManageFormulaModal = function(selectedProdId) {
 window.recalcFormulaModalLine = function() {
   const tableBody = document.getElementById('formulaTableBody');
   if (!tableBody) return;
+  const batchSize = window.formulaModalBatchSize || 50;
   const rows = tableBody.querySelectorAll('tr');
-  let totalHpp = 0;
+  let totalHppPerPcs = 0;
+
   rows.forEach((r, idx) => {
     const selMb = r.querySelector('.f-item-key');
     const inputQty = r.querySelector('.f-item-qty');
     const selUnit = r.querySelector('.f-item-unit');
-    const costCell = r.querySelector('#fLineCost_' + idx) || r.querySelectorAll('td')[4];
-    
+    const costCell = r.querySelector('.f-line-cost');
+
     if (selMb && inputQty && selUnit) {
       const mbKey = selMb.value;
       const qty = parseFloat(inputQty.value) || 0;
       const isGram = selUnit.value === 'gram';
       const meta = getMasterItemMeta(mbKey, 10000, 100, isGram);
-      const lineCost = isGram ? Math.round(qty * meta.gramCost) : Math.round(qty * meta.unitCost);
-      if (costCell) costCell.innerText = 'Rp ' + lineCost.toLocaleString('id-ID');
-      totalHpp += lineCost;
+      const lineCostPcs = isGram ? (qty * meta.gramCost) : (qty * meta.unitCost);
+      const lineCostBatch = Math.round(lineCostPcs * batchSize);
+
+      if (costCell) {
+        costCell.innerHTML = 
+          '<span style="color: #38BDF8; font-weight: 700;">Rp ' + Math.round(lineCostPcs).toLocaleString('id-ID') + '</span>' +
+          '<span style="font-size: 0.68rem; color: var(--text-muted); display: block;">Rp ' + lineCostBatch.toLocaleString('id-ID') + ' / bsk</span>';
+      }
+      totalHppPerPcs += lineCostPcs;
     }
   });
 
-  const totalHppEl = document.getElementById('fTotalHppDisplay');
-  const totalMarginEl = document.getElementById('fTotalMarginDisplay');
+  const totalHppPcs = Math.round(totalHppPerPcs);
+  const totalModalBatch = Math.round(totalHppPerPcs * batchSize);
   const hargaSetorInput = document.getElementById('fProdHargaSetor');
   const targetHarga = hargaSetorInput ? (parseInt(hargaSetorInput.value, 10) || 800) : 800;
-  const marginEst = targetHarga - totalHpp;
+  const marginEst = targetHarga - totalHppPcs;
   const marginColor = marginEst >= 0 ? '#34D399' : '#FB7185';
+  const omzetBatch = targetHarga * batchSize;
 
-  if (totalHppEl) totalHppEl.innerText = 'Rp ' + totalHpp.toLocaleString('id-ID');
-  if (totalMarginEl) {
-    totalMarginEl.innerText = (marginEst >= 0 ? '+' : '') + 'Rp ' + marginEst.toLocaleString('id-ID');
-    totalMarginEl.style.color = marginColor;
+  const hppPcsEl = document.getElementById('fTotalHppDisplay');
+  const hppBatchEl = document.getElementById('fTotalBatchModalDisplay');
+  const marginEl = document.getElementById('fTotalMarginDisplay');
+  const omzetBatchEl = document.getElementById('fTotalBatchOmzetDisplay');
+
+  if (hppPcsEl) hppPcsEl.innerText = 'Rp ' + totalHppPcs.toLocaleString('id-ID');
+  if (hppBatchEl) hppBatchEl.innerText = 'Rp ' + totalModalBatch.toLocaleString('id-ID');
+  if (marginEl) {
+    marginEl.innerText = (marginEst >= 0 ? '+' : '') + 'Rp ' + marginEst.toLocaleString('id-ID');
+    marginEl.style.color = marginColor;
   }
+  if (omzetBatchEl) omzetBatchEl.innerText = 'Rp ' + omzetBatch.toLocaleString('id-ID');
 };
 
 window.addFormulaIngredientLine = function() {
@@ -3105,28 +3345,34 @@ window.addFormulaIngredientLine = function() {
   if (!tableBody) return;
   const allMb = (auraData && auraData.masterBahan) ? auraData.masterBahan : INITIAL_MASTER_BAHAN;
   const idx = tableBody.querySelectorAll('tr').length;
-  
+  const batchSize = window.formulaModalBatchSize || 50;
+
   const tr = document.createElement('tr');
   tr.innerHTML = 
-    '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+    '<td style="text-align: center; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-muted);">' + (idx + 1) + '</td>' +
     '<td>' +
-      '<select class="form-control-slate f-item-key" style="padding: 4px 6px; font-size: 0.78rem;" onchange="window.recalcFormulaModalLine()">' +
+      '<select class="form-control-slate f-item-key" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
         allMb.map(m => '<option value="' + m.nama + '">' + m.nama + '</option>').join('') +
       '</select>' +
     '</td>' +
     '<td>' +
-      '<input type="number" step="0.1" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800;" value="1" oninput="window.recalcFormulaModalLine()">' +
+      '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FFFFFF;" value="1" oninput="window.onFormulaPerPcsChange(this)">' +
     '</td>' +
     '<td>' +
-      '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem;" onchange="window.recalcFormulaModalLine()">' +
-        ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi'].map(u => '<option value="' + u + '">' + u + '</option>').join('') +
+      '<input type="number" step="any" min="0" class="form-control-slate f-item-batch-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #38BDF8;" value="' + batchSize + '" oninput="window.onFormulaBatchQtyChange(this)">' +
+    '</td>' +
+    '<td>' +
+      '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
+        ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi', 'sdm', 'sdt'].map(u => '<option value="' + u + '">' + u + '</option>').join('') +
       '</select>' +
     '</td>' +
-    '<td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: #38BDF8;" id="fLineCost_' + idx + '">Rp 0</td>' +
+    '<td style="text-align: right; font-family: var(--font-mono); font-size: 0.78rem;" class="f-line-cost">' +
+      '<span style="color: #38BDF8; font-weight: 700;">Rp 0</span>' +
+    '</td>' +
     '<td style="text-align: center;">' +
       '<button type="button" class="btn-del-row" style="color: #FB7185; padding: 2px 6px; font-size: 0.85rem;" onclick="this.closest(\'tr\').remove(); window.recalcFormulaModalLine();" title="Hapus baris">&times;</button>' +
     '</td>';
-
+  
   tableBody.appendChild(tr);
   window.recalcFormulaModalLine();
 };
@@ -3184,23 +3430,24 @@ window.saveFormulaChanges = function(prodId) {
 window.resetFormulaToDefault = function(prodId) {
   const def = DEFAULT_MASTER_RESEP.find(r => r.id === prodId);
   if (!def) return;
+  const cur = (auraData.masterResep || []).find(r => r.id === prodId);
+  if (!cur) return;
 
   window.showConfirmModal(
     "Reset Kalibrasi Standar",
-    'Kembalikan formula resep "' + def.nama + '" ke takaran kalibrasi awal video referensi TikTok?',
+    'Kembalikan formula resep "' + cur.nama + '" ke takaran kalibrasi standar Dapur Mom Fitri?',
     () => {
-      const idx = auraData.masterResep.findIndex(r => r.id === prodId);
-      if (idx !== -1) {
-        auraData.masterResep[idx] = JSON.parse(JSON.stringify(def));
-        saveLocal();
-        window.closeAppModal();
-        renderAllViews();
-        window.showSuccessModal("Berhasil Direset", 'Formula "' + def.nama + '" telah dikembalikan ke kalibrasi standar.');
-      }
+      cur.nama = def.nama;
+      cur.hargaSetorDefault = def.hargaSetorDefault;
+      cur.lipatModel = def.lipatModel;
+      cur.komposisi = JSON.parse(JSON.stringify(def.komposisi));
+      saveLocal();
+      window.openManageFormulaModal(prodId);
+      renderAllViews();
+      window.showSuccessModal("Berhasil Direset", 'Formula "' + cur.nama + '" telah dikembalikan ke kalibrasi standar.');
     }
   );
 };
-
 window.openAddProductModal = function() {
   const overlay = document.getElementById('appModalOverlay');
   const dialog = document.getElementById('appModalDialog');
@@ -3446,11 +3693,41 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
     '</div>';
   container.appendChild(topBar);
 
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+
   rows.forEach((r, idx) => {
     const isCollapsed = (window.cardsCollapsedState.buku1 && window.cardsCollapsedState.buku1[idx] !== undefined) ? !!window.cardsCollapsedState.buku1[idx] : true;
     const card = document.createElement('div');
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'buku1Card_' + idx;
+
+    const drops = getRowDrops(r);
+
+    let dropsBoxesHtml = '';
+    Object.entries(drops).forEach(([pId, qty]) => {
+      const p = recipes.find(x => x.id === pId) || { id: pId, nama: pId, shortName: pId, badgeColor: '#38BDF8' };
+      dropsBoxesHtml +=
+        '<div class="card-input-box" style="position: relative; border-left: 3px solid ' + (p.badgeColor || '#38BDF8') + '; padding-right: 20px;">' +
+          '<button type="button" class="btn-del-mini" style="position: absolute; right: 2px; top: 2px;" onclick="window.removeBuku1DropProduct(' + idx + ', \'' + p.id + '\')" title="Hapus varian drop ini">&times;</button>' +
+          '<span style="color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700;">' + (p.shortName || p.nama) + '</span>' +
+          '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FFFFFF; font-weight: 800;" value="' + qty + '" onchange="window.updateBuku1DropQty(' + idx + ', \'' + p.id + '\', this.value)">' +
+        '</div>';
+    });
+
+    const availableToAdd = recipes.filter(p => drops[p.id] === undefined);
+    let addDropSelectorHtml = '';
+    if (availableToAdd.length > 0) {
+      addDropSelectorHtml =
+        '<div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">' +
+          '<select class="form-control-slate" style="padding: 4px 8px; font-size: 0.78rem; flex: 1;" id="selAddDrop_' + idx + '">' +
+            '<option value="">+ Tambah Varian Drop ke Mitra Ini...</option>' +
+            availableToAdd.map(p => '<option value="' + p.id + '">' + p.nama + ' (' + (p.shortName || p.nama) + ')</option>').join('') +
+          '</select>' +
+          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap;" onclick="const sel = document.getElementById(\'selAddDrop_' + idx + '\'); if (sel && sel.value) window.addBuku1DropProduct(' + idx + ', sel.value);">+ Tambah</button>' +
+        '</div>';
+    }
 
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku1\', ' + idx + ')">' +
@@ -3468,70 +3745,54 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '<div class="record-card-body">' +
         '<div class="record-field-block">' +
           '<div class="record-field-label">1. RENCANA DROP PAGI:</div>' +
-          '<div class="record-grid-3">' +
-            '<div class="card-input-box">' +
-              '<span>Ubi Ungu</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)">' +
-            '</div>' +
-            '<div class="card-input-box">' +
-              '<span>Sayur Sosis</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #34D399;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)">' +
-            '</div>' +
-            '<div class="card-input-box">' +
-              '<span>Roti Collins</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FBBF24;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)">' +
-            '</div>' +
+          '<div class="record-drops-grid">' +
+            dropsBoxesHtml +
             '<div class="card-total-box">' +
               '<span>Total Kirim</span>' +
               '<strong>' + r.kirim + ' pcs</strong>' +
             '</div>' +
           '</div>' +
+          addDropSelectorHtml +
         '</div>' +
         '<div class="record-field-block">' +
           '<div class="record-field-label">2. HASIL PENJUALAN SORE:</div>' +
           '<div class="record-grid-2">' +
             '<div class="card-input-box">' +
               '<span>Bonus Pemilik (+)</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)">' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowBonus(' + idx + ', this.value)">' +
             '</div>' +
             '<div class="card-input-box">' +
-              '<span>Retur Sore (-)</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB923C;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
+              '<span>Sisa Retur (-)</span>' +
+              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB7185;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
             '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="record-field-block">' +
+          '<div class="record-field-label">3. KEUANGAN &amp; SETORAN MITRA:</div>' +
+          '<div class="record-grid-3">' +
             '<div class="card-total-box">' +
-              '<span>Laku Terjual</span>' +
+              '<span>Laku Bersih</span>' +
               '<strong style="color: #38BDF8;">' + r.laku + ' pcs</strong>' +
             '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="record-footer-row">' +
-          '<div class="card-setor-field">' +
-            '<label>Setoran Net:</label>' +
-            '<div class="card-setor-input">' +
-              '<span>Rp</span>' +
-              '<input type="number" inputmode="numeric" class="dark-input" value="' + r.setor + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">' +
+            '<div class="card-input-box">' +
+              '<span>Tarif Setor / Pcs</span>' +
+              '<input type="number" inputmode="numeric" class="dark-input" style="color: #FBBF24;" value="' + (r.hargaSetor || 800) + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)">' +
+            '</div>' +
+            '<div class="card-total-box">' +
+              '<span>Total Setoran</span>' +
+              '<strong style="color: #34D399;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</strong>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="tool-btn" style="padding: 5px 10px; font-size: 0.72rem; color: #38BDF8;" onclick="window.openEditBuku1RowModal(' + idx + ')">Edit Baris</button>' +
+        '</div>' +
+        '<div class="record-actions-wrap">' +
+          '<button type="button" class="btn-slip-action" onclick="window.openDetailNotaModal(' + idx + ')">📄 Buka Slip Setoran</button>' +
+          '<button type="button" class="btn-slip-action print" onclick="window.openDetailNotaModal(' + idx + ', true)">🖨️ Cetak</button>' +
         '</div>' +
       '</div>';
+
     container.appendChild(card);
   });
-
-  const summaryCard = document.createElement('div');
-  summaryCard.className = 'buku1-card-summary-total';
-  summaryCard.innerHTML = 
-    '<div class="card-summary-title">TOTAL KONSINYASI HARI INI</div>' +
-    '<div class="card-summary-grid">' +
-      '<div class="card-stat-pill"><span>Total Kirim:</span><strong>' + sumKirim + ' pcs</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Bonus:</span><strong style="color:#818CF8;">+' + sumBonus + ' pcs</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Retur:</span><strong style="color:#FB923C;">' + sumRetur + ' pcs</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + sumLaku + ' pcs</strong></div>' +
-      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL SETORAN NET:</span><strong>Rp ' + sumSetor.toLocaleString('id-ID') + '</strong></div>' +
-    '</div>';
-  container.appendChild(summaryCard);
 }
-
 function renderKuitansiCards(items, total) {
   const container = document.getElementById('kuitansiCardsContainer');
   if (!container) return;
@@ -3860,6 +4121,19 @@ function renderAllViews() {
 
     rowsBuku1.forEach((r, idx) => {
       sumKirim += (r.kirim || 0);
+      const drops = getRowDrops(r);
+      const allR = (auraData && auraData.masterResep && auraData.masterResep.length > 0) ? auraData.masterResep : DEFAULT_MASTER_RESEP;
+      const extraDrops = Object.entries(drops).filter(([pId, q]) => !['prod_ubi', 'prod_sayur', 'prod_roti'].includes(pId) && q > 0);
+      let extraBadges = '';
+      if (extraDrops.length > 0) {
+        extraBadges = '<div style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px;">' +
+          extraDrops.map(([pId, q]) => {
+            const p = allR.find(x => x.id === pId) || { shortName: pId, badgeColor: '#38BDF8' };
+            return '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: ' + (p.badgeColor || '#38BDF8') + '; font-size: 0.65rem;">+' + q + ' ' + (p.shortName || p.nama) + '</span>';
+          }).join('') +
+        '</div>';
+      }
+
       sumBonus += (r.bonus || 0);
       sumRetur += (r.retur || 0);
       sumLaku += (r.laku || 0);
@@ -3869,7 +4143,7 @@ function renderAllViews() {
       if (isEditingAllowed) {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong>' + extraBadges + '</td>' +
           '<td data-label="Ubi" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)" title="Rencana kirim Ubi">' +
           '</td>' +
@@ -3899,7 +4173,7 @@ function renderAllViews() {
       } else {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong>' + extraBadges + '</td>' +
           '<td data-label="Ubi" style="font-family: var(--font-mono); text-align: center; color: #818CF8; font-weight: 700;">' + r.ubi + '</td>' +
           '<td data-label="Sayur" style="font-family: var(--font-mono); text-align: center; color: #34D399; font-weight: 700;">' + r.sayur + '</td>' +
           '<td data-label="Roti" style="font-family: var(--font-mono); text-align: center; color: #FBBF24; font-weight: 700;">' + r.roti + '</td>' +
@@ -4487,7 +4761,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '24/10/2026 23:05 WIB';
+const APP_BUILD_TIME = '25/10/2026 00:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

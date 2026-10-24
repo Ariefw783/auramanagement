@@ -1409,6 +1409,70 @@ body {
   color: var(--text-pure);
 }
 
+.takaran-list li.takaran-item-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 3px !important;
+  padding: 8px 10px !important;
+  background: var(--card-surface);
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--card-border-subtle);
+}
+.takaran-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+}
+.takaran-item-label {
+  font-weight: 600;
+  color: var(--text-pure);
+  font-size: 0.82rem;
+}
+.takaran-item-val {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: #38BDF8;
+  font-size: 0.85rem;
+  text-align: right;
+  white-space: nowrap;
+}
+.takaran-sub-val {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #94A3B8;
+}
+.takaran-item-sub {
+  font-size: 0.72rem;
+  color: #94A3B8;
+  line-height: 1.35;
+}
+
+/* Buku 1 Dynamic Drops Grid */
+.record-drops-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.btn-del-mini {
+  background: transparent;
+  border: none;
+  color: #FB7185;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  font-weight: 800;
+  border-radius: 4px;
+}
+.btn-del-mini:hover {
+  background: rgba(251, 113, 133, 0.2);
+}
+
+
 /* Date Switcher Pill in Topbar */
 .date-switcher-select {
   background: var(--canvas-bg);
