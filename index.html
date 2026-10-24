@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.8</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.3.9</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -249,10 +249,14 @@
           </div>
         </div>
         
-        <!-- PWA Install Button Sidebar -->
+        <!-- PWA Install Button Sidebar (Tersembunyi Otomatis Jika Terpasang) -->
         <div style="margin-top: 8px;">
-          <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" onclick="window.triggerPwaInstall()">
-            <span>📲</span>
+          <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" onclick="window.triggerPwaInstall()" style="display: none;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
             <span>Pasang Aplikasi (PWA)</span>
           </button>
         </div>
@@ -277,6 +281,13 @@
       <!-- Mobile Topbar with Brand & Hamburger Drawer Toggle -->
       <header class="mobile-topbar">
         <div class="brand-area">
+          <button class="menu-toggle-btn" id="btnToggleSidebar" aria-label="Buka Menu Navigasi" onclick="window.toggleSidebar()" title="Buka Menu">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
           <div class="brand-icon-box" title="DAPUR MOM FITRI">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"/>
@@ -293,14 +304,7 @@
             <span class="cloud-sync-dot"></span>
             <span class="cloud-sync-text">Online</span>
           </div>
-          <button type="button" class="btn-pwa-install-mobile" id="btnPwaInstallMobile" onclick="window.triggerPwaInstall()" title="Pasang Aplikasi">Pasang</button>
-          <button class="menu-toggle-btn" id="btnToggleSidebar" aria-label="Buka Menu Navigasi">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
-          </button>
+          <button type="button" class="btn-pwa-install-mobile" id="btnPwaInstallMobile" onclick="window.triggerPwaInstall()" title="Pasang Aplikasi" style="display: none;">Pasang</button>
         </div>
       </header>
 
@@ -314,9 +318,6 @@
           <div class="topbar-title-area">
             <h2>Executive Dashboard</h2>
             <div class="date-stepper-container">
-              <button type="button" class="date-step-btn" onclick="window.stepDate(-1)" title="Hari Sebelumnya (Kemarin)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
               <label class="date-display-trigger" title="Klik untuk pilih tanggal di kalender">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -328,9 +329,6 @@
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 <input type="date" id="nativeDatePickerDashboard" class="native-hidden-date-input" onchange="window.switchDate(this.value)">
               </label>
-              <button type="button" class="date-step-btn" onclick="window.stepDate(1)" title="Hari Berikutnya (Besok)">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
               <button type="button" class="date-today-btn" onclick="window.goToToday()" title="Kembali ke Hari Ini">Hari Ini</button>
               <span class="date-session-tag" id="dateSessionTag">Target Baru</span>
             </div>
@@ -481,9 +479,6 @@
             <div class="kuitansi-filter-group" style="align-items: center; flex-wrap: wrap; gap: 10px;">
               <span class="kuitansi-filter-label" style="margin: 0;">TANGGAL DISTRIBUSI MITRA:</span>
               <div class="date-stepper-container">
-                <button type="button" class="date-step-btn" onclick="window.stepDate(-1)" title="Hari Sebelumnya (Kemarin)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
                 <label class="date-display-trigger" title="Klik untuk pilih tanggal di kalender">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -495,9 +490,6 @@
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   <input type="date" id="nativeDatePickerBuku1" class="native-hidden-date-input" onchange="window.switchDate(this.value)">
                 </label>
-                <button type="button" class="date-step-btn" onclick="window.stepDate(1)" title="Hari Berikutnya (Besok)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
                 <button type="button" class="date-today-btn" onclick="window.goToToday()" title="Kembali ke Hari Ini">Hari Ini</button>
               </div>
             </div>
@@ -594,9 +586,6 @@
             <div class="kuitansi-filter-group" style="align-items: center; flex-wrap: wrap; gap: 10px;">
               <span class="kuitansi-filter-label" style="margin: 0;">LEMBAR TANGGAL KUITANSI:</span>
               <div class="date-stepper-container">
-                <button type="button" class="date-step-btn" onclick="window.stepDate(-1)" title="Hari Sebelumnya (Kemarin)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                </button>
                 <label class="date-display-trigger" title="Klik untuk pilih tanggal di kalender">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -608,9 +597,6 @@
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6;"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   <input type="date" id="nativeDatePickerBuku2" class="native-hidden-date-input" onchange="window.switchDate(this.value)">
                 </label>
-                <button type="button" class="date-step-btn" onclick="window.stepDate(1)" title="Hari Berikutnya (Besok)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                </button>
                 <button type="button" class="date-today-btn" onclick="window.goToToday()" title="Kembali ke Hari Ini">Hari Ini</button>
               </div>
             </div>
@@ -1127,58 +1113,6 @@
 
     </main>
   </div>
-
-  <!-- Mobile Bottom Navigation: Akses Seluruh Modul -->
-  <nav class="mobile-bottom-nav">
-    <button type="button" class="mobile-nav-btn active" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
-        <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
-        <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
-        <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
-      </svg>
-      <span>Dash</span>
-    </button>
-    <button type="button" class="mobile-nav-btn" data-tab="tab-buku1" onclick="window.switchTab('tab-buku1')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 9l1-6h16l1 6"></path>
-        <path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"></path>
-        <path d="M9 22V12h6v10"></path>
-      </svg>
-      <span>Mitra</span>
-    </button>
-    <button type="button" class="mobile-nav-btn" data-tab="tab-buku2" onclick="window.switchTab('tab-buku2')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-        <line x1="3" y1="6" x2="21" y2="6"></line>
-        <path d="M16 10a4 4 0 0 1-8 0"></path>
-      </svg>
-      <span>Belanja</span>
-    </button>
-    <button type="button" class="mobile-nav-btn" data-tab="tab-master-bahan" onclick="window.switchTab('tab-master-bahan')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="16" y1="13" x2="8" y2="13"></line>
-      </svg>
-      <span>Katalog</span>
-    </button>
-    <button type="button" class="mobile-nav-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-        <polyline points="2 17 12 22 22 17"></polyline>
-        <polyline points="2 12 12 17 22 12"></polyline>
-      </svg>
-      <span>Stok Dapur</span>
-    </button>
-    <button type="button" class="mobile-nav-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-      </svg>
-      <span>Produksi</span>
-    </button>
-  </nav>
 
   <!-- ============================================================== -->
   <!-- UNIVERSAL CUSTOM MODAL SYSTEM (STAGE 4: NO BROWSER ALERTS)     -->

@@ -820,29 +820,34 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     plafonModalBase = belanja;
   }
 
-  // 2. Sabuk Pengaman Kas: Tambal Defisit Kas Dapur Sebelumnya (jika ada)
-  const prevEndapan = (prevRollingEndapan !== undefined) ? prevRollingEndapan : 0;
-  const deficitToCover = prevEndapan < 0 ? Math.abs(prevEndapan) : 0;
-  const totalAmplop1Needed = plafonModalBase + deficitToCover;
+  // 2. Kas Dapur Bergulir (Revolving Working Capital):
+  // Saldo awal kotak kas sebelum belanja hari ini
+  const prevEndapan = (prevRollingEndapan !== undefined) ? prevRollingEndapan : 100000;
+  const sisaKasDapur = prevEndapan - belanja;
 
-  let plafonModal = 0;
+  // Kas yang dibutuhkan agar kotak dapur kembali penuh ke plafon target
+  const deficitToCover = prevEndapan < 0 ? Math.abs(prevEndapan) : 0;
+  const topupNeeded = Math.max(0, plafonModalBase - sisaKasDapur);
+
+  let plafonModal = plafonModalBase;
   let gajiBos = 0;
+  let endapanHarian = prevEndapan;
 
   if (omzet > 0) {
-    if (omzet >= totalAmplop1Needed) {
-      plafonModal = totalAmplop1Needed;
-      gajiBos = omzet - totalAmplop1Needed;
-    } else {
-      plafonModal = omzet;
-      gajiBos = 0;
-    }
+    const actualTopup = Math.min(omzet, topupNeeded);
+    gajiBos = Math.max(0, omzet - actualTopup);
+    endapanHarian = sisaKasDapur + actualTopup;
+    plafonModal = Math.max(plafonModalBase, endapanHarian);
   } else {
-    // Jika belum ada omzet (hari baru sebelum setor sore): Amplop 1 memegang modal kerja penuh
-    plafonModal = plafonModalBase;
+    // Jika belum ada omzet (hari baru sebelum setor sore atau lembar target draft):
+    if (belanja > 0) {
+      endapanHarian = sisaKasDapur;
+    } else {
+      endapanHarian = prevEndapan; // Kas bergulir Rp 100.000 tetap utuh
+    }
     gajiBos = 0;
   }
 
-  const endapanHarian = plafonModal - belanja;
   const labaBersih = omzet - belanja;
 
   return {
@@ -871,18 +876,24 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 }
 
 function getAllDaysAccounting() {
+  const INITIAL_CAPITAL = 100000;
+  let rollingEndapan = INITIAL_CAPITAL;
   let cumGaji = 0;
-  let cumEndapan = 0;
   let cumLaba = 0;
-  return OPERATIONAL_DAYS_CONFIG.map(cfg => {
-    const day = computeDayAccounting(cfg.isoDate, cumEndapan);
-    if (!day.isTarget || day.isoDate === activeDate) {
+
+  // Urutkan konfigurasi hari operasional secara kronologis
+  const sortedDays = [...OPERATIONAL_DAYS_CONFIG].sort((a, b) => a.isoDate.localeCompare(b.isoDate));
+
+  return sortedDays.map(cfg => {
+    const day = computeDayAccounting(cfg.isoDate, rollingEndapan);
+    const isCounted = !day.isTarget || day.isoDate === activeDate;
+    if (isCounted) {
+      rollingEndapan = day.endapanHarian;
       cumGaji += day.gajiBos;
-      cumEndapan += day.endapanHarian;
       cumLaba += day.labaBersih;
     }
     day.cumGaji = cumGaji;
-    day.cumEndapan = cumEndapan;
+    day.cumEndapan = rollingEndapan;
     day.cumLaba = cumLaba;
     return day;
   });
@@ -3992,6 +4003,12 @@ function renderAllViews() {
     });
 
     if (b3Foot) {
+      // Saldo akhir kas dapur adalah saldo berjalan kas Amplop 1 hari terverifikasi terakhir (bukan penjumlahan kolom)
+      const latestVerifiedEndapan = allDaysAccounting.length > 0 
+        ? allDaysAccounting[allDaysAccounting.length - 1].cumEndapan 
+        : 100000;
+      const modalPlafonAktif = 100000;
+
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
           '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL AKTUAL TERVERIFIKASI:</td>' +
@@ -3999,14 +4016,14 @@ function renderAllViews() {
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px;">' + totalReturAll + '</td>' +
           '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px;">' + totalLakuAll + '</td>' +
           '<td data-label="Total Setor" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Modal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px;">Rp ' + totalModalAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Modal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px;" title="Plafon Modal Kerja Berjalan (Revolving Capital)">Rp ' + modalPlafonAktif.toLocaleString('id-ID') + '</td>' +
           '<td data-label="Total Gaji" style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
           '<td data-label="Total Belanja" style="font-family: var(--font-mono); color: #F87171; font-weight: 800; padding: 12px 14px;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Endapan" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalEndapanAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Endapan" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;" title="Saldo Kas Kotak Dapur Saat Ini">Rp ' + latestVerifiedEndapan.toLocaleString('id-ID') + '</td>' +
         '</tr>';
     }
 
-    renderBuku3Cards(auraData.buku3Kas, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalModalAll, totalGajiAll, totalBelanjaAll, totalEndapanAll);
+    renderBuku3Cards(auraData.buku3Kas, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan);
 
     const bepTarget = 100000;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
@@ -4295,8 +4312,8 @@ initFirestoreSync();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.8';
-const APP_BUILD_TIME = '24/10/2026 18:25 WIB';
+const APP_VERSION = 'v6.3.9';
+const APP_BUILD_TIME = '24/10/2026 19:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
@@ -4407,15 +4424,35 @@ checkAppVersionOnBoot();
 // ==============================================================
 let deferredInstallPrompt = null;
 
+function isPwaAppInstalled() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+         window.matchMedia('(display-mode: fullscreen)').matches ||
+         window.matchMedia('(display-mode: minimal-ui)').matches ||
+         window.navigator.standalone === true ||
+         document.referrer.includes('android-app://') ||
+         localStorage.getItem('dapur_pwa_installed') === 'true';
+}
+
+function updatePwaInstallVisibility() {
+  const installed = isPwaAppInstalled();
+  const btnSidebar = document.getElementById('btnPwaInstallSidebar');
+  const btnMobile = document.getElementById('btnPwaInstallMobile');
+  if (installed) {
+    if (btnSidebar) btnSidebar.style.setProperty('display', 'none', 'important');
+    if (btnMobile) btnMobile.style.setProperty('display', 'none', 'important');
+  } else {
+    if (deferredInstallPrompt) {
+      if (btnSidebar) btnSidebar.style.display = 'flex';
+      if (btnMobile) btnMobile.style.display = 'inline-flex';
+    }
+  }
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredInstallPrompt = e;
   console.log('PWA: beforeinstallprompt event captured!');
-
-  const btnSidebar = document.getElementById('btnPwaInstallSidebar');
-  const btnMobile = document.getElementById('btnPwaInstallMobile');
-  if (btnSidebar) btnSidebar.style.display = 'flex';
-  if (btnMobile) btnMobile.style.display = 'inline-flex';
+  updatePwaInstallVisibility();
 });
 
 window.triggerPwaInstall = async function() {
@@ -4438,6 +4475,10 @@ window.triggerPwaInstall = async function() {
     deferredInstallPrompt.prompt();
     const { outcome } = await deferredInstallPrompt.userChoice;
     console.log('PWA install choice outcome:', outcome);
+    if (outcome === 'accepted') {
+      localStorage.setItem('dapur_pwa_installed', 'true');
+      updatePwaInstallVisibility();
+    }
     deferredInstallPrompt = null;
   } else {
     window.showAlertModal(
@@ -4454,12 +4495,13 @@ window.triggerPwaInstall = async function() {
 
 window.addEventListener('appinstalled', () => {
   console.log('PWA Dapur Mom Fitri berhasil dipasang!');
-  const btnSidebar = document.getElementById('btnPwaInstallSidebar');
-  const btnMobile = document.getElementById('btnPwaInstallMobile');
-  if (btnSidebar) btnSidebar.style.display = 'none';
-  if (btnMobile) btnMobile.style.display = 'none';
+  localStorage.setItem('dapur_pwa_installed', 'true');
+  updatePwaInstallVisibility();
   window.showSuccessModal("Pemasangan Berhasil", "Aplikasi DAPUR MOM FITRI berhasil dipasang ke perangkat Anda!");
 });
+
+// Jalankan pengecekan status terpasang PWA saat aplikasi pertama kali dimuat
+updatePwaInstallVisibility();
 
 // ==============================================================
 // RESET DATABASE KE AKAR (MODAL AWAL RP 100.000 SIKLUS SENIN 26 OKT)

@@ -1110,9 +1110,9 @@ body {
   display: none;
 }
 
-/* Mobile Bottom Navigation */
+/* Mobile Bottom Navigation (Dihapus Sesuai Permintaan Pengguna, Navigasi Penuh via Sidebar 3 Garis) */
 .mobile-bottom-nav {
-  display: none;
+  display: none !important;
 }
 
 /* Responsive Rules */
@@ -1187,24 +1187,11 @@ body {
   }
 
   .main-workspace {
-    padding: 12px 12px 76px 12px;
+    padding: 12px 12px 24px 12px;
   }
 
   .mobile-bottom-nav {
-    display: flex;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 60px;
-    background: #182232;
-    border-top: 1px solid var(--sidebar-border);
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1000;
-    padding: 0 2px;
-    overflow-x: auto;
-    scrollbar-width: none;
+    display: none !important;
   }
 
   .mobile-bottom-nav::-webkit-scrollbar {
@@ -3016,7 +3003,7 @@ body {
 /* MOBILE TOPBAR & CONTROLS REFINEMENT                            */
 /* ============================================================== */
 .btn-pwa-install-mobile {
-  display: inline-flex;
+  display: none;
   align-items: center;
   justify-content: center;
   background: rgba(56, 189, 248, 0.15);
@@ -3033,6 +3020,16 @@ body {
 .btn-pwa-install-mobile:hover {
   background: #38BDF8;
   color: #0F172A;
+}
+
+/* Sembunyikan Tombol Pasang Secara Absolut Jika Aplikasi Sudah Terpasang / Mode Standalone PWA */
+@media all and (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+  #btnPwaInstallMobile,
+  #btnPwaInstallSidebar,
+  .btn-pwa-install,
+  .btn-pwa-install-mobile {
+    display: none !important;
+  }
 }
 
 .menu-toggle-btn {
