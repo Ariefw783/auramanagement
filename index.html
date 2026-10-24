@@ -932,18 +932,28 @@
               </div>
               <div class="slate-card-subtitle">Cek sisa fisik bahan di kulkas/rak dapur dan rekomendasi daftar belanja malam ini (Pasar Subuh & Toko/Minimarket) untuk produksi besok.</div>
             </div>
-            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">💾 Simpan Stok Dapur</button>
-              <button class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
-              <button class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
+            <div class="stok-action-btns">
+              <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">💾 Simpan Stok Dapur</button>
+              <div class="stok-copy-group">
+                <button type="button" class="tool-btn tool-btn-success" id="btnCopyWa">🥬 Salin Pasar</button>
+                <button type="button" class="tool-btn" id="btnCopyToko">🛒 Salin Toko</button>
+              </div>
             </div>
           </div>
 
-          <!-- PANDUAN PENGGUNA: PERAN MENU STOK & JADWAL BELANJA -->
-          <div style="background: rgba(52, 211, 153, 0.08); border-left: 3px solid #34D399; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
-            <strong style="color: #34D399;">🧊 Fungsi Menu Ini (Cek Sisa Dapur):</strong>
-            Buka menu ini setiap sore/malam untuk mengecek sisa bahan dapur. Anda bisa memasukkan sisa dalam <strong>satuan fisik</strong> (buah, tongkol, bungkus) atau <strong>gram (g)</strong> hasil timbangan. Sistem otomatis memberitahu bahan mana yang habis/menipis dan menyusun daftar belanja malam ini.
-          </div>
+          <!-- PANDUAN PENGGUNA (MINIMALIS COLLAPSIBLE) -->
+          <details class="stok-guide-collapsible">
+            <summary class="stok-guide-summary">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <strong>Panduan Cek Sisa Dapur &amp; Satuan</strong>
+              </span>
+              <span class="guide-toggle-hint">Klik info</span>
+            </summary>
+            <div class="stok-guide-content">
+              Buka menu ini setiap sore/malam untuk mengecek sisa bahan fisik di dapur. Anda bisa memasukkan sisa dalam <strong>satuan fisik</strong> (buah, tongkol, bungkus) atau <strong>gram (g)</strong> hasil timbangan. Sistem otomatis memberitahu bahan mana yang habis/menipis dan menyusun daftar belanja malam ini.
+            </div>
+          </details>
 
           <!-- RINGKASAN STATUS STOK (TANPA EMOJI) -->
           <div class="stock-kpi-grid">
@@ -973,29 +983,35 @@
             </div>
           </div>
 
-          <!-- RINGKASAN DAFTAR BELANJA TERPISAH (TANPA EMOJI, BERSIH & TERSTRUKTUR) -->
+          <!-- SAKELAR TAB BELANJA MALAM (MOBILE OPTIMIZED) -->
+          <div class="dispatch-tabs-bar">
+            <button type="button" class="dispatch-tab-btn active" id="btnDispatchTabPasar" onclick="window.switchDispatchTab('pasar')">
+              🥬 Pesanan Pasar Subuh (<span id="dispatchCountPasar">0</span>)
+            </button>
+            <button type="button" class="dispatch-tab-btn" id="btnDispatchTabToko" onclick="window.switchDispatchTab('toko')">
+              🛒 Belanja Toko (<span id="dispatchCountToko">0</span>)
+            </button>
+          </div>
+
+          <!-- RINGKASAN DAFTAR BELANJA TERPISAH -->
           <div class="dispatch-grid">
-            <div class="dispatch-card pasar">
+            <div class="dispatch-card pasar active-mobile">
               <div class="dispatch-card-head">
                 <h4>Pesanan Pasar Subuh (Siklus L+2)</h4>
                 <span class="dispatch-meta">Pesan malam ini untuk stok produksi lusa</span>
               </div>
               <ul class="dispatch-list" id="dispatchPasarList">
-                <li><span>Kulit Lumpia Segar</span><strong>4 bungkus (isi 36 lbr)</strong></li>
-                <li><span>Telur Ayam Ras</span><strong>1 paket (4 butir / Rp 5.000)</strong></li>
-                <li><span>Daun Bawang & Seledri</span><strong>1 ikat kecil segar</strong></li>
+                <li class="dispatch-empty">Memuat daftar pesanan pasar...</li>
               </ul>
             </div>
 
             <div class="dispatch-card toko">
               <div class="dispatch-card-head">
-                <h4>Belanja Toko & Minimarket (Malam Ini)</h4>
+                <h4>Belanja Toko &amp; Minimarket (Malam Ini)</h4>
                 <span class="dispatch-meta">Dibeli malam ini untuk produksi besok subuh</span>
               </div>
               <ul class="dispatch-list" id="dispatchTokoList">
-                <li><span>Keju Prochiz Spready</span><strong>1 pouch (160g)</strong></li>
-                <li><span>Roti Tawar Kupas</span><strong>2 bungkus (@ Rp 10.000)</strong></li>
-                <li><span>Minyak Goreng Sawit</span><strong>1 pouch (1L / 2L)</strong></li>
+                <li class="dispatch-empty">Memuat daftar belanja toko...</li>
               </ul>
             </div>
           </div>
@@ -1071,19 +1087,28 @@
               </div>
             </div>
 
-            <!-- Presets & Actions -->
-            <div class="calc-preset-btns" style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px;">
-              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.syncRecipeFromBuku1(true)">Sesuai Target Distribusi</button>
-              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.applyRecipePreset(66, 32, 32)">Paket Standar (130 Pcs)</button>
-              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.applyRecipePreset(44, 44, 42)">Trio Seimbang (130 Pcs)</button>
-              <div style="display: inline-flex; align-items: center; gap: 4px; background: rgba(15, 23, 42, 0.75); border: 1px solid var(--card-border); border-radius: 6px; padding: 3px 6px;">
-                <span style="font-size: 0.72rem; color: var(--text-secondary); font-weight: 700; margin-right: 2px;">Satuan:</span>
-                <button type="button" class="filter-pill active" id="btnUnitModeAll" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('all')">Gram + Tbsp/Tsp</button>
-                <button type="button" class="filter-pill" id="btnUnitModeSpoon" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('spoon')">Fokus Tbsp / Tsp</button>
-                <button type="button" class="filter-pill" id="btnUnitModeGram" style="padding: 4px 8px; font-size: 0.72rem;" onclick="window.setTakaranUnitMode('gram')">Fokus Gram</button>
+            <!-- Presets & Actions (Tertata 3 Baris Rapi) -->
+            <div class="calc-controls-wrap">
+              <div class="calc-presets-row">
+                <button type="button" class="tool-btn" onclick="window.syncRecipeFromBuku1(true)">🎯 Target Distribusi</button>
+                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(66, 32, 32)">📦 Paket 130 Pcs</button>
+                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(44, 44, 42)">⚖️ Trio 130 Pcs</button>
               </div>
-              <button type="button" class="tool-btn tool-btn-success" id="btnCopyTakaran" style="margin-left: auto;">Salin Checklist Takaran Subuh</button>
+              <div class="calc-units-row">
+                <span class="calc-units-label">Mode Satuan:</span>
+                <div class="calc-units-pills">
+                  <button type="button" class="filter-pill active" id="btnUnitModeAll" onclick="window.setTakaranUnitMode('all')">Gram + Sendok</button>
+                  <button type="button" class="filter-pill" id="btnUnitModeSpoon" onclick="window.setTakaranUnitMode('spoon')">Fokus Sendok</button>
+                  <button type="button" class="filter-pill" id="btnUnitModeGram" onclick="window.setTakaranUnitMode('gram')">Fokus Gram</button>
+                </div>
+              </div>
+              <button type="button" class="tool-btn tool-btn-success btn-copy-takaran-full" id="btnCopyTakaran">
+                📋 Salin Checklist Takaran Subuh
+              </button>
             </div>
+
+            <!-- Sakelar Tab Varian Takaran Subuh (Mobile Optimized) -->
+            <div class="takaran-tabs-bar" id="takaranTabsBar"></div>
 
             <!-- Dynamic Symmetrical Result Grid -->
             <div class="takaran-result-grid" id="takaranResultContainer">

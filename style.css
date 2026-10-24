@@ -4200,3 +4200,279 @@ body {
     border: 2px solid #000000 !important;
   }
 }
+
+
+/* ============================================================== */
+/* MODERN MOBILE ERGONOMIC STYLES FOR STOK DAPUR & SOP RESEP     */
+/* ============================================================== */
+
+/* Stok Action Buttons Symmetrical 1 + 2 */
+.stok-action-btns {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.stok-copy-group {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 820px) {
+  .stok-action-btns {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .btn-save-stok {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    font-weight: 800 !important;
+    justify-content: center !important;
+  }
+  .stok-copy-group {
+    display: flex !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .stok-copy-group .tool-btn {
+    flex: 1 1 50% !important;
+    padding: 7px 10px !important;
+    font-size: 0.74rem !important;
+    justify-content: center !important;
+  }
+
+  /* Minimalist Collapsible Panduan Cek Sisa Dapur */
+  .stok-guide-collapsible {
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    font-size: 0.78rem;
+    color: #CBD5E1;
+    transition: all 0.2s ease;
+  }
+  .stok-guide-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    outline: none;
+    font-weight: 700;
+    color: #34D399;
+  }
+  .guide-toggle-hint {
+    font-size: 0.68rem;
+    color: #94A3B8;
+    background: rgba(15, 23, 42, 0.6);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+  .stok-guide-content {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(52, 211, 153, 0.2);
+    line-height: 1.45;
+  }
+
+  /* Segmented Tab Bar for Dual Dispatch */
+  .dispatch-tabs-bar {
+    display: flex !important;
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+    width: 100% !important;
+  }
+  .dispatch-tab-btn {
+    flex: 1 !important;
+    padding: 8px 10px !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    background: #182334 !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    transition: all 0.2s ease !important;
+  }
+  .dispatch-tab-btn.active {
+    background: rgba(56, 189, 248, 0.18) !important;
+    border-color: #38BDF8 !important;
+    color: #38BDF8 !important;
+    font-weight: 800 !important;
+  }
+  .dispatch-card {
+    display: none !important;
+    margin-bottom: 12px !important;
+  }
+  .dispatch-card.active-mobile {
+    display: block !important;
+  }
+
+  /* Two-tier Item Typography in Dispatch List */
+  .dispatch-list li {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 3px !important;
+    padding: 8px 10px !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    margin-bottom: 6px !important;
+  }
+  .dispatch-list li span {
+    font-size: 0.84rem !important;
+    font-weight: 700 !important;
+    color: #F8FAFC !important;
+  }
+  .dispatch-list li strong {
+    font-size: 0.76rem !important;
+    font-weight: 600 !important;
+    color: #38BDF8 !important;
+  }
+  .dispatch-card.pasar .dispatch-list li strong {
+    color: #34D399 !important;
+  }
+
+  /* Calc Controls Wrap in Tab Resep */
+  .calc-controls-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .calc-presets-row {
+    display: flex !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .calc-presets-row .tool-btn {
+    flex: 1 !important;
+    padding: 7px 6px !important;
+    font-size: 0.72rem !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+  .calc-units-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 8px !important;
+    padding: 5px 8px !important;
+    gap: 6px !important;
+  }
+  .calc-units-label {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    color: var(--text-secondary) !important;
+  }
+  .calc-units-pills {
+    display: flex !important;
+    gap: 4px !important;
+  }
+  .calc-units-pills .filter-pill {
+    padding: 4px 8px !important;
+    font-size: 0.7rem !important;
+  }
+  .btn-copy-takaran-full {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    justify-content: center !important;
+  }
+
+  /* Takaran Subuh Mobile Tabs */
+  .takaran-tabs-bar {
+    display: flex !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    padding-bottom: 6px !important;
+    margin-top: 10px !important;
+    margin-bottom: 8px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .takaran-tabs-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+  .takaran-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 6px 12px !important;
+    font-size: 0.74rem !important;
+    font-weight: 700 !important;
+    border-radius: 20px !important;
+    background: #182334 !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-secondary) !important;
+    cursor: pointer !important;
+  }
+  .takaran-tab-btn.active {
+    background: rgba(56, 189, 248, 0.2) !important;
+    border-color: #38BDF8 !important;
+    color: #38BDF8 !important;
+    font-weight: 800 !important;
+  }
+  .takaran-result-grid .takaran-box {
+    display: none !important;
+  }
+  .takaran-result-grid .takaran-box.active-mobile {
+    display: block !important;
+  }
+
+  /* SOP Visual Recipe Card Image Proportions */
+  .recipe-visual-img-wrap {
+    height: 135px !important;
+    overflow: hidden !important;
+    border-radius: 8px 8px 0 0 !important;
+  }
+  .recipe-visual-img-wrap img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  .recipe-visual-body {
+    padding: 12px 10px !important;
+  }
+  .sop-detail-list {
+    font-size: 0.76rem !important;
+    gap: 6px !important;
+  }
+  .sop-detail-list li {
+    padding: 5px 6px !important;
+  }
+}
+
+@media (min-width: 821px) {
+  .dispatch-tabs-bar,
+  .takaran-tabs-bar {
+    display: none !important;
+  }
+  .dispatch-card,
+  .takaran-box {
+    display: block !important;
+  }
+  .stok-guide-collapsible {
+    background: rgba(52, 211, 153, 0.08);
+    border-left: 3px solid #34D399;
+    padding: 10px 14px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    font-size: 0.8rem;
+    color: #CBD5E1;
+  }
+  .stok-guide-summary {
+    cursor: default;
+    list-style: none;
+    margin-bottom: 4px;
+  }
+  .guide-toggle-hint {
+    display: none;
+  }
+}

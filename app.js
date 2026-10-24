@@ -1594,6 +1594,33 @@ window.updateSlipRate = function(idx, field, val) {
 // ==============================================================
 // STAGE 1: ACCOUNTING CHARTS & EXECUTIVE SCORECARDS (100% REAL-TIME & BALANCE)
 // ==============================================================
+
+// ==============================================================
+// TAB SWITCHER CONTROLLER: DISPATCH LIST & TAKARAN DAPUR SUBUH
+// ==============================================================
+window.currentDispatchTab = 'pasar';
+window.switchDispatchTab = function(tab) {
+  window.currentDispatchTab = tab;
+  const btnPasar = document.getElementById('btnDispatchTabPasar');
+  const btnToko = document.getElementById('btnDispatchTabToko');
+  const cardPasar = document.querySelector('.dispatch-card.pasar');
+  const cardToko = document.querySelector('.dispatch-card.toko');
+
+  if (btnPasar) btnPasar.classList.toggle('active', tab === 'pasar');
+  if (btnToko) btnToko.classList.toggle('active', tab === 'toko');
+  if (cardPasar) cardPasar.classList.toggle('active-mobile', tab === 'pasar');
+  if (cardToko) cardToko.classList.toggle('active-mobile', tab === 'toko');
+};
+
+window.currentTakaranTab = 0;
+window.switchTakaranTab = function(idx) {
+  window.currentTakaranTab = idx;
+  const tabBtns = document.querySelectorAll('.takaran-tab-btn');
+  const boxes = document.querySelectorAll('.takaran-box');
+  tabBtns.forEach((btn, i) => btn.classList.toggle('active', i === idx));
+  boxes.forEach((box, i) => box.classList.toggle('active-mobile', i === idx));
+};
+
 function renderExecutiveFinancials() {
   const allDays = getAllDaysAccounting();
   const curDay = allDays.find(d => d.isoDate === activeDate) || computeDayAccounting(activeDate);
@@ -2609,8 +2636,28 @@ window.calculateTakaran = function() {
       '</div>';
   });
 
+  // Render tab buttons for mobile
+  const tabsBar = document.getElementById('takaranTabsBar');
+  if (tabsBar) {
+    const tabItems = [
+      { name: '🍠 Ubi (' + ubiPcs + ')', idx: 0 },
+      { name: '🥕 Sayur (' + sayurPcs + ')', idx: 1 },
+      { name: '🍞 Roti (' + rotiPcs + ')', idx: 2 },
+      { name: '🥟 Kulit & Minyak', idx: 3 }
+    ];
+    customProducts.forEach((cp, i) => {
+      const cpInput = document.getElementById('calcPcs_' + cp.id);
+      const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
+      tabItems.push({ name: cp.nama + ' (' + cpPcs + ')', idx: 4 + i });
+    });
+
+    tabsBar.innerHTML = tabItems.map(t => 
+      '<button type="button" class="takaran-tab-btn ' + (window.currentTakaranTab === t.idx ? 'active' : '') + '" onclick="window.switchTakaranTab(' + t.idx + ')">' + t.name + '</button>'
+    ).join('');
+  }
+
   container.innerHTML = 
-    '<div class="takaran-box">' +
+    '<div class="takaran-box ' + (window.currentTakaranTab === 0 ? 'active-mobile' : '') + '">' +
       '<div class="takaran-box-header">' +
         '<div class="takaran-box-title" style="color: #818CF8;">1. ' + ubiProd.nama + ' (' + ubiPcs + ' pcs)</div>' +
         '<span class="mini-tag" style="background: rgba(129, 140, 248, 0.2); color: #818CF8;">' + ubiPerPcs + 'g • 1 tbsp / 2.5 tsp</span>' +
@@ -4440,7 +4487,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '24/10/2026 22:45 WIB';
+const APP_BUILD_TIME = '24/10/2026 23:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
