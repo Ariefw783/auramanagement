@@ -1387,6 +1387,8 @@ window.switchTab = function(tabId) {
     panel.classList.toggle('active', panel.id === tabId);
   });
   window.toggleSidebar(false);
+  const ws = document.querySelector('.main-workspace');
+  if (ws) ws.scrollTo({ top: 0, behavior: 'smooth' });
   window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -4345,7 +4347,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '24/10/2026 21:20 WIB';
+const APP_BUILD_TIME = '24/10/2026 21:40 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {

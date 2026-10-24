@@ -3512,3 +3512,592 @@ body {
     right: 12px !important;
   }
 }
+
+
+/* ============================================================== */
+/* COMPREHENSIVE MOBILE VIEWPORT OVERHAUL (SMARTPHONES 320PX-640PX) */
+/* ============================================================== */
+
+@media (max-width: 640px) {
+  /* 1. Global Container & Frame Optimizations */
+  .app-frame {
+    border-radius: 0 !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+  }
+
+  .main-workspace {
+    padding: 8px 8px 36px 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* 2. Slate Cards & Section Headers */
+  .slate-card {
+    padding: 12px 10px !important;
+    border-radius: 10px !important;
+    margin-bottom: 12px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .slate-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .slate-card-header > div:last-child {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .slate-card-title {
+    font-size: 0.96rem !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    line-height: 1.35 !important;
+  }
+
+  .slate-card-subtitle {
+    font-size: 0.72rem !important;
+    line-height: 1.4 !important;
+    margin-top: 4px !important;
+  }
+
+  .topbar-header {
+    margin-bottom: 12px !important;
+    gap: 10px !important;
+  }
+
+  .topbar-title-area h2 {
+    font-size: 1.15rem !important;
+  }
+
+  /* 3. Executive Hero Balance Stat Card */
+  .total-stat-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: space-between !important;
+    padding: 10px 14px !important;
+    gap: 10px !important;
+  }
+
+  .total-stat-info strong {
+    font-size: 1.25rem !important;
+  }
+
+  /* 4. Action Buttons Mobile Sizing & Alignment */
+  .tool-btn {
+    padding: 7px 10px !important;
+    font-size: 0.75rem !important;
+    flex: 1 1 calc(50% - 6px) !important;
+    justify-content: center !important;
+    text-align: center !important;
+    min-width: 100px !important;
+    border-radius: 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .tool-btn-primary, .tool-btn-success {
+    font-weight: 800 !important;
+  }
+
+  /* 5. Executive Dashboard Financial KPI Grid (Compact 2-Column Grid) */
+  .financial-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .financial-kpi-card {
+    padding: 10px 10px !important;
+    gap: 4px !important;
+  }
+
+  .financial-kpi-card:last-child {
+    grid-column: span 2 !important;
+  }
+
+  .financial-kpi-card .kpi-label {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.25 !important;
+  }
+
+  .financial-kpi-card .kpi-value {
+    font-size: 1.05rem !important;
+  }
+
+  .financial-kpi-card .kpi-sub {
+    font-size: 0.64rem !important;
+  }
+
+  .outlet-ranking-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .outlet-ranking-card {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+
+  /* 6. Buku 1 Mitra Cards: Ergonomic Drop Grid & Summary */
+  .record-grid-3 {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .record-grid-3 .card-total-box {
+    grid-column: 1 / -1 !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    padding: 7px 10px !important;
+    margin-top: 4px !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .record-grid-3 .card-total-box span {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    color: #94A3B8 !important;
+  }
+
+  .record-grid-3 .card-total-box strong {
+    font-size: 0.95rem !important;
+    color: #38BDF8 !important;
+  }
+
+  .record-grid-2 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .record-grid-2 .card-total-box {
+    grid-column: 1 / -1 !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    padding: 7px 10px !important;
+    margin-top: 4px !important;
+    background: rgba(15, 23, 42, 0.75) !important;
+    border: 1px solid rgba(52, 211, 153, 0.25) !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .record-grid-2 .card-total-box span {
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    color: #94A3B8 !important;
+  }
+
+  .record-grid-2 .card-total-box strong {
+    font-size: 0.95rem !important;
+    color: #34D399 !important;
+  }
+
+  .card-input-box span {
+    font-size: 0.65rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .card-input-box input {
+    height: 38px !important;
+    font-size: 0.95rem !important;
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+  }
+
+  .record-footer-row {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding-top: 8px !important;
+  }
+
+  .card-setor-field {
+    flex: 1 1 auto !important;
+  }
+
+  .card-setor-input input {
+    width: 105px !important;
+    height: 36px !important;
+    font-size: 0.92rem !important;
+  }
+
+  .buku1-card-summary-total {
+    padding: 10px 12px !important;
+    margin-top: 10px !important;
+  }
+
+  .card-summary-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  .card-stat-pill {
+    padding: 5px 8px !important;
+  }
+
+  .card-stat-pill span {
+    font-size: 0.65rem !important;
+  }
+
+  .card-stat-pill strong {
+    font-size: 0.8rem !important;
+  }
+
+  .card-stat-pill.highlight strong {
+    font-size: 0.95rem !important;
+  }
+
+  /* 7. Slip Box Container (Tab 3) */
+  #slipBoxContainer {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .slip-box-card {
+    padding: 12px 10px !important;
+  }
+
+  .slip-box-footer {
+    gap: 6px !important;
+    padding: 6px 8px !important;
+  }
+
+  /* 8. Kuitansi Voucher Harian (Tab 4) */
+  .kuitansi-nav-card {
+    padding: 12px 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .kuitansi-nav-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .kuitansi-voucher-box {
+    padding: 12px 10px !important;
+    border-width: 1.5px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .kuitansi-kop {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .kuitansi-brand-badge {
+    font-size: 1.05rem !important;
+  }
+
+  .kuitansi-brand-sub {
+    font-size: 0.65rem !important;
+  }
+
+  .kuitansi-brand-loc {
+    font-size: 0.65rem !important;
+  }
+
+  .kuitansi-doc-col {
+    text-align: left !important;
+  }
+
+  .kuitansi-doc-title {
+    font-size: 1.1rem !important;
+  }
+
+  .kuitansi-meta-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .kuitansi-meta-cell {
+    padding: 6px 8px !important;
+    gap: 2px !important;
+  }
+
+  .kuitansi-meta-lbl {
+    font-size: 0.6rem !important;
+  }
+
+  .kuitansi-meta-val {
+    font-size: 0.78rem !important;
+    word-break: break-word !important;
+  }
+
+  .kuitansi-add-item-box {
+    padding: 12px 10px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .kuitansi-input-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .kuitansi-input-grid > div {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .kuitansi-input-grid button {
+    width: 100% !important;
+    padding: 10px !important;
+    justify-content: center !important;
+  }
+
+  .kuitansi-terbilang-wrap {
+    flex-direction: column !important;
+    gap: 4px !important;
+    padding: 8px 10px !important;
+  }
+
+  .kuitansi-terbilang-tag {
+    font-size: 0.65rem !important;
+  }
+
+  .kuitansi-terbilang-text {
+    font-size: 0.78rem !important;
+  }
+
+  .kuitansi-rekap-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+
+  .kuitansi-rekap-card {
+    padding: 10px 12px !important;
+  }
+
+  .kuitansi-signatures-wrap {
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-top: 14px !important;
+  }
+
+  .kuitansi-sig-box {
+    width: 100% !important;
+  }
+
+  .kuitansi-stamp-box {
+    margin: 4px auto !important;
+  }
+
+  /* 9. Arus Kas & BEP Tracker (Tab 5) */
+  .bep-card-wrap {
+    padding: 12px 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .bep-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .bep-stat-pill {
+    padding: 8px 8px !important;
+  }
+
+  .bep-stat-pill span {
+    font-size: 0.62rem !important;
+  }
+
+  .bep-stat-pill strong {
+    font-size: 0.95rem !important;
+  }
+
+  /* 10. Katalog Harga & Search Filters (Tab 6) */
+  .master-bahan-toolbar {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+
+  .filter-pills-wrap, .filter-pills {
+    display: flex !important;
+    gap: 5px !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    padding-bottom: 6px !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .filter-pills-wrap::-webkit-scrollbar, .filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .filter-pill {
+    white-space: nowrap !important;
+    padding: 4px 10px !important;
+    font-size: 0.72rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* 11. Stok Fisik & Jadwal Belanja (Tab 7) */
+  .stock-kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .stock-kpi-card {
+    padding: 8px 10px !important;
+  }
+
+  .stock-kpi-info span {
+    font-size: 0.65rem !important;
+  }
+
+  .stock-kpi-info strong {
+    font-size: 1rem !important;
+  }
+
+  .dispatch-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .dispatch-card {
+    padding: 10px 12px !important;
+  }
+
+  /* 12. SOP Produksi & Kalkulator Takaran Subuh (Tab 8) */
+  .form-grid-4 {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .form-grid-4 .form-label {
+    font-size: 0.66rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .form-grid-4 .form-control-slate {
+    height: 38px !important;
+    font-size: 0.95rem !important;
+    padding: 6px 8px !important;
+  }
+
+  .calc-preset-btns {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+  }
+
+  .calc-preset-btns > * {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin-left: 0 !important;
+  }
+
+  .takaran-result-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: 12px !important;
+  }
+
+  .takaran-box {
+    padding: 12px 10px !important;
+  }
+
+  .recipe-visual-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* 13. Modals & Overlays Responsive System */
+  .app-modal-overlay {
+    padding: 8px !important;
+  }
+
+  .app-modal-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-radius: 12px !important;
+    margin: 0 !important;
+  }
+
+  .app-modal-header {
+    padding: 12px 14px !important;
+  }
+
+  .app-modal-title {
+    font-size: 0.92rem !important;
+  }
+
+  .app-modal-body {
+    padding: 14px 12px !important;
+    font-size: 0.82rem !important;
+  }
+
+  .app-modal-footer {
+    padding: 10px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .app-modal-footer button {
+    flex: 1 1 calc(50% - 6px) !important;
+    font-size: 0.78rem !important;
+    padding: 8px 10px !important;
+  }
+
+  /* 14. Responsive Date Stepper */
+  .date-stepper-container {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    padding: 4px 6px !important;
+    box-sizing: border-box !important;
+  }
+
+  .date-display-trigger {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding: 5px 8px !important;
+    justify-content: center !important;
+  }
+
+  .date-display-text {
+    font-size: 0.78rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .date-today-btn {
+    flex-shrink: 0 !important;
+    padding: 5px 10px !important;
+    font-size: 0.72rem !important;
+  }
+}
