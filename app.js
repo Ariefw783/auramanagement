@@ -1162,7 +1162,7 @@ window.setBuku1Today = function() {
   saveLocal();
   window.showSuccessModal(
     "Navigasi: Tanggal Hari Ini",
-    "Tampilan telah dialihkan ke tanggal hari ini (" + (OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === todayIso)?.namaHari || todayIso) + "). Gunakan tombol '💾 Simpan & Sinkronkan' untuk menyimpan data ke cloud."
+    "Tampilan telah dialihkan ke tanggal hari ini (" + (OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === todayIso)?.namaHari || todayIso) + "). Gunakan tombol 'Simpan & Sinkronkan' untuk menyimpan data ke cloud."
   );
 };
 
@@ -1244,9 +1244,12 @@ window.resetBuku1CurrentDay = function() {
         r.retur = 0;
         r.laku = 0;
         r.setor = 0;
+        r.drops = {};
       });
-      auraData.buku1Days[activeDate] = rows;
-      saveLocalAuraData();
+      if (!auraData.buku1History) auraData.buku1History = {};
+      auraData.buku1History[activeDate] = rows;
+      window.syncRecipeFromBuku1(false);
+      saveLocal();
       renderAllViews();
       window.showSuccessModal("Lembar Direset", "Seluruh data distribusi mitra untuk " + dayName + " telah dikosongkan.");
     }
@@ -1261,7 +1264,7 @@ window.resetKuitansiCurrentDay = function() {
       if (Array.isArray(auraData.buku2Belanja)) {
         auraData.buku2Belanja = auraData.buku2Belanja.filter(b => b.tgl !== selectedBuku2Date);
       }
-      saveLocalAuraData();
+      saveLocal();
       renderAllViews();
       window.showSuccessModal("Belanja Direset", "Seluruh catatan belanja lembar " + selectedBuku2Date + " telah dibersihkan.");
     }
@@ -1279,7 +1282,7 @@ window.saveAndLockBuku1Day = function() {
   saveLocal();
   window.showSuccessModal(
     "Lembar Telah Dikunci (Tutup Buku)",
-    "Data Kontrol Konsinyasi untuk tanggal " + (cfg ? cfg.namaHari : activeDate) + " telah dikunci dari perubahan tidak sengaja. Jika sewaktu-waktu diperlukan koreksi, klik tombol '🔓 Buka Kunci (Edit)'."
+    "Data Kontrol Konsinyasi untuk tanggal " + (cfg ? cfg.namaHari : activeDate) + " telah dikunci dari perubahan tidak sengaja. Jika sewaktu-waktu diperlukan koreksi, klik tombol 'Buka Kunci (Edit)'."
   );
 };
 
@@ -1505,11 +1508,10 @@ window.restoreData = function(event) {
 function getRowDrops(row) {
   if (!row) return {};
   if (!row.drops || typeof row.drops !== 'object') {
-    row.drops = {
-      prod_ubi: row.ubi || 0,
-      prod_sayur: row.sayur || 0,
-      prod_roti: row.roti || 0
-    };
+    row.drops = {};
+    if ((row.ubi || 0) > 0) row.drops.prod_ubi = row.ubi;
+    if ((row.sayur || 0) > 0) row.drops.prod_sayur = row.sayur;
+    if ((row.roti || 0) > 0) row.drops.prod_roti = row.roti;
   }
   return row.drops;
 }
@@ -2778,10 +2780,10 @@ window.calculateTakaran = function() {
   const tabsBar = document.getElementById('takaranTabsBar');
   if (tabsBar) {
     const tabItems = [
-      { name: '🍠 Ubi (' + ubiPcs + ')', idx: 0 },
-      { name: '🥕 Sayur (' + sayurPcs + ')', idx: 1 },
-      { name: '🍞 Roti (' + rotiPcs + ')', idx: 2 },
-      { name: '🥟 Kulit & Minyak', idx: 3 }
+      { name: 'Ubi (' + ubiPcs + ')', idx: 0 },
+      { name: 'Sayur (' + sayurPcs + ')', idx: 1 },
+      { name: 'Roti (' + rotiPcs + ')', idx: 2 },
+      { name: 'Kulit & Minyak', idx: 3 }
     ];
     customProducts.forEach((cp, i) => {
       const cpInput = document.getElementById('calcPcs_' + cp.id);
@@ -3063,7 +3065,7 @@ function renderRecipeVisualGrid() {
           videoHtml +
         '</ul>' +
         '<div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; gap: 6px;">' +
-          '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">📋 Salin Resep</button>' +
+          '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">Salin Resep</button>' +
           '<button type="button" class="tool-btn tool-btn-success" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Formula Takaran</button>' +
           deleteBtnHtml +
         '</div>' +
@@ -3717,7 +3719,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku1\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku1\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3815,8 +3817,8 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
           '</div>' +
         '</div>' +
         '<div class="record-actions-wrap">' +
-          '<button type="button" class="btn-slip-action" onclick="window.openDetailNotaModal(' + idx + ')">📄 Buka Slip Setoran</button>' +
-          '<button type="button" class="btn-slip-action print" onclick="window.openDetailNotaModal(' + idx + ', true)">🖨️ Cetak</button>' +
+          '<button type="button" class="btn-slip-action" onclick="window.openDetailNotaModal(' + idx + ')">Buka Slip Setoran</button>' +
+          '<button type="button" class="btn-slip-action print" onclick="window.openDetailNotaModal(' + idx + ', true)">Cetak</button>' +
         '</div>' +
       '</div>';
 
@@ -3835,7 +3837,7 @@ function renderKuitansiCards(items, total) {
       '<span>RINCIAN BELANJA (KARTU KUITANSI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'kuitansi\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'kuitansi\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'kuitansi\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3908,7 +3910,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
       '<span>REKAP ARUS KAS HARIAN (KARTU)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku3\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku3\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku3\', false)">Sembunyikan</button>' +
     '</div>';
@@ -3971,7 +3973,7 @@ function renderMasterBahanCards(list) {
       '<span>KATALOG HARGA & TOKO LANGGANAN (ACUAN)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'master\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'master\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'master\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4032,7 +4034,7 @@ function renderStokCards(list) {
       '<span>STOK FISIK DAPUR & JADWAL BELANJA (KARTU)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">💾 Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4129,11 +4131,11 @@ function renderAllViews() {
   }
 
   if (btnToggleEditEl) {
-    btnToggleEditEl.innerText = '🔓 Buka Kunci (Edit)';
+    btnToggleEditEl.innerText = 'Buka Kunci (Edit)';
     btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
   }
   if (btnSimpanEl) {
-    btnSimpanEl.innerText = isDaySaved ? '🔒 Kunci Perubahan' : '🔒 Kunci Lembar';
+    btnSimpanEl.innerText = isDaySaved ? 'Kunci Perubahan' : 'Kunci Lembar';
     btnSimpanEl.style.display = isEditingAllowed ? 'inline-flex' : 'none';
   }
   if (printStatusText) {
@@ -4170,19 +4172,24 @@ function renderAllViews() {
       sumSetor += (r.setor || 0);
 
       const tr = document.createElement('tr');
+      const activeDrops = Object.entries(drops).filter(([pId, q]) => (parseInt(q, 10) || 0) > 0);
+      let dropsBadgesHtml = '';
+      if (activeDrops.length === 0) {
+        dropsBadgesHtml = '<span style="color: var(--text-muted); font-size: 0.72rem; font-style: italic;">(Belum ada produk drop)</span>';
+      } else {
+        dropsBadgesHtml = '<div style="display: flex; gap: 4px; flex-wrap: wrap;">' +
+          activeDrops.map(([pId, q]) => {
+            const p = allR.find(x => x.id === pId) || { shortName: pId, badgeColor: '#38BDF8' };
+            return '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700; font-size: 0.72rem;">' + q + ' ' + (p.shortName || p.nama) + '</span>';
+          }).join('') +
+        '</div>';
+      }
+
       if (isEditingAllowed) {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong>' + extraBadges + '</td>' +
-          '<td data-label="Ubi" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.ubi + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'ubi\', this.value)" title="Rencana kirim Ubi">' +
-          '</td>' +
-          '<td data-label="Sayur" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #34D399; font-weight: 700;" value="' + r.sayur + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'sayur\', this.value)" title="Rencana kirim Sayur">' +
-          '</td>' +
-          '<td data-label="Roti" style="text-align: center;">' +
-            '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #FBBF24; font-weight: 700;" value="' + r.roti + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'roti\', this.value)" title="Rencana kirim Roti">' +
-          '</td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Rincian Drop">' + dropsBadgesHtml + '</td>' +
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
           '<td data-label="Bonus" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)" title="Bonus gratis pemilik">' +
@@ -4203,10 +4210,8 @@ function renderAllViews() {
       } else {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong>' + extraBadges + '</td>' +
-          '<td data-label="Ubi" style="font-family: var(--font-mono); text-align: center; color: #818CF8; font-weight: 700;">' + r.ubi + '</td>' +
-          '<td data-label="Sayur" style="font-family: var(--font-mono); text-align: center; color: #34D399; font-weight: 700;">' + r.sayur + '</td>' +
-          '<td data-label="Roti" style="font-family: var(--font-mono); text-align: center; color: #FBBF24; font-weight: 700;">' + r.roti + '</td>' +
+          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Rincian Drop">' + dropsBadgesHtml + '</td>' +
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
           '<td data-label="Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 700; text-align: center;">+' + r.bonus + '</td>' +
           '<td data-label="Retur Sore" style="font-family: var(--font-mono); color: #FB923C; font-weight: 700; text-align: center;">' + r.retur + '</td>' +
@@ -4222,7 +4227,7 @@ function renderAllViews() {
     if (b1Foot) {
       b1Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-          '<td data-label="Keterangan" colspan="5" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL KONSINYASI:</td>' +
+          '<td data-label="Keterangan" colspan="3" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL KONSINYASI:</td>' +
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumKirim + '</td>' +
           '<td data-label="Total Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 800; padding: 12px 14px; text-align: center;">+' + sumBonus + '</td>' +
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FB923C; font-weight: 800; padding: 12px 14px; text-align: center;">' + sumRetur + '</td>' +
@@ -4235,26 +4240,42 @@ function renderAllViews() {
     renderBuku1Cards(rowsBuku1, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor);
   }
 
-  // 3. SLIP BOX 6 TITIK
+  // 3. SLIP BOX 6 TITIK (CERDAS: HANYA MENAMPILKAN PRODUK YANG DIKIRIM > 0)
   const slipContainer = document.getElementById('slipBoxContainer');
   if (slipContainer) {
     slipContainer.innerHTML = '';
+    const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0) ? auraData.masterResep : DEFAULT_MASTER_RESEP;
     rowsBuku1.forEach((t, idx) => {
       const card = document.createElement('div');
       card.className = 'slip-box-card';
       const hargaSetor = t.hargaSetor !== undefined ? t.hargaSetor : (t.nama.includes('Ragil') ? 1000 : 800);
       const marginMitra = t.marginMitra !== undefined ? t.marginMitra : 200;
+      const drops = getRowDrops(t);
+
+      // Filter hanya produk yang kuota kirimnya > 0
+      const activeProducts = Object.entries(drops).filter(([pId, qty]) => (parseInt(qty, 10) || 0) > 0);
+
+      let itemsHtml = '';
+      if (activeProducts.length === 0) {
+        itemsHtml = '<div style="color: var(--text-muted); font-size: 0.78rem; font-style: italic; padding: 4px 0;">(Tidak ada produk yang dikirim hari ini)</div>';
+      } else {
+        itemsHtml = activeProducts.map(([pId, qty]) => {
+          const p = recipes.find(r => r.id === pId) || { nama: pId, shortName: pId };
+          return '• ' + p.nama + ' : <strong>' + qty + ' pcs</strong>';
+        }).join('<br>') + '<br>';
+      }
+
+      if (t.bonus > 0) {
+        itemsHtml += '• Bonus Gratis Pemilik : <strong style="color: #818CF8;">+' + t.bonus + ' pcs (Gratis)</strong><br>';
+      }
 
       card.innerHTML = 
         '<div class="slip-box-header">' +
           '<div class="slip-box-title">LABEL BOX: ' + t.nama + '</div>' +
-          '<span class="badge-status done">SIAP KIRIM</span>' +
+          '<span class="badge-status ' + (t.kirim > 0 ? 'done' : 'progress') + '">' + (t.kirim > 0 ? 'SIAP KIRIM' : 'KOSONG') + '</span>' +
         '</div>' +
         '<div class="slip-box-body">' +
-          '• Lumpia Ubi Ungu Keju : <strong>' + t.ubi + ' pcs</strong><br>' +
-          '• Lumpia Sayur Sosis   : <strong>' + t.sayur + ' pcs</strong><br>' +
-          '• Roti Goreng Collins  : <strong>' + t.roti + ' pcs</strong><br>' +
-          '• Bonus Gratis Pemilik : <strong style="color: #818CF8;">+' + t.bonus + ' pcs (Gratis)</strong><br>' +
+          itemsHtml +
           '--------------------------------------------<br>' +
           '<strong style="color: #FFFFFF;">TOTAL ISI BOX: ' + (t.kirim + t.bonus) + ' PCS</strong>' +
         '</div>' +
@@ -4791,7 +4812,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 01:30 WIB';
+const APP_BUILD_TIME = '25/10/2026 12:45 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
@@ -4804,7 +4825,7 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
 
   if (!overlay) return;
   if (icon) {
-    icon.innerHTML = '<span style="font-size: 1.5rem;">🚀</span>';
+    icon.innerHTML = '<span style="font-size: 1.1rem; color: #38BDF8; font-weight: 800;">OK</span>';
     icon.style.display = 'inline-flex';
   }
   if (titleEl) {

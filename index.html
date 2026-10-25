@@ -269,7 +269,7 @@
 
         <div style="margin-top: 8px;">
           <button type="button" class="tool-btn" style="padding: 6px 8px; font-size: 0.72rem; color: #FB7185; border-color: rgba(251, 113, 133, 0.4); width: 100%; text-align: center; font-weight: 700; background: rgba(244, 63, 94, 0.08);" onclick="window.resetDatabaseToCleanRoot(true)">
-            <span>🔄 Reset Total (Modal Rp 100rb)</span>
+            <span>Reset Total (Modal Rp 100rb)</span>
           </button>
         </div>
       </div>
@@ -461,16 +461,16 @@
                 <span>Distribusi & Penjualan Mitra (Format A5)</span>
                 <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Mode Input</span>
               </div>
-              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik '💾 Simpan & Sinkronkan' untuk simpan ke cloud, atau '🔒 Kunci Lembar' saat tutup buku sore.</div>
+              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik 'Simpan & Sinkronkan' untuk simpan ke cloud, atau 'Kunci Lembar' saat tutup buku sore.</div>
             </div>
             
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Lompat ke tanggal kalender hari ini">📅 Ke Hari Ini</button>
-              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku1')" title="Simpan data mitra dan sinkronkan ke database cloud">💾 Simpan & Sinkronkan</button>
-              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetBuku1CurrentDay()" title="Kosongkan seluruh data distribusi hari ini">🧹 Reset Lembar</button>
+              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Lompat ke tanggal kalender hari ini">Ke Hari Ini</button>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku1')" title="Simpan data mitra dan sinkronkan ke database cloud">Simpan & Sinkronkan</button>
+              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetBuku1CurrentDay()" title="Kosongkan seluruh data distribusi hari ini">Reset Lembar</button>
               <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
-              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">🔓 Buka Kunci (Edit)</button>
-              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()" title="Kunci data konsinyasi dan tutup buku harian">🔒 Kunci Lembar</button>
+              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;">Buka Kunci (Edit)</button>
+              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanBuku1" onclick="window.saveAndLockBuku1Day()" title="Kunci data konsinyasi dan tutup buku harian">Kunci Lembar</button>
               <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
             </div>
           </div>
@@ -515,10 +515,8 @@
                 <thead>
                   <tr>
                     <th style="width: 30px; text-align: center;">No</th>
-                    <th style="min-width: 90px;">Nama Warung / Kantin</th>
-                    <th style="width: 46px; text-align: center;">Ubi</th>
-                    <th style="width: 46px; text-align: center;">Sayur</th>
-                    <th style="width: 46px; text-align: center;">Roti</th>
+                    <th style="min-width: 100px;">Nama Warung / Kantin</th>
+                    <th style="min-width: 130px;">Rincian Drop Produk</th>
                     <th style="width: 52px; text-align: center;">Kirim</th>
                     <th style="width: 48px; text-align: center;">Bonus</th>
                     <th style="width: 52px; text-align: center;">Retur</th>
@@ -576,8 +574,8 @@
               <div class="slate-card-subtitle">Format Bukti Kas Keluar (BKK) resmi Amplop 1 • Dilengkapi fitur edit langsung per baris</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('kuitansi')" title="Simpan kuitansi belanja dan sinkronkan ke cloud">💾 Simpan & Sinkronkan</button>
-              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetKuitansiCurrentDay()" title="Kosongkan seluruh belanja hari ini">🧹 Reset Belanja</button>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('kuitansi')" title="Simpan kuitansi belanja dan sinkronkan ke cloud">Simpan & Sinkronkan</button>
+              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetKuitansiCurrentDay()" title="Kosongkan seluruh belanja hari ini">Reset Belanja</button>
               <button type="button" class="tool-btn tool-btn-success" onclick="window.printKuitansi()">Cetak Kuitansi A5</button>
               <button type="button" class="tool-btn" onclick="window.handleCreateNewKuitansiDay()">+ Buat Lembar Hari Baru</button>
             </div>
@@ -786,7 +784,7 @@
               <div class="slate-card-subtitle">Pemisahan 2 Amplop Dinamis: Amplop 1 (Operasional Dapur & Buffer) & Amplop 2 (Gaji Bersih Pemilik)</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku3')" title="Simpan data arus kas dan sinkronkan ke cloud">💾 Simpan & Sinkronkan Kas</button>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('buku3')" title="Simpan data arus kas dan sinkronkan ke cloud">Simpan & Sinkronkan Kas</button>
             </div>
           </div>
 
@@ -863,17 +861,17 @@
             <div>
               <div class="slate-card-title">
                 <span>Katalog Harga & Toko Langganan</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">📖 Buku Acuan Harga</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Buku Acuan Harga</span>
               </div>
               <div class="slate-card-subtitle">Daftar harga beli terakhir, isi kemasan standar, dan nama toko/pasar langganan. Hanya diubah jika harga pasar naik/turun.</div>
             </div>
-            <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">💾 Simpan Katalog</button>
+            <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">Simpan Katalog</button>
             <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
           </div>
 
           <!-- PANDUAN PENGGUNA: PERAN MENU KATALOG -->
           <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38BDF8; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
-            <strong style="color: #38BDF8;">💡 Fungsi Menu Ini (Katalog Acuan):</strong>
+            <strong style="color: #38BDF8;">Fungsi Menu Ini (Katalog Acuan):</strong>
             Tempat menyimpan standar harga acuan & nama toko/pasar vendor belanja Anda. <em>Menu ini bersifat statis (jarang diubah)</em>. Untuk mengecek sisa bahan fisik di dapur dan menyusun daftar belanja malam ini, buka menu <strong>Stok Dapur & Belanja Malam</strong>.
           </div>
 
@@ -928,15 +926,15 @@
             <div>
               <div class="slate-card-title">
                 <span>Stok Dapur & Jadwal Belanja Malam</span>
-                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">🧊 Cek Kulkas & Rak</span>
+                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">Cek Kulkas & Rak</span>
               </div>
               <div class="slate-card-subtitle">Cek sisa fisik bahan di kulkas/rak dapur dan rekomendasi daftar belanja malam ini (Pasar Subuh & Toko/Minimarket) untuk produksi besok.</div>
             </div>
             <div class="stok-action-btns">
-              <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">💾 Simpan Stok Dapur</button>
+              <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">Simpan Stok Dapur</button>
               <div class="stok-copy-group">
-                <button type="button" class="tool-btn tool-btn-success" id="btnCopyWa">🥬 Salin Pasar</button>
-                <button type="button" class="tool-btn" id="btnCopyToko">🛒 Salin Toko</button>
+                <button type="button" class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
+                <button type="button" class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
               </div>
             </div>
           </div>
@@ -986,10 +984,10 @@
           <!-- SAKELAR TAB BELANJA MALAM (MOBILE OPTIMIZED) -->
           <div class="dispatch-tabs-bar">
             <button type="button" class="dispatch-tab-btn active" id="btnDispatchTabPasar" onclick="window.switchDispatchTab('pasar')">
-              🥬 Pesanan Pasar Subuh (<span id="dispatchCountPasar">0</span>)
+              Pesanan Pasar Subuh (<span id="dispatchCountPasar">0</span>)
             </button>
             <button type="button" class="dispatch-tab-btn" id="btnDispatchTabToko" onclick="window.switchDispatchTab('toko')">
-              🛒 Belanja Toko (<span id="dispatchCountToko">0</span>)
+              Belanja Toko (<span id="dispatchCountToko">0</span>)
             </button>
           </div>
 
@@ -1092,9 +1090,9 @@
             <!-- Presets & Actions (Tertata 3 Baris Rapi) -->
             <div class="calc-controls-wrap">
               <div class="calc-presets-row">
-                <button type="button" class="tool-btn" onclick="window.syncRecipeFromBuku1(true)">🎯 Target Distribusi</button>
-                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(66, 32, 32)">📦 Paket 130 Pcs</button>
-                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(44, 44, 42)">⚖️ Trio 130 Pcs</button>
+                <button type="button" class="tool-btn" onclick="window.syncRecipeFromBuku1(true)">Target Distribusi</button>
+                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(66, 32, 32)">Paket 130 Pcs</button>
+                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(44, 44, 42)">Trio 130 Pcs</button>
               </div>
               <div class="calc-units-row">
                 <span class="calc-units-label">Mode Satuan:</span>
@@ -1105,7 +1103,7 @@
                 </div>
               </div>
               <button type="button" class="tool-btn tool-btn-success btn-copy-takaran-full" id="btnCopyTakaran">
-                📋 Salin Checklist Takaran Subuh
+                Salin Checklist Takaran Subuh
               </button>
             </div>
 
