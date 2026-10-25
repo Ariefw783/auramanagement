@@ -189,13 +189,50 @@ function pushToFirestoreCloud(immediate = false) {
 }
 
 window.triggerCloudSync = function() {
-  if (!isFirestoreInitialized) {
+  if (!navigator.onLine) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Status Offline', 'Perangkat sedang tidak terhubung ke jaringan internet.');
+    }
+    return;
+  }
+  if (!isFirestoreInitialized || !firestoreDb) {
     initFirestoreSync();
   }
-  pushToFirestoreCloud(true);
-  if (typeof window.showSuccessModal === 'function') {
-    window.showSuccessModal('Sinkronisasi Cloud', 'Data operasional Dapur Mom Fitri sedang disinkronkan ke Cloud Firestore.');
-  }
+  setCloudStatusUI('syncing', 'Memeriksa Cloud...');
+  const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+  docRef.get().then(doc => {
+    if (doc.exists) {
+      const cloudDoc = doc.data();
+      if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
+        const localUpdated = (auraData && auraData._lastUpdated) || 0;
+        if (cloudDoc.lastUpdated > localUpdated) {
+          console.log('[Firestore] Sinkronisasi manual menarik data terbaru dari Cloud:', cloudDoc.lastUpdated);
+          auraData = cloudDoc.payload;
+          auraData._lastUpdated = cloudDoc.lastUpdated;
+          localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+          renderAllViews();
+          const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          setCloudStatusUI('connected', 'Online • ' + timeStr);
+          if (typeof window.showSuccessModal === 'function') {
+            window.showSuccessModal('Sinkronisasi Berhasil', 'Data terbaru berhasil ditarik dari Cloud Firestore (Pembaruan: ' + timeStr + ' WIB).');
+          }
+          return;
+        } else {
+          // Cloud sudah sama atau lokal lebih baru
+          pushToFirestoreCloud(true);
+          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+          if (typeof window.showSuccessModal === 'function') {
+            window.showSuccessModal('Sinkronisasi Cloud', 'Data lokal telah sinkron sempurna dengan Cloud Firestore pada pukul ' + timeStr + ' WIB.');
+          }
+          return;
+        }
+      }
+    }
+    pushToFirestoreCloud(true);
+  }).catch(err => {
+    console.warn('[Firestore] Manual sync error:', err);
+    pushToFirestoreCloud(true);
+  });
 };
 
 // 25 Master Bahan Baku Terstandarisasi Dapur Mom Fitri (Dikalibrasi Sesuai Harga Beli Terkini)
@@ -414,27 +451,28 @@ const INITIAL_AURA_DATA = {
   ],
 
   stokBahan: [
-    { no: 1, nama: 'Kulit Lumpia Segar', kategori: 'Bahan Segar', satuan: 'bungkus', stok: 3, stokGram: 756, gramPerUnit: 252, minTrigger: 3, jalur: 'B', orderQty: '4 bungkus (isi 36 lbr)', status: 'Aman', action: 'Pakai produksi subuh' },
-    { no: 2, nama: 'Ubi Ungu Segar', kategori: 'Bahan Segar', satuan: 'buah', stok: 3.8, stokGram: 765, gramPerUnit: 200, minTrigger: 4, jalur: 'B', orderQty: '1 kg (≈ 5 buah)', status: 'Aman', action: 'Sisa 765g (cukup subuh)' },
-    { no: 3, nama: 'Wortel Segar Pasar', kategori: 'Sayuran', satuan: 'buah', stok: 1.7, stokGram: 213, gramPerUnit: 125, minTrigger: 1.5, jalur: 'B', orderQty: '500 gram (≈ 4 buah)', status: 'Aman', action: 'Sisa 213g (cukup subuh)' },
+    { no: 1, nama: 'Kulit Lumpia Segar', kategori: 'Bahan Segar', satuan: 'bungkus', stok: 0, stokGram: 0, gramPerUnit: 252, minTrigger: 3, jalur: 'B', orderQty: '4 bungkus (isi 36 lbr)', status: 'Habis', action: 'Pesan pasar: 4 bungkus (isi 36 lbr)' },
+    { no: 2, nama: 'Ubi Ungu Segar', kategori: 'Bahan Segar', satuan: 'buah', stok: 3.25, stokGram: 650, gramPerUnit: 200, minTrigger: 4, jalur: 'B', orderQty: '1 kg (≈ 5 buah)', status: 'Menipis', action: 'Titip pasar: 1 kg (≈ 5 buah)' },
+    { no: 3, nama: 'Wortel Segar Pasar', kategori: 'Sayuran', satuan: 'buah', stok: 1.6, stokGram: 200, gramPerUnit: 125, minTrigger: 1.5, jalur: 'B', orderQty: '500 gram (≈ 4 buah)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
     { no: 4, nama: 'Jagung Manis', kategori: 'Sayuran', satuan: 'tongkol', stok: 2, stokGram: 260, gramPerUnit: 130, minTrigger: 1, jalur: 'B', orderQty: '1 paket (3 tongkol)', status: 'Aman', action: '2 tongkol (260g) cukup subuh' },
-    { no: 5, nama: 'Telur Ayam Ras', kategori: 'Bahan Segar', satuan: 'butir', stok: 2, stokGram: 110, gramPerUnit: 55, minTrigger: 2, jalur: 'B', orderQty: '1 paket (4 butir / Rp 5.000)', status: 'Aman', action: '2 butir pengikat sayur' },
-    { no: 6, nama: 'Daun Bawang & Seledri', kategori: 'Sayuran', satuan: 'ikat', stok: 1, stokGram: 100, gramPerUnit: 100, minTrigger: 1, jalur: 'B', orderQty: '1 ikat kecil segar (≈ 100g)', status: 'Aman', action: '1 ikat segar' },
-    { no: 7, nama: 'Sosis Ayam/Sapi Ekonomis', kategori: 'Olahan Dingin', satuan: 'batang', stok: 19, stokGram: 418, gramPerUnit: 22, minTrigger: 8, jalur: 'C', orderQty: '1 pak isi 40 batang', status: 'Melimpah', action: 'Cukup 4-5 hari' },
-    { no: 8, nama: 'Keju Prochiz Spready', kategori: 'Bahan Dingin', satuan: 'box', stok: 0.57, stokGram: 91, gramPerUnit: 160, minTrigger: 0.4, jalur: 'A', orderQty: '1 box (160g)', status: 'Aman', action: 'Sisa 91g (cukup subuh)' },
-    { no: 9, nama: 'Roti Tawar Kupas', kategori: 'Bahan Baku', satuan: 'bungkus', stok: 0, stokGram: 0, gramPerUnit: 490, minTrigger: 2, jalur: 'A', orderQty: '2 bungkus (@ Rp 10.000)', status: 'Habis / 0', action: 'WAJIB BELI MALAM INI 2 BUNGKUS' },
-    { no: 10, nama: 'Selai Collins Choco Crunch', kategori: 'Bahan Awet', satuan: 'ember', stok: 0.44, stokGram: 435, gramPerUnit: 1000, minTrigger: 0.1, jalur: 'C', orderQty: '1 ember (1.000g)', status: 'Aman', action: 'Sisa 435g (cukup 4-5 hari)' },
-    { no: 11, nama: 'Bawang Putih', kategori: 'Bumbu Awet', satuan: 'siung', stok: 37, stokGram: 185, gramPerUnit: 5, minTrigger: 10, jalur: 'C', orderQty: '250 gram (≈ 50 siung)', status: 'Melimpah', action: 'Tahan 3 minggu' },
+    { no: 5, nama: 'Telur Ayam Ras', kategori: 'Bahan Segar', satuan: 'butir', stok: 2, stokGram: 110, gramPerUnit: 55, minTrigger: 2, jalur: 'B', orderQty: '1 paket (4 butir / Rp 5.000)', status: 'Menipis', action: 'Titip pasar: 1 paket (4 butir / Rp 5.000)' },
+    { no: 6, nama: 'Daun Bawang & Seledri', kategori: 'Sayuran', satuan: 'ikat', stok: 1, stokGram: 100, gramPerUnit: 100, minTrigger: 1, jalur: 'B', orderQty: '1 ikat kecil segar (≈ 100g)', status: 'Menipis', action: 'Titip pasar: 1 ikat kecil segar (≈ 100g)' },
+    { no: 7, nama: 'Sosis Ayam/Sapi Ekonomis', kategori: 'Olahan Dingin', satuan: 'batang', stok: 19, stokGram: 418, gramPerUnit: 22, minTrigger: 8, jalur: 'C', orderQty: '1 pak isi 40 batang', status: 'Aman', action: 'Cukup 4-5 hari' },
+    { no: 8, nama: 'Keju Prochiz Spready', kategori: 'Bahan Dingin', satuan: 'box', stok: 0.53, stokGram: 85, gramPerUnit: 160, minTrigger: 0.4, jalur: 'A', orderQty: '1 box (160g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 9, nama: 'Roti Tawar Kupas', kategori: 'Bahan Baku', satuan: 'bungkus', stok: 0, stokGram: 0, gramPerUnit: 490, minTrigger: 2, jalur: 'A', orderQty: '2 bungkus (@ Rp 10.000)', status: 'Habis', action: 'Beli malam ini: 2 bungkus (@ Rp 10.000)' },
+    { no: 10, nama: 'Selai Collins Choco Crunch', kategori: 'Bahan Awet', satuan: 'ember', stok: 0.4, stokGram: 400, gramPerUnit: 1000, minTrigger: 0.1, jalur: 'C', orderQty: '1 ember (1.000g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 11, nama: 'Bawang Putih', kategori: 'Bumbu Awet', satuan: 'siung', stok: 37, stokGram: 185, gramPerUnit: 5, minTrigger: 10, jalur: 'C', orderQty: '250 gram (≈ 50 siung)', status: 'Aman', action: 'Tahan 3 minggu' },
     { no: 12, nama: 'Tepung Panir Super Krispi', kategori: 'Bahan Kering', satuan: 'kg', stok: 0.33, stokGram: 330, gramPerUnit: 1000, minTrigger: 0.15, jalur: 'C', orderQty: '1 kg super krispi', status: 'Aman', action: 'Sisa 330g (cukup subuh)' },
-    { no: 13, nama: 'Tepung Terigu Curah', kategori: 'Bahan Kering', satuan: 'bungkus', stok: 1.5, stokGram: 750, gramPerUnit: 500, minTrigger: 0.5, jalur: 'C', orderQty: '1 bungkus (500g)', status: 'Melimpah', action: 'Sisa 750g (+ box)' },
-    { no: 14, nama: 'Susu Kental Manis (SKM) Putih', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 0.69, stokGram: 138, gramPerUnit: 200, minTrigger: 0.3, jalur: 'A', orderQty: '1 pouch (200g)', status: 'Aman', action: 'Sisa 138g (cukup subuh)' },
-    { no: 15, nama: 'Margarin Serbaguna', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.26, stokGram: 53, gramPerUnit: 200, minTrigger: 0.1, jalur: 'C', orderQty: '1 bungkus (200g)', status: 'Aman', action: 'Sisa 53g' },
-    { no: 16, nama: 'Garam Dapur Halus', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.64, stokGram: 161, gramPerUnit: 250, minTrigger: 0.2, jalur: 'C', orderQty: '1 bungkus (250g)', status: 'Melimpah', action: 'Sisa 161g' },
-    { no: 17, nama: 'Minyak Goreng Sawit', kategori: 'Minyak/Gas', satuan: 'liter', stok: 0.12, stokGram: 122, gramPerUnit: 1000, minTrigger: 0.5, jalur: 'A', orderQty: '1 pouch (1L / 1.000g)', status: 'Menipis', action: 'BELI MALAM INI 1 POUCH (1.000g)' },
-    { no: 18, nama: 'Gula Pasir Kristal', kategori: 'Bahan Awet', satuan: 'kg', stok: 0.69, stokGram: 690, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 kg kristal', status: 'Melimpah', action: 'Sisa 690g' },
-    { no: 19, nama: 'Royco Kaldu Ayam', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 18, gramPerUnit: 9, minTrigger: 2, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Aman', action: 'Sisa 2 sachet' },
-    { no: 20, nama: 'Vanili Bubuk', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 7, stokGram: 14, gramPerUnit: 2, minTrigger: 2, jalur: 'C', orderQty: '1 pak vanili', status: 'Melimpah', action: 'Sisa 7 sachet' },
-    { no: 21, nama: 'Gas LPG 3kg', kategori: 'Minyak/Gas', satuan: 'tabung', stok: 1, stokGram: 3000, gramPerUnit: 3000, minTrigger: 1, jalur: 'C', orderQty: '1 tabung baru (3.000g)', status: 'Baru 100%', action: 'Aman untuk 1-2 minggu' }
+    { no: 13, nama: 'Tepung Terigu Curah', kategori: 'Bahan Kering', satuan: 'bungkus', stok: 1.42, stokGram: 710, gramPerUnit: 500, minTrigger: 0.5, jalur: 'C', orderQty: '1 bungkus (500g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 14, nama: 'Susu Kental Manis (SKM) Putih', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 0.4, stokGram: 80, gramPerUnit: 200, minTrigger: 0.3, jalur: 'A', orderQty: '1 pouch (200g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 15, nama: 'Margarin Serbaguna', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.24, stokGram: 48, gramPerUnit: 200, minTrigger: 0.1, jalur: 'C', orderQty: '1 bungkus (200g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 16, nama: 'Garam Dapur Halus', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.6, stokGram: 150, gramPerUnit: 250, minTrigger: 0.2, jalur: 'C', orderQty: '1 bungkus (250g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 17, nama: 'Minyak Goreng Sawit', kategori: 'Minyak/Gas', satuan: 'liter', stok: 0.12, stokGram: 115, gramPerUnit: 1000, minTrigger: 0.5, jalur: 'A', orderQty: '1 pouch (1L / 1.000g)', status: 'Menipis', action: 'Siapkan belanja: 1 pouch (1L / 1.000g)' },
+    { no: 18, nama: 'Gula Pasir Kristal', kategori: 'Bahan Awet', satuan: 'kg', stok: 0.65, stokGram: 650, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 kg kristal', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 19, nama: 'Royco Kaldu Ayam', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 18, gramPerUnit: 9, minTrigger: 2, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Menipis', action: 'Siapkan belanja: 1 renteng / 5 sachet' },
+    { no: 20, nama: 'Vanili Bubuk', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 3, stokGram: 6, gramPerUnit: 2, minTrigger: 2, jalur: 'C', orderQty: '1 pak vanili', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 21, nama: 'Gas LPG 3kg', kategori: 'Minyak/Gas', satuan: 'tabung', stok: 0.83, stokGram: 2500, gramPerUnit: 3000, minTrigger: 1, jalur: 'C', orderQty: '1 tabung baru (3.000g)', status: 'Menipis', action: 'Titip pasar: 1 tabung baru (3.000g)' },
+    { no: 22, nama: 'Saus Tomat Ekstra Sedap', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 1, stokGram: 1000, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 pouch (1 kg)', status: 'Aman', action: 'Stok awal 1 kg' }
   ]
 };
 
@@ -564,14 +602,12 @@ if (!auraData.masterBahan || auraData.masterBahan.length === 0) {
     });
 
     if (cur) {
-      cur.stok = defStok.stok;
-      cur.stokGram = defStok.stokGram;
-      cur.gramPerUnit = defStok.gramPerUnit;
-      cur.satuan = defStok.satuan;
-      cur.status = defStok.status;
-      cur.action = defStok.action;
-      cur.orderQty = defStok.orderQty;
-      cur.jalur = defStok.jalur;
+      // JANGAN PERNAH menimpa 'cur.stok' dan 'cur.stokGram' hasil input aktual pengguna!
+      cur.gramPerUnit = defStok.gramPerUnit || cur.gramPerUnit;
+      cur.satuan = defStok.satuan || cur.satuan;
+      cur.orderQty = defStok.orderQty || cur.orderQty;
+      cur.jalur = defStok.jalur || cur.jalur;
+      applyStokStatusAndAction(cur);
     } else {
       if (!auraData.stokBahan) auraData.stokBahan = [];
       auraData.stokBahan.push(JSON.parse(JSON.stringify(defStok)));
@@ -3683,6 +3719,8 @@ window.updateStokVal = function(idx, val) {
 
   applyStokStatusAndAction(item);
   saveLocal();
+  pushToFirestoreCloud(true);
+  pushToFirestoreCloud(true);
 };
 
 window.updateStokFromGram = function(idx, gramVal) {
@@ -3697,6 +3735,7 @@ window.updateStokFromGram = function(idx, gramVal) {
 
   applyStokStatusAndAction(item);
   saveLocal();
+  pushToFirestoreCloud(true);
 };
 
 // ==============================================================
@@ -4849,7 +4888,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 15:35 WIB';
+const APP_BUILD_TIME = '25/10/2026 17:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5133,3 +5172,29 @@ window.saveAndSyncModule = function(moduleName) {
     );
   }
 };
+
+// Otomatis tarik pembaruan Cloud saat tab HP kembali aktif dari latar belakang
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized) {
+      const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+      docRef.get().then(doc => {
+        if (doc.exists) {
+          const cloudDoc = doc.data();
+          if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
+            const localUpdated = (auraData && auraData._lastUpdated) || 0;
+            if (cloudDoc.lastUpdated > localUpdated) {
+              console.log('[Firestore] Tab aktif kembali: Memperbarui data dari Cloud');
+              auraData = cloudDoc.payload;
+              auraData._lastUpdated = cloudDoc.lastUpdated;
+              localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+              renderAllViews();
+              const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+              setCloudStatusUI('connected', 'Online • ' + timeStr);
+            }
+          }
+        }
+      }).catch(() => {});
+    }
+  });
+}
