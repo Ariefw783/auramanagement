@@ -224,7 +224,8 @@ const INITIAL_MASTER_BAHAN = [
   { id: 'mb-22', nama: 'Garam Dapur Halus', kategori: 'Pasar Subuh', satuan: 'Bungkus (250g)', unitFisik: 'bungkus', qtyPerBeli: 1, gramPerUnit: 250, totalGram: 250, harga: 4000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
   { id: 'mb-23', nama: 'Gula Pasir Kristal', kategori: 'Toko / Minimarket', satuan: 'Kilogram (1.000g)', unitFisik: 'kg', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 17500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
   { id: 'mb-24', nama: 'Royco Kaldu Ayam', kategori: 'Toko / Minimarket', satuan: 'Sachet (9g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 9, totalGram: 9, harga: 500, vendor: 'Warung Kelontong', tglUpdate: '2026-10-24' },
-  { id: 'mb-25', nama: 'Vanili Bubuk', kategori: 'Toko / Minimarket', satuan: 'Sachet (2g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 2, totalGram: 2, harga: 500, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' }
+  { id: 'mb-25', nama: 'Vanili Bubuk', kategori: 'Toko / Minimarket', satuan: 'Sachet (2g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 2, totalGram: 2, harga: 500, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' }
 ];
 
 // Standar Operasional Resep & Bill of Materials (BOM) Dinamis Dapur Mom Fitri
@@ -304,6 +305,31 @@ const DEFAULT_MASTER_RESEP = [
       { bahanKey: 'Terigu', nama: 'Terigu Adonan Celup Cepat', qtyPerPcs: 2.5, unit: 'gram', isGram: true, tipe: 'baluran' },
       { bahanKey: 'Minyak Goreng', nama: 'Serapan Minyak Celup Cepat', qtyPerPcs: 1.8, unit: 'gram', isGram: true, tipe: 'goreng' },
       { bahanKey: 'Gas LPG', nama: 'Konsumsi Gas LPG', qtyPerPcs: 1.5, unit: 'gram', isGram: true, tipe: 'goreng' }
+    ]
+  },
+  {
+    id: 'prod_sosis',
+    nama: 'Stik Sosis Selimut Panir Krispi',
+    shortName: 'Sosis',
+    badgeColor: '#FB7185',
+    lipatModel: 'Gulung Stik 1/2 Lembar + Oles Saus',
+    sopWaktuSuhu: '160°C (Api Sedang • 3.0 - 3.5 Menit)',
+    hargaSetorDefault: 800,
+    imgSrc: './Panduan_Visual_Stik_Sosis_Panir.jpg',
+    badgeTag: '1 Btg Sosis = 4 Pcs • 1/2 Lbr Kulit',
+    catatanSOP: '1 batang sosis dibelah 4 memanjang. Ambil 1/2 lembar kulit lumpia, oles tipis saus tomat (±2.5g), letakkan sosis di tepi dan gulung memanjang rapat. Rekatkan ujung kulit dengan lem terigu. Celup ke adonan terigu encer berbumbu (garam, kaldu, lada), gulingkan padat ke tepung panir oranye. Goreng deep frying api sedang 3-3.5 menit hingga mekar krispi keemasan.',
+    videoRef: { author: '@teh_thea96 (Teh_thea)', url: 'https://vt.tiktok.com/ZSgxXYNLp/' },
+    defaultPcs: 32,
+    isCustom: false,
+    komposisi: [
+      { bahanKey: 'Sosis', nama: 'Sosis Ekonomis (1 btg = 4 pcs)', qtyPerPcs: 0.25, unit: 'batang', isGram: false, tipe: 'isian' },
+      { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar (0.5 lbr/pcs)', qtyPerPcs: 0.5, unit: 'lembar', isGram: false, tipe: 'kulit' },
+      { bahanKey: 'Saus Tomat', nama: 'Olesan Saus Tomat / Balado', qtyPerPcs: 2.5, unit: 'gram', isGram: true, tipe: 'isian', fallbackCost: 30 },
+      { bahanKey: 'Terigu', nama: 'Terigu Baluran Adonan Basah', qtyPerPcs: 2.5, unit: 'gram', isGram: true, tipe: 'baluran' },
+      { bahanKey: 'Panir', nama: 'Tepung Panir Oranye Krispi', qtyPerPcs: 5.0, unit: 'gram', isGram: true, tipe: 'baluran' },
+      { bahanKey: 'Bumbu', nama: 'Bumbu Baluran (Garam & Kaldu)', qtyPerPcs: 0.5, unit: 'gram', isGram: true, tipe: 'bumbu', fallbackCost: 10 },
+      { bahanKey: 'Minyak Goreng', nama: 'Serapan Minyak Goreng', qtyPerPcs: 3.0, unit: 'gram', isGram: true, tipe: 'goreng' },
+      { bahanKey: 'Gas LPG', nama: 'Konsumsi Gas LPG', qtyPerPcs: 2.0, unit: 'gram', isGram: true, tipe: 'goreng' }
     ]
   }
 ];
@@ -584,9 +610,13 @@ if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.ma
   auraData.masterResep = JSON.parse(JSON.stringify(DEFAULT_MASTER_RESEP));
 } else {
   // Kalibrasi otomatis jika formula standar (Ubi, Sayur, Roti) di LocalStorage mengandung anomali takaran (> Rp 1.500)
-  ['prod_ubi', 'prod_sayur', 'prod_roti'].forEach(stdId => {
+  ['prod_ubi', 'prod_sayur', 'prod_roti', 'prod_sosis'].forEach(stdId => {
     const cur = auraData.masterResep.find(r => r.id === stdId);
     const def = DEFAULT_MASTER_RESEP.find(d => d.id === stdId);
+    if (!cur && def) {
+      auraData.masterResep.push(JSON.parse(JSON.stringify(def)));
+      return;
+    }
     const hasOldGramUnits = cur && cur.komposisi && cur.komposisi.some(k => (k.bahanKey === 'Telur' || k.bahanKey === 'Sosis') && k.isGram);
     if (cur && def && (!cur.isUserModified || getProductUnitHPP(cur) > 1500 || hasOldGramUnits)) {
       const idx = auraData.masterResep.findIndex(r => r.id === stdId);
@@ -602,6 +632,10 @@ try {
 function getStokGramRatio(stokItem) {
   const mbList = (auraData && auraData.masterBahan) ? auraData.masterBahan : INITIAL_MASTER_BAHAN;
   const n = (stokItem.nama || '').toLowerCase();
+  if (n.includes('saus tomat')) {
+    const m = mbList.find(x => x.nama.toLowerCase().includes('saus tomat'));
+    return m ? (m.totalGram || 1000) : 1000;
+  }
   if (n.includes('kulit lumpia')) {
     const m = mbList.find(x => x.nama.toLowerCase().includes('kulit lumpia'));
     return m ? (m.totalGram || 252) : 252; // 1 bungkus = 252g
@@ -1631,7 +1665,7 @@ window.syncRecipeFromBuku1 = function(showNotice) {
   if (rotiInput) rotiInput.value = (sumsByProd['prod_roti'] || 0);
 
   // Set any custom product inputs in takaran calculator
-  recipes.filter(p => p.isCustom).forEach(cp => {
+  recipes.filter(p => p.isCustom || !['prod_ubi', 'prod_sayur', 'prod_roti'].includes(p.id)).forEach(cp => {
     const cpInput = document.getElementById('calcPcs_' + cp.id);
     if (cpInput && sumsByProd[cp.id] !== undefined) {
       cpInput.value = sumsByProd[cp.id];
@@ -2619,7 +2653,7 @@ window.calculateTakaran = function() {
   const ubiProd = recipes.find(r => r.id === 'prod_ubi') || recipes[0];
   const sayurProd = recipes.find(r => r.id === 'prod_sayur') || recipes[1];
   const rotiProd = recipes.find(r => r.id === 'prod_roti') || recipes[2];
-  const customProducts = recipes.filter(r => r.isCustom);
+  const customProducts = recipes.filter(r => r.isCustom || !['prod_ubi', 'prod_sayur', 'prod_roti'].includes(r.id));
 
   const customInputsContainer = document.getElementById('calcCustomInputsContainer');
   if (customInputsContainer) {
@@ -4815,7 +4849,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 13:35 WIB';
+const APP_BUILD_TIME = '25/10/2026 15:35 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 

@@ -2,7 +2,7 @@
 // DAPUR MOM FITRI - SERVICE WORKER (NETWORK-FIRST STRATEGY)
 // ==============================================================
 const CACHE_NAME = 'dapur-mom-fitri-v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 13:35 WIB';
+const APP_BUILD_TIME = '25/10/2026 15:35 WIB';
 
 const ASSETS = [
   './',
@@ -16,7 +16,8 @@ const ASSETS = [
   './Panduan_Visual_Lumpia_Sayur_Sosis.jpg',
   './Panduan_Visual_Lumpia_Ubi_Ungu_Keju.jpg',
   './Panduan_Visual_Roti_Goreng_Collins.jpg',
-  './Panduan_Visual_Trio_Gorengan_Lengkap.jpg'
+  './Panduan_Visual_Trio_Gorengan_Lengkap.jpg',
+  './Panduan_Visual_Stik_Sosis_Panir.jpg'
 ];
 
 // Install: Cache critical assets immediately & skip waiting
