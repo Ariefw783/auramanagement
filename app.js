@@ -3451,6 +3451,7 @@ window.saveFormulaChanges = function(prodId) {
   }
 
   saveLocal();
+  pushToFirestoreCloud(true);
   window.closeAppModal();
   renderAllViews();
   window.showSuccessModal(
@@ -3580,6 +3581,7 @@ window.saveNewProduct = function() {
   auraData.masterResep.push(newProd);
 
   saveLocal();
+  pushToFirestoreCloud(true);
   window.closeAppModal();
   renderAllViews();
   window.showSuccessModal(
@@ -3601,6 +3603,7 @@ window.deleteCustomProduct = function(prodId) {
     () => {
       auraData.masterResep = auraData.masterResep.filter(r => r.id !== prodId);
       saveLocal();
+      pushToFirestoreCloud(true);
       window.closeAppModal();
       renderAllViews();
       window.showSuccessModal("Terhapus", 'Varian "' + prod.nama + '" berhasil dihapus dari resep.');
@@ -4812,7 +4815,7 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 12:45 WIB';
+const APP_BUILD_TIME = '25/10/2026 12:50 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
