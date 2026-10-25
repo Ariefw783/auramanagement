@@ -39,6 +39,7 @@ const FIREBASE_CONFIG = {
 let firestoreDb = null;
 let cloudSyncTimeout = null;
 let isFirestoreInitialized = false;
+window._hasUnsavedLocalChanges = false;
 
 function setCloudStatusUI(status, label) {
   const pills = [document.getElementById('cloudSyncPillDesktop'), document.getElementById('cloudSyncPillMobile')];
@@ -51,6 +52,7 @@ function setCloudStatusUI(status, label) {
       if (pill.id === 'cloudSyncPillMobile') {
         if (status === 'connected') textEl.innerText = 'Online';
         else if (status === 'syncing') textEl.innerText = 'Sync';
+        else if (status === 'error') textEl.innerText = 'Error';
         else textEl.innerText = 'Offline';
       } else {
         textEl.innerText = label;
@@ -66,15 +68,14 @@ function initFirestoreSync(retryCount = 0) {
     return;
   }
 
-  // Jika online, prioritaskan status Online (Hijau)
-  setCloudStatusUI('connected', 'Online');
+  setCloudStatusUI('syncing', 'Menghubungkan Cloud...');
 
   if (typeof firebase === 'undefined' || !firebase.firestore) {
     if (retryCount < 10) {
       setTimeout(() => initFirestoreSync(retryCount + 1), 400);
       return;
     }
-    setCloudStatusUI('connected', 'Online');
+    setCloudStatusUI('offline', 'Firebase Tidak Termuat');
     return;
   }
 
@@ -92,16 +93,56 @@ function initFirestoreSync(retryCount = 0) {
     } catch (e) {}
 
     isFirestoreInitialized = true;
-    setCloudStatusUI('connected', 'Online');
-
     const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+
+    // ==============================================================
+    // NETWORK-FIRST INITIAL HYDRATION:
+    // Selalu paksa query langsung ke server Firestore terlebih dahulu.
+    // Memastikan HP/PC tidak terjebak membaca cache IndexedDB usang.
+    // ==============================================================
+    docRef.get({ source: 'server' })
+      .then(doc => {
+        if (doc.exists) {
+          const cloudDoc = doc.data();
+          if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
+            const localUpdated = (auraData && auraData._lastUpdated) || 0;
+            // Jika cloud lebih baru ATAU perangkat lokal bersih belum menginput perubahan
+            if (cloudDoc.lastUpdated >= localUpdated || !window._hasUnsavedLocalChanges) {
+              console.log('[Firestore] Network-First sukses memuat data server:', cloudDoc.lastUpdated);
+              auraData = cloudDoc.payload;
+              auraData._lastUpdated = cloudDoc.lastUpdated;
+              localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+              renderAllViews();
+              const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+              setCloudStatusUI('connected', 'Online • ' + timeStr);
+              return;
+            }
+          }
+        }
+        setCloudStatusUI('connected', 'Online');
+      })
+      .catch(err => {
+        console.warn('[Firestore] Network-first server fetch note:', err.code, err.message);
+        if (err.code === 'permission-denied') {
+          setCloudStatusUI('error', 'Izin Firestore Ditolak');
+        } else if (!navigator.onLine) {
+          setCloudStatusUI('offline', 'Mode Offline');
+        } else {
+          setCloudStatusUI('connected', 'Online (Cache)');
+        }
+      });
+
+    // ==============================================================
+    // REALTIME SNAPSHOT LISTENER:
+    // Menerima push live instan setiap kali ada tombol Simpan ditekan di HP/PC
+    // ==============================================================
     docRef.onSnapshot(doc => {
       if (doc.exists) {
         const cloudDoc = doc.data();
         if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
           const localUpdated = (auraData && auraData._lastUpdated) || 0;
-          if (cloudDoc.lastUpdated > localUpdated) {
-            console.log('[Firestore] Sinkronisasi real-time diterima dari Cloud:', cloudDoc.lastUpdated);
+          if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
+            console.log('[Firestore] Realtime snapshot cloud diterima:', cloudDoc.lastUpdated);
             auraData = cloudDoc.payload;
             auraData._lastUpdated = cloudDoc.lastUpdated;
             localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
@@ -112,24 +153,27 @@ function initFirestoreSync(retryCount = 0) {
           }
         }
       } else {
-        pushToFirestoreCloud(true);
+        // Dokumen perdana belum ada di cloud, buat perdana
+        pushToFirestoreCloud(true).catch(() => {});
       }
       setCloudStatusUI('connected', 'Online');
     }, err => {
-      console.warn('[Firestore] Realtime snapshot note:', err.message);
-      if (!navigator.onLine) {
+      console.warn('[Firestore] Realtime snapshot listener error:', err.code, err.message);
+      if (err.code === 'permission-denied') {
+        setCloudStatusUI('error', 'Izin Firestore Ditolak');
+      } else if (!navigator.onLine) {
         setCloudStatusUI('offline', 'Mode Offline');
       } else {
-        setCloudStatusUI('connected', 'Online');
+        setCloudStatusUI('error', 'Koneksi Cloud Terganggu');
       }
     });
 
   } catch (err) {
-    console.warn('[Firestore] Inisialisasi note:', err);
+    console.warn('[Firestore] Inisialisasi error:', err);
     if (!navigator.onLine) {
       setCloudStatusUI('offline', 'Mode Offline');
     } else {
-      setCloudStatusUI('connected', 'Online');
+      setCloudStatusUI('error', 'Inisialisasi Gagal');
     }
   }
 }
@@ -138,7 +182,7 @@ function initFirestoreSync(retryCount = 0) {
 if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     console.log('[App] Koneksi internet online');
-    setCloudStatusUI('connected', 'Online');
+    setCloudStatusUI('syncing', 'Menyambungkan...');
     initFirestoreSync(0);
   });
   window.addEventListener('offline', () => {
@@ -148,43 +192,56 @@ if (typeof window !== 'undefined') {
 }
 
 function pushToFirestoreCloud(immediate = false) {
-  if (!isFirestoreInitialized || !firestoreDb) return;
+  if (!isFirestoreInitialized || !firestoreDb) {
+    initFirestoreSync();
+  }
   if (cloudSyncTimeout) clearTimeout(cloudSyncTimeout);
 
   const performPush = () => {
-    if (!navigator.onLine) {
-      setCloudStatusUI('offline', 'Mode Offline');
-      return;
-    }
+    return new Promise((resolve, reject) => {
+      if (!navigator.onLine) {
+        setCloudStatusUI('offline', 'Mode Offline');
+        reject(new Error('Perangkat sedang offline'));
+        return;
+      }
 
-    setCloudStatusUI('syncing', 'Menyinkronkan...');
-    const now = Date.now();
-    if (auraData) auraData._lastUpdated = now;
-    const cleanPayload = JSON.parse(JSON.stringify(auraData));
+      setCloudStatusUI('syncing', 'Menyinkronkan...');
+      const now = Date.now();
+      if (auraData) auraData._lastUpdated = now;
+      const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
-    firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7').set({
-      lastUpdated: now,
-      clientAgent: 'PWA Dapur Mom Fitri Web',
-      version: '6.3.2',
-      payload: cleanPayload
-    }, { merge: true })
-    .then(() => {
-      const timeStr = new Date(now).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-      setCloudStatusUI('connected', 'Online • ' + timeStr);
-    })
-    .catch(err => {
-      console.warn('[Firestore] Push cloud note:', err.message);
-      setTimeout(() => {
-        if (navigator.onLine) setCloudStatusUI('connected', 'Online');
-        else setCloudStatusUI('offline', 'Mode Offline');
-      }, 700);
+      firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7').set({
+        lastUpdated: now,
+        clientAgent: 'PWA Dapur Mom Fitri Web',
+        version: APP_VERSION,
+        payload: cleanPayload
+      }, { merge: true })
+      .then(() => {
+        window._hasUnsavedLocalChanges = false;
+        const timeStr = new Date(now).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        setCloudStatusUI('connected', 'Online • ' + timeStr);
+        resolve({ success: true, timestamp: now, timeStr });
+      })
+      .catch(err => {
+        console.warn('[Firestore] Push cloud error:', err.code, err.message);
+        if (err.code === 'permission-denied') {
+          setCloudStatusUI('error', 'Izin Firestore Ditolak');
+        } else {
+          setCloudStatusUI('error', 'Gagal Sync Cloud');
+        }
+        reject(err);
+      });
     });
   };
 
   if (immediate) {
-    performPush();
+    return performPush();
   } else {
-    cloudSyncTimeout = setTimeout(performPush, 1000);
+    return new Promise((resolve, reject) => {
+      cloudSyncTimeout = setTimeout(() => {
+        performPush().then(resolve).catch(reject);
+      }, 1000);
+    });
   }
 }
 
@@ -200,12 +257,14 @@ window.triggerCloudSync = function() {
   }
   setCloudStatusUI('syncing', 'Memeriksa Cloud...');
   const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
-  docRef.get().then(doc => {
+  
+  // Network first: selalu tarik server langsung
+  docRef.get({ source: 'server' }).then(doc => {
     if (doc.exists) {
       const cloudDoc = doc.data();
       if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
         const localUpdated = (auraData && auraData._lastUpdated) || 0;
-        if (cloudDoc.lastUpdated > localUpdated) {
+        if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
           console.log('[Firestore] Sinkronisasi manual menarik data terbaru dari Cloud:', cloudDoc.lastUpdated);
           auraData = cloudDoc.payload;
           auraData._lastUpdated = cloudDoc.lastUpdated;
@@ -218,23 +277,50 @@ window.triggerCloudSync = function() {
           }
           return;
         } else {
-          // Cloud sudah sama atau lokal lebih baru
-          pushToFirestoreCloud(true);
-          const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-          if (typeof window.showSuccessModal === 'function') {
-            window.showSuccessModal('Sinkronisasi Cloud', 'Data lokal telah sinkron sempurna dengan Cloud Firestore pada pukul ' + timeStr + ' WIB.');
-          }
+          // Cloud sudah sama atau lokal lebih baru, lakukan push live
+          pushToFirestoreCloud(true).then((res) => {
+            const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            if (typeof window.showSuccessModal === 'function') {
+              window.showSuccessModal('Sinkronisasi Cloud Sempurna', 'Data lokal telah sinkron sempurna dengan Cloud Firestore pada pukul ' + timeStr + ' WIB.');
+            }
+          }).catch(err => {
+            handleSyncErrorAlert(err);
+          });
           return;
         }
       }
     }
-    pushToFirestoreCloud(true);
+    pushToFirestoreCloud(true).then((res) => {
+      const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      if (typeof window.showSuccessModal === 'function') {
+        window.showSuccessModal('Sinkronisasi Cloud', 'Data perdana berhasil disinkronkan ke Cloud Firestore pada pukul ' + timeStr + ' WIB.');
+      }
+    }).catch(err => {
+      handleSyncErrorAlert(err);
+    });
   }).catch(err => {
-    console.warn('[Firestore] Manual sync error:', err);
-    pushToFirestoreCloud(true);
+    console.warn('[Firestore] Manual sync error:', err.code, err.message);
+    handleSyncErrorAlert(err);
   });
 };
 
+function handleSyncErrorAlert(err) {
+  if (err && err.code === 'permission-denied') {
+    setCloudStatusUI('error', 'Izin Firestore Ditolak');
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal(
+        'Izin Cloud Firestore Ditolak',
+        'Koneksi ke Cloud Firestore ditolak (permission-denied).\n\n' +
+        '<strong>Penyebab:</strong> Aturan keamanan (Security Rules) di Firebase Console belum mengizinkan akses baca/tulis.\n\n' +
+        '<strong>Solusi:</strong> Buka Firebase Console (project: aplikasi-smart-coding) -> Firestore Database -> Rules -> Ubah menjadi allow read, write: if true; lalu klik Publish.'
+      );
+    }
+  } else {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Kendala Sinkronisasi', 'Terjadi kendala saat menyinkronkan data ke Cloud Firestore: ' + (err.message || 'Koneksi terputus') + '.');
+    }
+  }
+}
 // 25 Master Bahan Baku Terstandarisasi Dapur Mom Fitri (Dikalibrasi Sesuai Harga Beli Terkini)
 const INITIAL_MASTER_BAHAN = [
   { id: 'mb-01', nama: 'Kulit Lumpia Segar', kategori: 'Pasar Subuh', satuan: 'Bungkus (isi 36 lbr)', unitFisik: 'lembar', qtyPerBeli: 36, gramPerUnit: 7, totalGram: 252, harga: 10000, vendor: 'Tukang Sayur Pasar Subuh', tglUpdate: '2026-10-24' },
@@ -771,6 +857,7 @@ if (auraData.stokBahan) {
 localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
 
 function saveLocal() {
+  window._hasUnsavedLocalChanges = true;
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   renderAllViews();
@@ -3718,6 +3805,7 @@ window.updateStokVal = function(idx, val) {
   item.stokGram = Math.round(item.stok * ratio);
 
   applyStokStatusAndAction(item);
+  window._hasUnsavedLocalChanges = true;
   saveLocal();
   pushToFirestoreCloud(true);
   pushToFirestoreCloud(true);
@@ -3734,6 +3822,7 @@ window.updateStokFromGram = function(idx, gramVal) {
   item.stok = Number.isInteger(rawUnits) ? rawUnits : +rawUnits.toFixed(2);
 
   applyStokStatusAndAction(item);
+  window._hasUnsavedLocalChanges = true;
   saveLocal();
   pushToFirestoreCloud(true);
 };
@@ -4887,8 +4976,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 17:15 WIB';
+const APP_VERSION = 'v6.4.0';
+const APP_BUILD_TIME = '25/10/2026 18:45 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5147,11 +5236,11 @@ window.resetDatabaseToCleanRoot = function(showConfirm = true) {
 // Menggunakan Single-Document Aggregation Pattern:
 // 1 Kali Klik = Tepat 1 Write, 0 Delete, Reactive Snapshot Read
 // ==============================================================
-window.saveAndSyncModule = function(moduleName) {
+window.saveAndSyncModule = async function(moduleName) {
+  window._hasUnsavedLocalChanges = true;
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   renderAllViews();
-  pushToFirestoreCloud(true);
 
   const moduleLabels = {
     buku1: 'Distribusi Titip Jual (Buku 1)',
@@ -5162,29 +5251,69 @@ window.saveAndSyncModule = function(moduleName) {
   };
 
   const label = moduleLabels[moduleName] || 'Data Operasional';
-  const timeStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
-  if (typeof window.showSuccessModal === 'function') {
-    window.showSuccessModal(
-      'Tersimpan & Disinkronkan ke Cloud',
-      'Data <strong>' + label + '</strong> telah berhasil disimpan ke database lokal dan disinkronkan ke Cloud Firestore pada pukul <strong>' + timeStr + ' WIB</strong>.\n\n' +
-      'Perangkat lain (HP/PC) akan otomatis menerima pembaruan data secara real-time.'
-    );
+  if (!navigator.onLine) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal(
+        'Tersimpan di Memori Lokal (Offline)',
+        'Data <strong>' + label + '</strong> telah berhasil disimpan ke memori lokal perangkat ini.<br><br>' +
+        'Perangkat Anda saat ini sedang offline. Data akan otomatis diunggah ke Cloud Firestore begitu terhubung ke internet.'
+      );
+    }
+    return;
+  }
+
+  setCloudStatusUI('syncing', 'Menyinkronkan ke Cloud...');
+
+  try {
+    const res = await pushToFirestoreCloud(true);
+    const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+    if (typeof window.showSuccessModal === 'function') {
+      window.showSuccessModal(
+        'Tersimpan & Disinkronkan ke Cloud',
+        'Data <strong>' + label + '</strong> telah berhasil disimpan dan disinkronkan secara LIVE ke Cloud Firestore pada pukul <strong>' + timeStr + ' WIB</strong>.<br><br>' +
+        'Perangkat lain (HP/PC) akan otomatis menerima pembaruan data secara real-time.'
+      );
+    }
+  } catch (err) {
+    console.error('[SaveAndSync] Gagal push live ke Cloud:', err);
+    if (err && err.code === 'permission-denied') {
+      setCloudStatusUI('error', 'Izin Firestore Ditolak');
+      if (typeof window.showAlertModal === 'function') {
+        window.showAlertModal(
+          'Peringatan Izin Firestore Ditolak',
+          'Data <strong>' + label + '</strong> berhasil disimpan di memori lokal, TETAPI <strong>gagal terkirim ke Cloud Firestore</strong>!<br><br>' +
+          '<strong>Penyebab:</strong> Aturan keamanan (Security Rules) di Firebase Console belum mengizinkan akses tulis (permission-denied).<br><br>' +
+          '<strong>Solusi Cepat:</strong><br>' +
+          '1. Buka Firebase Console (project: <strong>aplikasi-smart-coding</strong>).<br>' +
+          '2. Masuk ke Firestore Database -> Tab Rules.<br>' +
+          '3. Ubah aturan menjadi: <code>allow read, write: if true;</code> lalu klik <strong>Publish</strong>.'
+        );
+      }
+    } else {
+      if (typeof window.showAlertModal === 'function') {
+        window.showAlertModal(
+          'Tersimpan Lokal (Kendala Cloud)',
+          'Data <strong>' + label + '</strong> tersimpan di memori lokal, namun gagal disinkronkan ke Cloud Firestore: ' + (err.message || 'Koneksi terputus') + '.'
+        );
+      }
+    }
   }
 };
 
-// Otomatis tarik pembaruan Cloud saat tab HP kembali aktif dari latar belakang
+// Otomatis tarik pembaruan Cloud saat tab HP kembali aktif dari latar belakang (Network First)
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized) {
       const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
-      docRef.get().then(doc => {
+      docRef.get({ source: 'server' }).then(doc => {
         if (doc.exists) {
           const cloudDoc = doc.data();
           if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
             const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            if (cloudDoc.lastUpdated > localUpdated) {
-              console.log('[Firestore] Tab aktif kembali: Memperbarui data dari Cloud');
+            if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
+              console.log('[Firestore] Tab aktif: Network-First memperbarui data dari Cloud');
               auraData = cloudDoc.payload;
               auraData._lastUpdated = cloudDoc.lastUpdated;
               localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
@@ -5194,7 +5323,9 @@ if (typeof document !== 'undefined') {
             }
           }
         }
-      }).catch(() => {});
+      }).catch(err => {
+        console.warn('[Firestore] Visibility sync note:', err.code);
+      });
     }
   });
 }
