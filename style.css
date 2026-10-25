@@ -2867,6 +2867,96 @@ body {
   background: #1F2B3E;
 }
 
+/* ============================================================== */
+/* CLOUD FIRESTORE OPERATION LOADING MODAL                         */
+/* ============================================================== */
+.app-loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: modalFadeIn 0.18s ease-out;
+}
+
+.app-loading-card {
+  background: #1E293B;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 16px;
+  padding: 24px 28px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 189, 248, 0.15);
+  animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-loading-spinner-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.app-loading-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3.5px solid rgba(56, 189, 248, 0.18);
+  border-top-color: #38BDF8;
+  border-right-color: #818CF8;
+  border-radius: 50%;
+  animation: spinLoading 0.75s linear infinite;
+}
+
+@keyframes spinLoading {
+  to { transform: rotate(360deg); }
+}
+
+.app-loading-title {
+  color: #F8FAFC;
+  font-size: 1.02rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.app-loading-sub {
+  color: #94A3B8;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.app-loading-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: rgba(51, 65, 85, 0.6);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-loading-bar-indeterminate {
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #38BDF8, #818CF8);
+  border-radius: 9999px;
+  position: absolute;
+  animation: loadingBarMove 1.2s infinite ease-in-out;
+}
+
+@keyframes loadingBarMove {
+  0% { left: -40%; width: 30%; }
+  50% { left: 35%; width: 50%; }
+  100% { left: 100%; width: 30%; }
+}
+
+
 /* Buku 1 Printable Wrap */
 .buku1-printable-wrap {
   width: 100%;

@@ -255,11 +255,17 @@ window.triggerCloudSync = function() {
   if (!isFirestoreInitialized || !firestoreDb) {
     initFirestoreSync();
   }
+
+  // Tampilkan Pop-up Loading Mengambil Data
+  window.showLoadingModal('Memeriksa Cloud Firestore...', 'Sedang mengambil data terbaru langsung dari server Cloud Firestore...');
   setCloudStatusUI('syncing', 'Memeriksa Cloud...');
   const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
   
   // Network first: selalu tarik server langsung
-  docRef.get({ source: 'server' }).then(doc => {
+  docRef.get({ source: 'server' }).then(async doc => {
+    await new Promise(r => setTimeout(r, 400));
+    window.hideLoadingModal();
+
     if (doc.exists) {
       const cloudDoc = doc.data();
       if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
@@ -278,27 +284,34 @@ window.triggerCloudSync = function() {
           return;
         } else {
           // Cloud sudah sama atau lokal lebih baru, lakukan push live
+          window.showLoadingModal('Menyinkronkan...', 'Mengunggah data terbaru ke Cloud Firestore...');
           pushToFirestoreCloud(true).then((res) => {
+            window.hideLoadingModal();
             const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             if (typeof window.showSuccessModal === 'function') {
               window.showSuccessModal('Sinkronisasi Cloud Sempurna', 'Data lokal telah sinkron sempurna dengan Cloud Firestore pada pukul ' + timeStr + ' WIB.');
             }
           }).catch(err => {
+            window.hideLoadingModal();
             handleSyncErrorAlert(err);
           });
           return;
         }
       }
     }
+    window.showLoadingModal('Menyinkronkan...', 'Mengunggah data perdana ke Cloud Firestore...');
     pushToFirestoreCloud(true).then((res) => {
+      window.hideLoadingModal();
       const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
       if (typeof window.showSuccessModal === 'function') {
         window.showSuccessModal('Sinkronisasi Cloud', 'Data perdana berhasil disinkronkan ke Cloud Firestore pada pukul ' + timeStr + ' WIB.');
       }
     }).catch(err => {
+      window.hideLoadingModal();
       handleSyncErrorAlert(err);
     });
   }).catch(err => {
+    window.hideLoadingModal();
     console.warn('[Firestore] Manual sync error:', err.code, err.message);
     handleSyncErrorAlert(err);
   });
@@ -1058,6 +1071,24 @@ function getAllDaysAccounting() {
     return day;
   });
 }
+
+
+// ==============================================================
+// CLOUD FIRESTORE OPERATION LOADING MODAL CONTROLLER
+// ==============================================================
+window.showLoadingModal = function(title, subtitle) {
+  const overlay = document.getElementById('appLoadingOverlay');
+  const titleEl = document.getElementById('appLoadingTitle');
+  const subEl = document.getElementById('appLoadingSub');
+  if (titleEl) titleEl.innerText = title || 'Menyinkronkan Data...';
+  if (subEl) subEl.innerHTML = subtitle || 'Sedang berkomunikasi dengan Cloud Firestore';
+  if (overlay) overlay.style.display = 'flex';
+};
+
+window.hideLoadingModal = function() {
+  const overlay = document.getElementById('appLoadingOverlay');
+  if (overlay) overlay.style.display = 'none';
+};
 
 // ==============================================================
 // STAGE 4: UNIVERSAL CUSTOM MODAL SYSTEM (REPLACES BROWSER ALERTS)
@@ -4976,8 +5007,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.0';
-const APP_BUILD_TIME = '25/10/2026 18:45 WIB';
+const APP_VERSION = 'v6.4.1';
+const APP_BUILD_TIME = '25/10/2026 18:55 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5263,10 +5294,16 @@ window.saveAndSyncModule = async function(moduleName) {
     return;
   }
 
+  // Tampilkan Pop-up Loading Menyimpan Data
+  window.showLoadingModal('Menyimpan ke Cloud...', 'Sedang mengunggah data <strong>' + label + '</strong> secara live ke Cloud Firestore...');
   setCloudStatusUI('syncing', 'Menyinkronkan ke Cloud...');
 
   try {
     const res = await pushToFirestoreCloud(true);
+    // Jeda sejenak agar animasi loading mulus
+    await new Promise(r => setTimeout(r, 400));
+    window.hideLoadingModal();
+
     const timeStr = res.timeStr || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
 
     if (typeof window.showSuccessModal === 'function') {
@@ -5277,6 +5314,7 @@ window.saveAndSyncModule = async function(moduleName) {
       );
     }
   } catch (err) {
+    window.hideLoadingModal();
     console.error('[SaveAndSync] Gagal push live ke Cloud:', err);
     if (err && err.code === 'permission-denied') {
       setCloudStatusUI('error', 'Izin Firestore Ditolak');
