@@ -235,6 +235,7 @@ body {
   border: 1px solid var(--card-border-subtle);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -243,6 +244,7 @@ body {
   transition: all 0.15s ease;
   user-select: none;
   width: 100%;
+  text-align: left;
 }
 
 .nav-item-btn:hover {
@@ -264,6 +266,9 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
 }
 
 .nav-item-icon {
@@ -299,6 +304,10 @@ body {
   font-weight: 700;
   color: var(--text-pure);
   letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: left;
 }
 
 .nav-item-chevron {

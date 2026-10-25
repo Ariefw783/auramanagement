@@ -4815,8 +4815,9 @@ initSidebarDrawer();
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 const APP_VERSION = 'v6.3.9';
-const APP_BUILD_TIME = '25/10/2026 12:50 WIB';
+const APP_BUILD_TIME = '25/10/2026 13:35 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
+const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
   const timeDisplay = buildTime || APP_BUILD_TIME;
@@ -4863,6 +4864,7 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
       const btn = document.getElementById('btnReloadAppUpdate');
       if (btn) {
         btn.onclick = () => {
+          localStorage.setItem(LAST_BUILD_KEY, APP_VERSION + '_' + APP_BUILD_TIME);
           localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
           window.location.reload();
         };
@@ -4873,6 +4875,7 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
       const btn = document.getElementById('btnAckAppUpdate');
       if (btn) {
         btn.onclick = () => {
+          localStorage.setItem(LAST_BUILD_KEY, APP_VERSION + '_' + APP_BUILD_TIME);
           localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
           window.closeAppModal();
         };
@@ -4884,10 +4887,12 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
 };
 
 function checkAppVersionOnBoot() {
-  const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
-  if (lastVersion !== APP_VERSION) {
+  const currentToken = APP_VERSION + '_' + APP_BUILD_TIME;
+  const lastAck = localStorage.getItem(LAST_BUILD_KEY);
+  if (lastAck !== currentToken) {
     setTimeout(() => {
       window.showAppUpdateConfirmationModal(APP_BUILD_TIME, false);
+      localStorage.setItem(LAST_BUILD_KEY, currentToken);
       localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
     }, 700);
   }
