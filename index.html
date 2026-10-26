@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.6</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.7</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 26/10/2026 15:50 WIB
+          Update: 26/10/2026 16:05 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -461,17 +461,15 @@
                 <span>Distribusi & Penjualan Mitra (Format A5)</span>
                 <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Mode Input</span>
               </div>
-              <div class="slate-card-subtitle">Atur rencana kirim & catat retur sore per titik konsinyasi. Klik 'Simpan & Sinkronkan' untuk simpan ke cloud, atau 'Kunci Lembar' saat tutup buku sore.</div>
+              <div class="slate-card-subtitle">Catat rencana kirim pagi & retur sore per titik mitra. Klik 'Simpan Hasil Penjualan' untuk mengunci data harian dan sinkronkan ke cloud.</div>
             </div>
             
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.setBuku1Today()" title="Lompat ke tanggal kalender hari ini">Ke Hari Ini</button>
               <button type="button" class="tool-btn tool-btn-success" id="btnSimpanPenjualanBuku1" onclick="window.savePenjualanHariIni()" title="Simpan hasil penjualan hari ini dan sinkronkan ke cloud" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">Simpan Hasil Penjualan Hari Ini</button>
+              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(56, 189, 248, 0.6); color: #38BDF8; font-weight: 700;">Edit Data (Buka Kunci)</button>
               <button type="button" class="tool-btn" id="btnToggleLiburBuku1" onclick="window.toggleBuku1Holiday()" style="border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;" title="Tandai hari ini sebagai hari libur operasional">Tandai Hari Ini Libur</button>
-              <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(56, 189, 248, 0.5); color: #38BDF8;">Buka Kunci (Edit)</button>
-              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.4); color: #F87171;" onclick="window.resetBuku1CurrentDay()" title="Kosongkan seluruh data distribusi hari ini">Reset Lembar</button>
-              <button type="button" class="tool-btn" onclick="window.openAddBuku1DateModal()" title="Tambah lembar tanggal baru">+ Tanggal Baru</button>
               <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
+              <button type="button" class="tool-btn" style="border-color: rgba(248, 113, 113, 0.3); color: #94A3B8; font-size: 0.72rem; padding: 4px 8px;" onclick="window.resetBuku1CurrentDay()" title="Kosongkan seluruh data distribusi hari ini">Reset</button>
             </div>
           </div>
 

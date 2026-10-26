@@ -505,6 +505,7 @@ function buildDayMetaFromIso(isoDate, idxNum) {
 
 // Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Siklus Produksi & Jual Mulai Senin 26 Okt 2026)
 const OPERATIONAL_DAYS_CONFIG = [
+  { isoDate: '2026-10-25', b2Key: '25/10', tgl: 2, hari: 'Min', namaHari: 'Minggu, 25 Oktober 2026', shortLabel: 'MIN (25/10)', noBkk: 'BKK-20261025-01', modal: 100000, isTarget: false },
   { isoDate: '2026-10-26', b2Key: '26/10', tgl: 1, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: false }
 ];
 
@@ -2720,6 +2721,7 @@ window.handleDeleteMasterBahan = function(idx) {
 // STAGE 3: BUKU 2 KUITANSI PENGELUARAN KAS & EDIT ACTION
 // ==============================================================
 const KUITANSI_DATE_CONFIG = {
+  '25/10': { namaHari: 'Minggu, 25 Oktober 2026', noBkk: 'BKK-20261025-01', modal: 100000 },
   '26/10': { namaHari: 'Senin, 26 Oktober 2026', noBkk: 'BKK-20261026-01', modal: 100000 }
 };
 // Kuitansi hanya melayani siklus operasional resmi
@@ -4571,9 +4573,11 @@ function renderBuku1View() {
     btnToggleEditEl.innerText = 'Buka Kunci (Edit)';
     btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
   }
-  if (btnSimpanEl) {
-    btnSimpanEl.innerText = isDaySaved ? 'Kunci Perubahan' : 'Kunci Lembar';
-    btnSimpanEl.style.display = isEditingAllowed ? 'inline-flex' : 'none';
+  if (btnSimpanPenjualanEl) {
+    btnSimpanPenjualanEl.style.display = isEditingAllowed ? 'inline-flex' : 'none';
+  }
+  if (btnToggleEditEl) {
+    btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
   }
   if (printStatusText) {
     printStatusText.innerText = isDaySaved ? 'Tersimpan & Terverifikasi' : 'Draft Operasional';
@@ -4758,6 +4762,18 @@ function renderKuitansiView() {
     const dayTotals = {};
     (auraData.buku2Belanja || []).forEach(b => {
       dayTotals[b.tgl] = (dayTotals[b.tgl] || 0) + (b.biaya || 0);
+    });
+
+    // Auto-daftarkan semua tanggal yang memiliki catatan belanja
+    (auraData.buku2Belanja || []).forEach(b => {
+      if (!KUITANSI_DATE_CONFIG[b.tgl]) {
+        const m = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === b.tgl);
+        KUITANSI_DATE_CONFIG[b.tgl] = {
+          namaHari: m ? m.namaHari : ('Hari ' + b.tgl),
+          noBkk: m ? m.noBkk : ('BKK-' + b.tgl.replace(/[^0-9]/g, '') + '-01'),
+          modal: 100000
+        };
+      }
     });
 
     Object.keys(KUITANSI_DATE_CONFIG).forEach(d => {
