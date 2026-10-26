@@ -493,11 +493,11 @@ function buildDayMetaFromIso(isoDate, idxNum) {
   return {
     isoDate: isoDate,
     b2Key: b2Key,
-    tgl: idxNum || 5,
+    tgl: d,
     hari: hShort,
     namaHari: hFull + ', ' + d + ' ' + bName + ' ' + y,
     shortLabel: hShort.toUpperCase() + ' (' + b2Key + ')',
-    noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-0' + (idxNum || 5),
+    noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-01',
     modal: 100000,
     isTarget: true
   };
@@ -505,8 +505,8 @@ function buildDayMetaFromIso(isoDate, idxNum) {
 
 // Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Siklus Produksi & Jual Mulai Senin 26 Okt 2026)
 const OPERATIONAL_DAYS_CONFIG = [
-  { isoDate: '2026-10-25', b2Key: '25/10', tgl: 2, hari: 'Min', namaHari: 'Minggu, 25 Oktober 2026', shortLabel: 'MIN (25/10)', noBkk: 'BKK-20261025-01', modal: 100000, isTarget: false },
-  { isoDate: '2026-10-26', b2Key: '26/10', tgl: 1, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: false }
+  { isoDate: '2026-10-25', b2Key: '25/10', tgl: 25, hari: 'Min', namaHari: 'Minggu, 25 Oktober 2026', shortLabel: 'MIN (25/10)', noBkk: 'BKK-20261025-01', modal: 100000, isTarget: false },
+  { isoDate: '2026-10-26', b2Key: '26/10', tgl: 26, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: false }
 ];
 
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
@@ -548,7 +548,7 @@ const INITIAL_AURA_DATA = {
   buku2Belanja: [],
 
   buku3Kas: [
-    { tgl: 1, hari: 'Sen', isoDate: '2026-10-26', b2Key: '26/10', kirim: 120, retur: 0, laku: 0, setor: 0, modal: 100000, gaji: 0, realBelanja: 0, endapan: 100000 }
+    { tgl: 26, hari: 'Sen', isoDate: '2026-10-26', b2Key: '26/10', kirim: 120, retur: 0, laku: 0, setor: 0, modal: 100000, gaji: 0, realBelanja: 0, endapan: 100000 }
   ],
 
   stokBahan: [
@@ -1001,10 +1001,11 @@ function computeDayTargetHPP(isoDate) {
 }
 
 function computeDayAccounting(isoDate, prevRollingEndapan) {
+  const calTgl = parseInt(isoDate.split('-')[2], 10) || 1;
   const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === isoDate) || {
     isoDate: isoDate,
     b2Key: isoDate.slice(8, 10) + '/' + isoDate.slice(5, 7),
-    tgl: 5,
+    tgl: calTgl,
     hari: isoDate,
     namaHari: isoDate,
     shortLabel: isoDate,
@@ -1013,6 +1014,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     isTarget: false
   };
 
+  const effectiveTgl = parseInt(cfg.isoDate.split('-')[2], 10) || cfg.tgl;
   const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
   const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[cfg.isoDate]);
 
@@ -1022,7 +1024,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     return {
       isoDate: cfg.isoDate,
       b2Key: cfg.b2Key,
-      tgl: cfg.tgl,
+      tgl: effectiveTgl,
       hari: cfg.hari,
       namaHari: cfg.namaHari,
       shortLabel: cfg.shortLabel,
@@ -1137,7 +1139,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   return {
     isoDate: cfg.isoDate,
     b2Key: cfg.b2Key,
-    tgl: cfg.tgl,
+    tgl: effectiveTgl,
     hari: cfg.hari,
     namaHari: cfg.namaHari,
     shortLabel: cfg.shortLabel,
@@ -4429,7 +4431,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku3\', ' + idx + ')">' +
         '<div class="record-title-wrap">' +
-          '<span class="record-num-tag">' + k.tgl + '</span>' +
+          '<span class="record-num-tag">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split('-')[2], 10) : '-')) + '</span>' +
           '<strong class="record-title-name">' + k.hari + '</strong>' +
         '</div>' +
         '<div class="record-header-meta">' +
@@ -4944,7 +4946,7 @@ function renderBuku3View() {
 
   // Sinkronkan kembali ke auraData.buku3Kas
   auraData.buku3Kas = allDaysAccounting.map(d => ({
-    tgl: d.tgl,
+    tgl: (d.isoDate ? parseInt(d.isoDate.split('-')[2], 10) : d.tgl) || d.tgl,
     hari: d.hari,
     isoDate: d.isoDate,
     isTarget: d.isTarget,
@@ -4994,7 +4996,7 @@ function renderBuku3View() {
         tr.style.background = 'rgba(56, 189, 248, 0.08)';
       }
       tr.innerHTML = 
-        '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + k.tgl + '</td>' +
+        '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split('-')[2], 10) : '-')) + '</td>' +
         '<td data-label="Hari">' + hariLabel + '</td>' +
         '<td data-label="Kirim" style="font-family: var(--font-mono); text-align: center;">' + k.kirim + '</td>' +
         '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24; text-align: center;">' + k.retur + '</td>' +
@@ -5550,8 +5552,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.5';
-const APP_BUILD_TIME = '26/10/2026 15:15 WIB';
+const APP_VERSION = 'v6.5.0';
+const APP_BUILD_TIME = '26/10/2026 16:58 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
