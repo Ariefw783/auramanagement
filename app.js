@@ -361,7 +361,8 @@ const INITIAL_MASTER_BAHAN = [
   { id: 'mb-23', nama: 'Gula Pasir Kristal', kategori: 'Toko / Minimarket', satuan: 'Kilogram (1.000g)', unitFisik: 'kg', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 17500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
   { id: 'mb-24', nama: 'Royco Kaldu Ayam', kategori: 'Toko / Minimarket', satuan: 'Sachet (9g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 9, totalGram: 9, harga: 500, vendor: 'Warung Kelontong', tglUpdate: '2026-10-24' },
   { id: 'mb-25', nama: 'Vanili Bubuk', kategori: 'Toko / Minimarket', satuan: 'Sachet (2g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 2, totalGram: 2, harga: 500, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' }
+  { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' },
+  { id: 'mb-27', nama: 'Lada Bubuk (Ladaku)', kategori: 'Toko / Minimarket', satuan: 'Sachet (4g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 4, totalGram: 4, harga: 1000, vendor: 'Warung Kelontong', tglUpdate: '2026-10-26' }
 ];
 
 // Standar Operasional Resep & Bill of Materials (BOM) Dinamis Dapur Mom Fitri
@@ -571,7 +572,9 @@ const INITIAL_AURA_DATA = {
     { no: 19, nama: 'Royco Kaldu Ayam', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 18, gramPerUnit: 9, minTrigger: 2, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Menipis', action: 'Siapkan belanja: 1 renteng / 5 sachet' },
     { no: 20, nama: 'Vanili Bubuk', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 3, stokGram: 6, gramPerUnit: 2, minTrigger: 2, jalur: 'C', orderQty: '1 pak vanili', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
     { no: 21, nama: 'Gas LPG 3kg', kategori: 'Minyak/Gas', satuan: 'tabung', stok: 0.83, stokGram: 2500, gramPerUnit: 3000, minTrigger: 1, jalur: 'C', orderQty: '1 tabung baru (3.000g)', status: 'Menipis', action: 'Titip pasar: 1 tabung baru (3.000g)' },
-    { no: 22, nama: 'Saus Tomat Ekstra Sedap', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 1, stokGram: 1000, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 pouch (1 kg)', status: 'Aman', action: 'Stok awal 1 kg' }
+    { no: 22, nama: 'Saus Tomat Ekstra Sedap', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 1, stokGram: 1000, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 pouch (1 kg)', status: 'Aman', action: 'Stok awal 1 kg' },
+    { no: 23, nama: 'Saus Tiram Saori', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 46, gramPerUnit: 23, minTrigger: 1, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
+    { no: 24, nama: 'Lada Bubuk (Ladaku)', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 3, stokGram: 12, gramPerUnit: 4, minTrigger: 1, jalur: 'C', orderQty: '1 renteng Ladaku', status: 'Aman', action: 'Stok mencukupi untuk produksi' }
   ]
 };
 
@@ -4231,6 +4234,7 @@ function renderStokCards(list) {
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.openCopyStokModal()" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">Salin Form WA</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4882,8 +4886,220 @@ function initSidebarDrawer() {
   }
 }
 
+
+// ==============================================================
+// FITUR SALIN FORM CEK STOK FISIK AKTUAL KE WHATSAPP
+// ==============================================================
+const STOK_WA_CHECKLIST_TEMPLATE = [
+  { section: 'BAHAN SEGAR & KULIT', items: [
+    { no: 1, label: 'Kulit Lumpia Segar', match: ['kulit'] },
+    { no: 2, label: 'Ubi Ungu Segar', match: ['ubi'] },
+    { no: 3, label: 'Wortel Segar', match: ['wortel'] },
+    { no: 4, label: 'Jagung Manis', match: ['jagung'] },
+    { no: 5, label: 'Telur Ayam Ras', match: ['telur'] },
+    { no: 6, label: 'Daun Bawang & Seledri', match: ['daun bawang'] }
+  ]},
+  { section: 'BAHAN OLAHAN & DINGIN', items: [
+    { no: 7, label: 'Sosis', match: ['sosis'] },
+    { no: 8, label: 'Keju Prochiz Spready', match: ['keju'] },
+    { no: 9, label: 'Roti Tawar Kupas/Biasa', match: ['roti'] },
+    { no: 10, label: 'Selai Collins Choco Crunch', match: ['collins'] }
+  ]},
+  { section: 'BUMBU & BAHAN KERING', items: [
+    { no: 11, label: 'Bawang Putih', match: ['bawang putih'] },
+    { no: 12, label: 'Royco Ayam', match: ['royco'] },
+    { no: 13, label: 'Saus Tiram Saori', match: ['saori', 'saus tiram'] },
+    { no: 14, label: 'Garam Halus Dapur', match: ['garam'] },
+    { no: 15, label: 'Lada Bubuk', match: ['lada'] },
+    { no: 16, label: 'Bubuk Vanili', match: ['vanili'] },
+    { no: 17, label: 'Gula Pasir', match: ['gula'] },
+    { no: 18, label: 'Susu Kental Manis (SKM)', match: ['kental manis', 'skm'] },
+    { no: 19, label: 'Margarin Palmia', match: ['margarin'] },
+    { no: 20, label: 'Tepung Terigu Curah', match: ['terigu'], isGramDirect: true },
+    { no: 21, label: 'Tepung Panir', match: ['panir'], isGramDirect: true },
+    { no: 22, label: 'Minyak Goreng', match: ['minyak'] }
+  ]}
+];
+
+window.generateStokWaChecklistText = function(isFilled = true) {
+  const lines = [];
+  lines.push('*FORM CEK STOK FISIK AKTUAL*');
+  lines.push('──────────────────────');
+
+  if (isFilled) {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+    lines.push('_Dapur Mom Fitri • ' + dateStr + ' • ' + timeStr + '_');
+  }
+  lines.push('');
+
+  const currentStokList = (auraData && auraData.stokBahan) ? auraData.stokBahan : [];
+
+  STOK_WA_CHECKLIST_TEMPLATE.forEach(sec => {
+    lines.push('*' + sec.section + '*');
+    sec.items.forEach(it => {
+      if (!isFilled) {
+        if (it.isGramDirect) {
+          lines.push(it.no + '. ' + it.label + ':  gr');
+        } else {
+          lines.push(it.no + '. ' + it.label + ': ');
+        }
+      } else {
+        const found = currentStokList.find(s => {
+          const sn = (s.nama || '').toLowerCase();
+          return it.match.some(m => sn.includes(m));
+        });
+
+        if (!found) {
+          if (it.isGramDirect) {
+            lines.push(it.no + '. ' + it.label + ': 0 gr');
+          } else {
+            lines.push(it.no + '. ' + it.label + ': 0');
+          }
+        } else {
+          if (it.isGramDirect) {
+            const grVal = (found.stokGram !== undefined) ? found.stokGram : 0;
+            const unitAdd = (found.stok > 0) ? ' (' + found.stok + ' ' + found.satuan + ')' : '';
+            lines.push(it.no + '. ' + it.label + ': ' + grVal + ' gr' + unitAdd);
+          } else {
+            if (found.stok === 0) {
+              lines.push(it.no + '. ' + it.label + ': 0 ' + found.satuan + ' (Habis)');
+            } else {
+              const grAdd = (found.stokGram > 0) ? ' (' + found.stokGram.toLocaleString('id-ID') + 'g)' : '';
+              lines.push(it.no + '. ' + it.label + ': ' + found.stok + ' ' + found.satuan + grAdd);
+            }
+          }
+        }
+      }
+    });
+    lines.push('');
+  });
+
+  // Tambahkan item operasional dapur lainnya jika terisi
+  if (isFilled) {
+    const extraItems = [];
+    const sausTomat = currentStokList.find(s => (s.nama || '').toLowerCase().includes('tomat'));
+    const gasLpg = currentStokList.find(s => (s.nama || '').toLowerCase().includes('gas'));
+
+    if (sausTomat) {
+      extraItems.push('23. Saus Tomat: ' + sausTomat.stok + ' ' + sausTomat.satuan + ' (' + sausTomat.stokGram + 'g)');
+    }
+    if (gasLpg) {
+      extraItems.push('24. Gas LPG 3kg: ' + gasLpg.stok + ' ' + gasLpg.satuan + ' (' + gasLpg.stokGram + 'g)');
+    }
+
+    if (extraItems.length > 0) {
+      lines.push('*BAHAN TAMBAHAN LAINNYA*');
+      lines.push(...extraItems);
+      lines.push('');
+    }
+  }
+
+  return lines.join('\n').trim();
+};
+
+window.copyStokFormToWhatsApp = function(mode = 'filled') {
+  const isFilled = (mode === 'filled');
+  const text = window.generateStokWaChecklistText(isFilled);
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(err => {
+      console.warn('[Clipboard] writeText note:', err);
+    });
+  }
+  return text;
+};
+
+window.openCopyStokModal = function(initialMode = 'filled') {
+  const text = window.copyStokFormToWhatsApp(initialMode);
+
+  const overlay = document.getElementById('appModalOverlay');
+  const icon = document.getElementById('appModalIcon');
+  const titleEl = document.getElementById('appModalTitle');
+  const body = document.getElementById('appModalBody');
+  const footer = document.getElementById('appModalFooter');
+
+  if (!overlay) return;
+  if (icon) {
+    icon.innerHTML = '<span style="font-size: 1.1rem; color: #34D399; font-weight: 800;">WA</span>';
+    icon.style.display = 'inline-flex';
+  }
+  if (titleEl) {
+    titleEl.innerText = 'Form Cek Stok Fisik WhatsApp';
+  }
+
+  function renderModalContent(currMode) {
+    const isF = (currMode === 'filled');
+    const currText = window.generateStokWaChecklistText(isF);
+
+    if (body) {
+      body.innerHTML = 
+        '<div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">' +
+          '<div style="display: flex; align-items: center; gap: 6px;">' +
+            '<span class="badge-status done" style="font-size: 0.72rem; padding: 3px 8px;">Tersalin ke Clipboard</span>' +
+            '<span style="font-size: 0.75rem; color: #94A3B8;">Siap ditempel (paste) ke chat WhatsApp</span>' +
+          '</div>' +
+          '<div style="display: flex; gap: 6px;">' +
+            '<button type="button" id="btnToggleStokFilled" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; ' + (isF ? 'background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;' : 'background: #1E293B; color: #94A3B8;') + '">Data Terisi</button>' +
+            '<button type="button" id="btnToggleStokBlank" class="tool-btn" style="padding: 4px 10px; font-size: 0.72rem; ' + (!isF ? 'background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;' : 'background: #1E293B; color: #94A3B8;') + '">Template Kosong</button>' +
+          '</div>' +
+        '</div>' +
+        '<div style="position: relative;">' +
+          '<pre id="preStokWaText" style="background: #0F172A; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px; font-family: var(--font-mono); font-size: 0.78rem; color: #F1F5F9; max-height: 280px; overflow-y: auto; white-space: pre-wrap; margin: 0; line-height: 1.55; user-select: all;">' +
+            currText +
+          '</pre>' +
+        '</div>';
+
+      const btnF = document.getElementById('btnToggleStokFilled');
+      const btnB = document.getElementById('btnToggleStokBlank');
+      if (btnF) {
+        btnF.onclick = () => {
+          window.copyStokFormToWhatsApp('filled');
+          renderModalContent('filled');
+        };
+      }
+      if (btnB) {
+        btnB.onclick = () => {
+          window.copyStokFormToWhatsApp('blank');
+          renderModalContent('blank');
+        };
+      }
+    }
+
+    if (footer) {
+      footer.innerHTML = 
+        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Tutup</button>' +
+        '<button type="button" class="tool-btn tool-btn-success" id="btnModalCopyStokAgain" style="font-weight: 800; min-width: 140px;">Salin Ulang Teks</button>';
+
+      const btnAgain = document.getElementById('btnModalCopyStokAgain');
+      if (btnAgain) {
+        btnAgain.onclick = () => {
+          window.copyStokFormToWhatsApp(currMode);
+          btnAgain.innerText = 'Tersalin!';
+          setTimeout(() => { if (btnAgain) btnAgain.innerText = 'Salin Ulang Teks'; }, 1200);
+        };
+      }
+    }
+  }
+
+  renderModalContent(initialMode);
+  overlay.style.display = 'flex';
+};
+
+
+
 document.addEventListener('DOMContentLoaded', () => {
   initSidebarDrawer();
+
+  
+  // Salin Form Cek Stok WA
+  const btnCekStok = document.getElementById('btnCopyCekStok');
+  if (btnCekStok) {
+    btnCekStok.addEventListener('click', () => {
+      window.openCopyStokModal();
+    });
+  }
 
   // Copy WhatsApp Sayur
   const btnWa = document.getElementById('btnCopyWa');
@@ -5007,8 +5223,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.1';
-const APP_BUILD_TIME = '25/10/2026 18:55 WIB';
+const APP_VERSION = 'v6.4.2';
+const APP_BUILD_TIME = '26/10/2026 12:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 

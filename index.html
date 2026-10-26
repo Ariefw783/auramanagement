@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.1</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.2</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -933,6 +933,7 @@
             <div class="stok-action-btns">
               <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">Simpan Stok Dapur</button>
               <div class="stok-copy-group">
+                <button type="button" class="tool-btn" id="btnCopyCekStok" onclick="window.openCopyStokModal()" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;" title="Salin form cek fisik stok dapur untuk dikirim ke WhatsApp">Salin Form Cek Stok</button>
                 <button type="button" class="tool-btn tool-btn-success" id="btnCopyWa">Salin Pesanan Pasar</button>
                 <button type="button" class="tool-btn" id="btnCopyToko">Salin Belanja Toko</button>
               </div>
