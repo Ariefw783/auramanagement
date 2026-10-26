@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.7</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.4.8</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -238,7 +238,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 26/10/2026 16:05 WIB
+          Update: 26/10/2026 16:20 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -313,10 +313,60 @@
       <!-- ============================================================== -->
       <section id="tab-dashboard" class="app-tab-panel active">
         
-        <!-- Header Topbar Area with Working Date Selector -->
-        <div class="topbar-header">
-          <div class="topbar-title-area">
-            <h2>Executive Dashboard</h2>
+        <!-- ============================================================== -->
+        <!-- 1. HERO SECTION: POSISI KEUANGAN BISNIS KESELURUHAN (MENONJOL)  -->
+        <!-- ============================================================== -->
+        <div class="executive-summary-section" style="margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <h2 style="font-size: 1.15rem; font-weight: 800; color: #FFFFFF; margin: 0;">Posisi Keuangan Bisnis Keseluruhan</h2>
+              <div style="font-size: 0.78rem; color: #94A3B8; margin-top: 2px;">Akumulasi sah seluruh hari operasional yang telah tersimpan</div>
+            </div>
+            <button class="tool-btn" onclick="window.switchTab('tab-buku3')">Buka Arus Kas Lengkap</button>
+          </div>
+
+          <!-- 4 Kartu Utama Posisi Keuangan Bisnis -->
+          <div class="financial-kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); margin-bottom: 0;">
+            <div class="financial-kpi-card kpi-omzet" style="border-left: 4px solid #38BDF8;">
+              <span class="kpi-label">Total Omzet Bisnis</span>
+              <strong class="kpi-val" id="totalOmzetBisnisVal" style="color: #38BDF8;">Rp 0</strong>
+              <span class="kpi-sub" id="totalOmzetBisnisSub">Seluruh penarikan setoran mitra</span>
+            </div>
+
+            <div class="financial-kpi-card kpi-belanja" style="border-left: 4px solid #FB7185;">
+              <span class="kpi-label">Total Belanja Bahan Riil</span>
+              <strong class="kpi-val" id="totalBelanjaBisnisVal" style="color: #FB7185;">Rp 0</strong>
+              <span class="kpi-sub" id="totalBelanjaBisnisSub">Seluruh kuitansi pembelian bahan</span>
+            </div>
+
+            <div class="financial-kpi-card kpi-endapan" style="border-left: 4px solid #FBBF24;">
+              <span class="kpi-label">Kas Fisik Kotak Dapur Saat Ini</span>
+              <strong class="kpi-val" id="totalKasDapurVal" style="color: #FBBF24;">Rp 2.500</strong>
+              <span class="kpi-sub" id="totalKasDapurSub">Uang belanja esok + tabungan awet</span>
+            </div>
+
+            <div class="financial-kpi-card kpi-gaji" style="border-left: 4px solid #818CF8;">
+              <span class="kpi-label">Penghasilan Bersih Bos</span>
+              <strong class="kpi-val" id="totalGajiBosVal" style="color: #818CF8;">Rp 0</strong>
+              <span class="kpi-sub" id="totalGajiBosSub">Laba bersih (Siap ditarik Jumat sore)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- 2. SUB-SECTION: PERFORMA & ALOKASI 3 AMPLOP HARIAN             -->
+        <!-- ============================================================== -->
+        <div class="slate-card" style="margin-bottom: 24px;">
+          <div class="slate-card-header" style="padding-bottom: 12px; border-bottom: 1px solid var(--card-border);">
+            <div>
+              <div class="slate-card-title">
+                <span>Performa & Rincian Kas Harian</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;" id="dashDayStatusBadge">Hari Aktif</span>
+              </div>
+              <div class="slate-card-subtitle">Pilih tanggal untuk melihat rincian penarikan sore, belanja malam, dan alokasi 3 amplop</div>
+            </div>
+
+            <!-- Date Stepper & Calendar Picker di Dashboard -->
             <div class="date-stepper-container">
               <label class="date-display-trigger" title="Klik untuk pilih tanggal di kalender">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -330,51 +380,32 @@
                 <input type="date" id="nativeDatePickerDashboard" class="native-hidden-date-input" onchange="window.switchDate(this.value)">
               </label>
               <button type="button" class="date-today-btn" onclick="window.goToToday()" title="Kembali ke Hari Ini">Hari Ini</button>
-              <span class="date-session-tag" id="dateSessionTag">Target Baru</span>
             </div>
           </div>
 
-          <!-- Total Balance Stat Card -->
-          <div class="total-stat-card">
-            <div class="total-stat-info">
-              <span id="balanceLabel">Total Kas Perusahaan (Aktual)</span>
-              <strong id="balanceDisplay">Rp 100.000</strong>
-              <div id="balanceSubDisplay" style="font-size: 0.7rem; color: #94A3B8; margin-top: 2px;">Dompet Bos: Rp 0 • Kotak Dapur: Rp 100.000</div>
+          <!-- Rincian Penjualan & Belanja Hari Ini (4 Kartu Mini) -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 16px 0;">
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Kirim / Terjual</span>
+              <strong style="font-size: 1.05rem; color: #FFFFFF;" id="kpiOmzetSub">0 / 0 pcs</strong>
             </div>
-            <button class="tool-btn" onclick="window.switchTab('tab-buku3')">Arus Kas</button>
-          </div>
-        </div>
-
-        <!-- STAGE 1: EXECUTIVE FINANCIAL SCORECARDS (CLEAN MINIMALIST) -->
-        <div class="financial-kpi-grid">
-          <div class="financial-kpi-card kpi-omzet">
-            <span class="kpi-label">Omzet Setoran</span>
-            <strong class="kpi-val" id="kpiOmzetVal">Rp 0</strong>
-            <span class="kpi-sub" id="kpiOmzetSub">0 / 120 pcs (Target Senin)</span>
-          </div>
-
-          <div class="financial-kpi-card kpi-belanja">
-            <span class="kpi-label">Belanja Dapur (HPP)</span>
-            <strong class="kpi-val" id="kpiBelanjaVal">Rp 0</strong>
-            <span class="kpi-sub" id="kpiBelanjaSub">Plafon Amplop 1: Rp 100.000</span>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Penarikan Sore (Omzet)</span>
+              <strong style="font-size: 1.05rem; color: #34D399;" id="kpiOmzetVal">Rp 0</strong>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Belanja Riil Bahan</span>
+              <strong style="font-size: 1.05rem; color: #FB7185;" id="kpiBelanjaVal">Rp 0</strong>
+            </div>
+            <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 8px; border: 1px solid var(--card-border);">
+              <span style="font-size: 0.72rem; color: #94A3B8; display: block;">Saldo Kas Kotak Dapur</span>
+              <strong style="font-size: 1.05rem; color: #FBBF24;" id="kpiEndapanVal">Rp 0</strong>
+            </div>
           </div>
 
-          <div class="financial-kpi-card kpi-laba">
-            <span class="kpi-label">Laba Bersih</span>
-            <strong class="kpi-val" id="kpiLabaVal">Rp 0</strong>
-            <span class="kpi-sub" id="kpiLabaSub">Omzet dikurangi Belanja</span>
-          </div>
-
-          <div class="financial-kpi-card kpi-gaji">
-            <span class="kpi-label">Gaji Bos (Amplop 2)</span>
-            <strong class="kpi-val" id="kpiGajiVal">Rp 0</strong>
-            <span class="kpi-sub" id="kpiGajiSub">Masuk dompet pemilik</span>
-          </div>
-
-          <div class="financial-kpi-card kpi-endapan">
-            <span class="kpi-label">Endapan Kotak</span>
-            <strong class="kpi-val" id="kpiEndapanVal">Rp 100.000</strong>
-            <span class="kpi-sub" id="kpiEndapanSub">Modal awal Amplop 1 utuh</span>
+          <!-- KARTU RINCIAN PEMBAGIAN 3 AMPLOP RIIL HARIAN -->
+          <div id="cardAlokasi3AmplopContainer">
+            <!-- Rendered Dynamically via app.js -->
           </div>
         </div>
 
@@ -794,42 +825,32 @@
           </div>
 
           <!-- BEP Progress Card -->
-          <div class="bep-card-wrap">
+          <div class="bep-card-wrap" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <strong style="color: #FFFFFF; font-size: 0.95rem;">Monitoring Balik Modal Awal Usaha (Target BEP: Rp 100.000)</strong>
-                <div style="font-size: 0.75rem; color: #94A3B8;">Modal perdana dipulihkan dari akumulasi laba murni Amplop 2 (Gaji Bersih Bos)</div>
+                <strong style="color: #FFFFFF; font-size: 0.95rem;">Rekapitulasi Arus Kas & Saldo Dompet Bos</strong>
+                <div style="font-size: 0.75rem; color: #94A3B8;">Modal perdana Rp 100.000 dibelanjakan hari Minggu (Rp 97.500) & sisa Rp 2.500 menjadi saldo awal dapur</div>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="tool-btn" id="btnTarikGajiJumat" onclick="window.tarikGajiJumatSore()" style="display: none; padding: 5px 12px; font-size: 0.75rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">Tarik Gaji Jumat Sore</button>
-                <span class="badge-status progress" id="bepStatusBadge">Modal Awal Rp 100rb</span>
               </div>
             </div>
             <div class="bep-stats-grid">
               <div class="bep-stat-pill">
-                <span>Target Modal Awal</span>
-                <strong style="color: #FFFFFF;">Rp 100.000</strong>
+                <span>Total Omzet Terverifikasi</span>
+                <strong style="color: #38BDF8;" id="b3RekapOmzet">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
-                <span>Gaji Terkumpul di Dompet</span>
+                <span>Total Belanja Bahan</span>
+                <strong style="color: #FB7185;" id="b3RekapBelanja">Rp 0</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>Kas Dapur (Belanja + Tabungan)</span>
+                <strong style="color: #FBBF24;" id="b3RekapKasDapur">Rp 2.500</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>Penghasilan Bersih Bos</span>
                 <strong style="color: #34D399;" id="bepAccumulated">Rp 0</strong>
-              </div>
-              <div class="bep-stat-pill">
-                <span>Sisa Menuju Lunas</span>
-                <strong style="color: #FB923C;" id="bepRemaining">Rp 100.000</strong>
-              </div>
-              <div class="bep-stat-pill">
-                <span>Estimasi Waktu Impas</span>
-                <strong style="color: #38BDF8;" id="bepDaysEstimate">Menunggu Penjualan Senin</strong>
-              </div>
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px;">
-                <span style="color: #94A3B8;">Progress Pemulihan Modal:</span>
-                <span style="color: #38BDF8;" id="bepPercent">0.0%</span>
-              </div>
-              <div class="bep-progress-bar-bg">
-                <div class="bep-progress-bar-fill" id="bepBarFill" style="width: 0%;"></div>
               </div>
             </div>
           </div>

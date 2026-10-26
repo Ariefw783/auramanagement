@@ -1082,37 +1082,53 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   const isTarget = !isSavedDay && cfg.isTarget && belanja === 0 && retur === 0;
 
   // 1. Modal Awal Kas Dapur (Saldo Kas Fisik sebelum belanja hari ini)
-  const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
+  let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
+  if (cfg.isoDate === '2026-10-25') {
+    modalAwal = 100000;
+  }
 
   // 2. Sisa Kas Fisik setelah Belanja Bahan Hari Ini
   const sisaEndapanKas = modalAwal - belanja;
 
-  // 3. Alokasi Kas Berjenjang Berdasarkan Jumlah Kirim & Laku Hari Tersebut:
-  // - Pos 1: Belanja Harian Bahan Segar Pasar (~Rp 280/pcs atau belanja riil)
-  // - Pos 2: Tabungan Bahan Awet & Utilitas (~Rp 200/pcs: Sosis, Collins, Keju, Panir, Minyak, Gas)
-  // - Pos 3: Penghasilan Bersih Bos -> Sisa omzet murni setelah kas dapur Pos 1 & Pos 2 aman
+  // 3. Alokasi 3 Amplop Riil:
+  // Pembagian 3 amplop baru dihitung riil setelah omzet penarikan sore DAN belanja malam diketahui!
   let alokasiBelanjaHarian = 0;
   let tabunganBahanAwet = 0;
   let gajiBos = 0;
+  let status3Amplop = 'KOSONG';
 
-  if (laku > 0 && omzet > 0) {
-    alokasiBelanjaHarian = belanja > 0 ? belanja : Math.round(laku * 280);
+  if (cfg.isoDate === '2026-10-25' || (omzet === 0 && belanja > 0)) {
+    // Belanja perdana (Minggu): modal 100rb - belanja 97.500 = sisa kas 2.500
+    alokasiBelanjaHarian = belanja;
+    tabunganBahanAwet = 0;
+    gajiBos = 0;
+    status3Amplop = 'BELANJA_PERDANA';
+  } else if (omzet > 0 && belanja > 0) {
+    // KEDUANYA SUDAH DIKETAHUI: Hitung 3 amplop secara riil & pasti!
+    alokasiBelanjaHarian = belanja;
     tabunganBahanAwet = Math.round(laku * 200);
     const kasDapurWajib = alokasiBelanjaHarian + tabunganBahanAwet;
     gajiBos = Math.max(0, omzet - kasDapurWajib);
-  } else if (omzet > 0) {
-    alokasiBelanjaHarian = belanja;
-    tabunganBahanAwet = Math.round(omzet * 0.25);
-    gajiBos = Math.max(0, omzet - (alokasiBelanjaHarian + tabunganBahanAwet));
+    status3Amplop = 'LENGKAP';
+  } else if (omzet > 0 && belanja === 0) {
+    // Penarikan sore sudah ada, tapi belanja malam belum dicatat
+    alokasiBelanjaHarian = 0;
+    tabunganBahanAwet = Math.round(laku * 200);
+    gajiBos = 0; // Kas belum dibagi ke bos sebelum belanja malam diketahui
+    status3Amplop = 'MENUNGGU_BELANJA_MALAM';
   } else {
     gajiBos = 0;
+    status3Amplop = 'KOSONG';
   }
 
-  // 4. Kas Fisik Kotak Dapur Siap Operasional Esok Hari
-  // Kas di kotak = Sisa endapan setelah belanja + (omzet - gaji bos)
-  let kasSiapEsok = sisaEndapanKas + (omzet - gajiBos);
-  if (omzet === 0 && belanja === 0) {
-    kasSiapEsok = modalAwal;
+  // 4. Saldo Kas Fisik Kotak Dapur Siap Operasional Esok Hari
+  let kasSiapEsok = modalAwal;
+  if (status3Amplop === 'BELANJA_PERDANA') {
+    kasSiapEsok = Math.max(0, modalAwal - belanja);
+  } else if (status3Amplop === 'LENGKAP') {
+    kasSiapEsok = modalAwal + tabunganBahanAwet;
+  } else if (status3Amplop === 'MENUNGGU_BELANJA_MALAM') {
+    kasSiapEsok = modalAwal + omzet;
   }
   const endapanHarian = kasSiapEsok;
   const labaBersih = omzet - belanja;
@@ -1144,6 +1160,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     deficitToCover,
     plafonModal: 100000,
     gajiBos,
+    status3Amplop,
     kasSiapEsok,
     endapanHarian,
     labaBersih
@@ -2133,77 +2150,134 @@ function renderExecutiveFinancials() {
   const allDays = getAllDaysAccounting();
   const curDay = allDays.find(d => d.isoDate === activeDate) || computeDayAccounting(activeDate);
 
-  // 1. Akumulasi Sah Seluruh Bisnis (Stabil & Bebas dari Fluktuasi Navigasi Tanggal)
+  // 1. Akumulasi Sah Seluruh Bisnis (Posisi Nyata Bisnis Secara Keseluruhan)
   const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const totalOmzetBisnis = verifiedDays.reduce((sum, d) => sum + (d.omzet || 0), 0);
+  const totalBelanjaBisnis = verifiedDays.reduce((sum, d) => sum + (d.belanja || 0), 0);
   const totalGajiBisnis = verifiedDays.reduce((sum, d) => sum + (d.gajiBos || 0), 0);
 
   // Saldo fisik kas dapur terkini (dari hari operasional berjalan terakhir)
   const latestVerifiedDay = verifiedDays.length > 0 ? verifiedDays[verifiedDays.length - 1] : curDay;
-  const kasDapurSaatIni = latestVerifiedDay ? latestVerifiedDay.endapanHarian : 100000;
-  const totalKasBisnisNyata = totalGajiBisnis + kasDapurSaatIni;
+  const kasDapurSaatIni = latestVerifiedDay ? (latestVerifiedDay.kasSiapEsok || latestVerifiedDay.endapanHarian) : 2500;
 
-  // Header Saldo Kas Bersih Utama (Konsisten & Menunjukkan Posisi Kas Riil Perusahaan)
-  const balanceDisplay = document.getElementById('balanceDisplay');
-  const balanceSubDisplay = document.getElementById('balanceSubDisplay');
-  if (balanceDisplay) balanceDisplay.innerText = 'Rp ' + totalKasBisnisNyata.toLocaleString('id-ID');
-  if (balanceSubDisplay) {
-    balanceSubDisplay.innerText = 'Dompet Bos: Rp ' + totalGajiBisnis.toLocaleString('id-ID') + ' • Kotak Dapur: Rp ' + kasDapurSaatIni.toLocaleString('id-ID');
-  }
+  // Update 4 Kartu Hero Utama di Paling Atas Dashboard
+  const totalOmzetEl = document.getElementById('totalOmzetBisnisVal');
+  const totalBelanjaEl = document.getElementById('totalBelanjaBisnisVal');
+  const totalKasDapurEl = document.getElementById('totalKasDapurVal');
+  const totalGajiEl = document.getElementById('totalGajiBosVal');
 
-  // Update 5 Financial Scorecards (100% Sinkron dengan Distribusi, Belanja, dan Arus Kas)
+  if (totalOmzetEl) totalOmzetEl.innerText = 'Rp ' + totalOmzetBisnis.toLocaleString('id-ID');
+  if (totalBelanjaEl) totalBelanjaEl.innerText = 'Rp ' + totalBelanjaBisnis.toLocaleString('id-ID');
+  if (totalKasDapurEl) totalKasDapurEl.innerText = 'Rp ' + kasDapurSaatIni.toLocaleString('id-ID');
+  if (totalGajiEl) totalGajiEl.innerText = 'Rp ' + totalGajiBisnis.toLocaleString('id-ID');
+
+  // Update Rincian Harian Hari Aktif
   const omzetEl = document.getElementById('kpiOmzetVal');
   const omzetSubEl = document.getElementById('kpiOmzetSub');
   const belanjaEl = document.getElementById('kpiBelanjaVal');
-  const belanjaSubEl = document.getElementById('kpiBelanjaSub');
-  const labaEl = document.getElementById('kpiLabaVal');
-  const labaSubEl = document.getElementById('kpiLabaSub');
-  const gajiEl = document.getElementById('kpiGajiVal');
-  const gajiSubEl = document.getElementById('kpiGajiSub');
   const endapanEl = document.getElementById('kpiEndapanVal');
-  const endapanSubEl = document.getElementById('kpiEndapanSub');
+  const dashBadge = document.getElementById('dashDayStatusBadge');
 
-  const pctTerjual = curDay.kirim > 0 ? Math.round((curDay.laku / curDay.kirim) * 100) : 0;
-  if (omzetEl) omzetEl.innerText = 'Rp ' + curDay.omzet.toLocaleString('id-ID');
-  if (omzetSubEl) omzetSubEl.innerText = curDay.laku + ' / ' + curDay.kirim + ' pcs terjual (' + pctTerjual + '%)';
+  if (omzetEl) omzetEl.innerText = 'Rp ' + (curDay.omzet || 0).toLocaleString('id-ID');
+  if (omzetSubEl) omzetSubEl.innerText = (curDay.kirim || 0) + ' / ' + (curDay.laku || 0) + ' pcs';
+  if (belanjaEl) belanjaEl.innerText = 'Rp ' + (curDay.belanja || 0).toLocaleString('id-ID');
+  if (endapanEl) endapanEl.innerText = 'Rp ' + (curDay.kasSiapEsok || 0).toLocaleString('id-ID');
 
-  if (belanjaEl) belanjaEl.innerText = 'Rp ' + curDay.belanja.toLocaleString('id-ID');
-  if (belanjaSubEl) {
-    if (curDay.deficitToCover > 0) {
-      belanjaSubEl.innerText = 'Plafon: Rp ' + curDay.plafonModal.toLocaleString('id-ID') + ' (tambal defisit Rp ' + curDay.deficitToCover.toLocaleString('id-ID') + ')';
+  if (dashBadge) {
+    if (curDay.isHoliday) {
+      dashBadge.innerText = 'Hari Libur';
+      dashBadge.style.background = 'rgba(239, 68, 68, 0.2)';
+      dashBadge.style.color = '#EF4444';
+    } else if (curDay.isoDate === '2026-10-25') {
+      dashBadge.innerText = 'Belanja Perdana';
+      dashBadge.style.background = 'rgba(56, 189, 248, 0.2)';
+      dashBadge.style.color = '#38BDF8';
     } else {
-      belanjaSubEl.innerText = curDay.belanja > 0
-        ? 'Plafon HPP: Rp ' + curDay.plafonModal.toLocaleString('id-ID')
-        : 'Target HPP: Rp ' + curDay.plafonModal.toLocaleString('id-ID');
+      dashBadge.innerText = curDay.namaHari ? curDay.namaHari.split(',')[0] : 'Hari Aktif';
+      dashBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+      dashBadge.style.color = '#34D399';
     }
   }
 
-  if (labaEl) labaEl.innerText = 'Rp ' + curDay.labaBersih.toLocaleString('id-ID');
-  if (labaSubEl) {
-    const endapanPart = curDay.endapanHarian >= 0
-      ? '+ Endapan Rp ' + curDay.endapanHarian.toLocaleString('id-ID')
-      : '- Subsidi Rp ' + Math.abs(curDay.endapanHarian).toLocaleString('id-ID');
-    labaSubEl.innerText = 'Gaji Rp ' + curDay.gajiBos.toLocaleString('id-ID') + ' ' + endapanPart;
-  }
+  // 3. Render Kartu Pembagian 3 Amplop Riil Harian
+  const card3AmpContainer = document.getElementById('cardAlokasi3AmplopContainer');
+  if (card3AmpContainer) {
+    if (curDay.isHoliday) {
+      card3AmpContainer.innerHTML = `
+        <div style="padding: 14px 16px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; text-align: center; color: #EF4444; font-weight: 700;">
+          HARI LIBUR OPERASIONAL: Tidak ada jadwal penarikan setoran atau belanja bahan. Saldo kas dapur bergulir aman ke hari berikutnya.
+        </div>`;
+    } else if (curDay.isoDate === '2026-10-25' || (curDay.belanja > 0 && curDay.omzet === 0)) {
+      // Hari Belanja Perdana (Minggu)
+      card3AmpContainer.innerHTML = `
+        <div style="padding: 14px 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 8px;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: #38BDF8; margin-bottom: 4px;">
+            Belanja Perdana dari Modal Awal
+          </div>
+          <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
+            Modal awal tunai Rp 100.000 digunakan belanja bahan sebesar <strong style="color: #FB7185;">Rp ${curDay.belanja.toLocaleString('id-ID')}</strong>.<br>
+            Sisa uang kas tunai <strong style="color: #34D399;">Rp ${(curDay.sisaEndapanKas || curDay.kasSiapEsok || 2500).toLocaleString('id-ID')}</strong> langsung menjadi <strong>Saldo Kas Awal Kotak Dapur</strong> untuk memulai produksi hari Senin.
+          </div>
+        </div>`;
+    } else if (curDay.omzet > 0 && curDay.belanja > 0) {
+      // Penarikan sore dan belanja malam KEDUANYA SUDAH DIKETAHUI!
+      const alokasiBelanja = curDay.belanja;
+      const tabunganAwet = Math.round((curDay.laku || 0) * 200);
+      const labaMurni = Math.max(0, curDay.omzet - alokasiBelanja - tabunganAwet);
 
-  if (gajiEl) gajiEl.innerText = 'Rp ' + curDay.gajiBos.toLocaleString('id-ID');
-  if (gajiSubEl) {
-    gajiSubEl.innerText = curDay.deficitToCover > 0
-      ? 'Omzet - Plafon HPP - Defisit (Rp ' + curDay.deficitToCover.toLocaleString('id-ID') + ')'
-      : 'Laba bersih dompet bos (Amplop 2)';
-  }
+      card3AmpContainer.innerHTML = `
+        <div style="padding: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
+            <strong style="color: #38BDF8; font-size: 0.88rem;">Pembagian 3 Amplop Riil Hari Ini (Penarikan & Belanja Selesai)</strong>
+            <span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 800;">Lengkap Terverifikasi</span>
+          </div>
 
-  if (endapanEl) {
-    const dispVal = curDay.sisaEndapanKas !== undefined ? curDay.sisaEndapanKas : curDay.endapanHarian;
-    endapanEl.innerText = dispVal < 0
-      ? '-Rp ' + Math.abs(dispVal).toLocaleString('id-ID')
-      : 'Rp ' + dispVal.toLocaleString('id-ID');
-    endapanEl.style.color = dispVal < 0 ? '#FB7185' : '#FBBF24';
-  }
-  if (endapanSubEl) {
-    if (curDay.omzet > 0) {
-      endapanSubEl.innerText = 'Sisa belanja Rp ' + (curDay.sisaEndapanKas || 0).toLocaleString('id-ID') + ' • Siap esok: Rp ' + (curDay.kasSiapEsok || 0).toLocaleString('id-ID');
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+            <!-- Amplop 1 -->
+            <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 14px; border-radius: 8px; border-top: 3px solid #FB7185;">
+              <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; display: block;">Amplop 1: Belanja Riil Pasar</span>
+              <strong style="font-size: 1.15rem; color: #FB7185; display: block; margin: 4px 0;">Rp ${alokasiBelanja.toLocaleString('id-ID')}</strong>
+              <span style="font-size: 0.72rem; color: #94A3B8;">Sesuai nota kuitansi belanja malam ini</span>
+            </div>
+
+            <!-- Amplop 2 -->
+            <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 14px; border-radius: 8px; border-top: 3px solid #FBBF24;">
+              <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; display: block;">Amplop 2: Tabungan Bahan Awet</span>
+              <strong style="font-size: 1.15rem; color: #FBBF24; display: block; margin: 4px 0;">Rp ${tabunganAwet.toLocaleString('id-ID')}</strong>
+              <span style="font-size: 0.72rem; color: #94A3B8;">Cadangan sosis, minyak, collins, gas (aman di dapur)</span>
+            </div>
+
+            <!-- Amplop 3 -->
+            <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 14px; border-radius: 8px; border-top: 3px solid #818CF8;">
+              <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; display: block;">Amplop 3: Penghasilan Murni Bos</span>
+              <strong style="font-size: 1.15rem; color: #818CF8; display: block; margin: 4px 0;">Rp ${labaMurni.toLocaleString('id-ID')}</strong>
+              <span style="font-size: 0.72rem; color: #94A3B8;">Laba bersih hak bos (Diambil Jumat sore)</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--card-border); font-size: 0.76rem; color: #94A3B8;">
+            Total Uang Kas Mengendap di Kotak Dapur: <strong style="color: #34D399;">Rp ${(curDay.kasSiapEsok || 0).toLocaleString('id-ID')}</strong> (Siap digunakan operasional berikutnya).
+          </div>
+        </div>`;
+    } else if (curDay.omzet > 0 && curDay.belanja === 0) {
+      // Penarikan sore sudah ada, TAPI belanja malam belum dicatat
+      card3AmpContainer.innerHTML = `
+        <div style="padding: 16px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+            <strong style="color: #FBBF24; font-size: 0.88rem;">Hasil Penarikan Sore Terkumpul: Rp ${curDay.omzet.toLocaleString('id-ID')} (${curDay.laku} pcs laku)</strong>
+            <span class="mini-tag" style="background: rgba(251, 191, 36, 0.2); color: #FBBF24; font-weight: 800;">Menunggu Belanja Malam</span>
+          </div>
+          <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
+            Uang penarikan hasil penjualan sore telah masuk ke tangan sebesar <strong style="color: #34D399;">Rp ${curDay.omzet.toLocaleString('id-ID')}</strong>.<br>
+            Sistem menunggu Anda mencatat belanja bahan malam ini di menu <strong>Kuitansi Belanja Dapur</strong>. Begitu belanja dicatat, pembagian riil 3 amplop (Belanja Pasar, Tabungan Bahan Awet, dan Laba Bersih Bos) akan otomatis dihitung secara pasti.
+          </div>
+        </div>`;
     } else {
-      endapanSubEl.innerText = 'Sisa kas fisik kotak dapur setelah belanja';
+      // Belum ada transaksi
+      card3AmpContainer.innerHTML = `
+        <div style="padding: 14px 16px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--card-border); border-radius: 8px; text-align: center; color: #94A3B8; font-size: 0.82rem;">
+          Belum ada catatan penarikan setoran sore atau belanja bahan pada tanggal ini.
+        </div>`;
     }
   }
 
@@ -4962,17 +5036,17 @@ function renderBuku3View() {
     const avgDailyGaji = daysWithGaji.length > 0 ? (totalGajiAll / daysWithGaji.length) : 34000;
     const daysRemain = bepRemain > 0 ? Math.ceil(bepRemain / avgDailyGaji) : 0;
 
+    const b3OmzetEl = document.getElementById('b3RekapOmzet');
+    const b3BelanjaEl = document.getElementById('b3RekapBelanja');
+    const b3KasEl = document.getElementById('b3RekapKasDapur');
     const accEl = document.getElementById('bepAccumulated');
-    const remEl = document.getElementById('bepRemaining');
     const estEl = document.getElementById('bepDaysEstimate');
-    const pctEl = document.getElementById('bepPercent');
-    const barEl = document.getElementById('bepBarFill');
     const btnTarikGajiEl = document.getElementById('btnTarikGajiJumat');
 
+    if (b3OmzetEl) b3OmzetEl.innerText = 'Rp ' + totalSetorAll.toLocaleString('id-ID');
+    if (b3BelanjaEl) b3BelanjaEl.innerText = 'Rp ' + totalBelanjaAll.toLocaleString('id-ID');
+    if (b3KasEl) b3KasEl.innerText = 'Rp ' + latestVerifiedEndapan.toLocaleString('id-ID');
     if (accEl) accEl.innerText = 'Rp ' + totalGajiAll.toLocaleString('id-ID');
-    if (remEl) remEl.innerText = 'Rp ' + bepRemain.toLocaleString('id-ID');
-    if (pctEl) pctEl.innerText = bepPct + '%';
-    if (barEl) barEl.style.width = bepPct + '%';
 
     if (estEl) {
       if (bepRemain === 0) {
