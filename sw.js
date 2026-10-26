@@ -1,8 +1,8 @@
 // ==============================================================
 // DAPUR MOM FITRI - SERVICE WORKER (NETWORK-FIRST STRATEGY)
 // ==============================================================
-const CACHE_NAME = 'dapur-mom-fitri-v6.4.5';
-const APP_BUILD_TIME = '26/10/2026 15:15 WIB';
+const CACHE_NAME = 'dapur-mom-fitri-v6.4.6';
+const APP_BUILD_TIME = '26/10/2026 15:50 WIB';
 
 const ASSETS = [
   './',

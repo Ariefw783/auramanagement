@@ -1013,7 +1013,43 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   };
 
   const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
-  
+  const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[cfg.isoDate]);
+
+  // 1. Jika Hari Ini Ditandai Libur Operasional
+  if (isHoliday) {
+    const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
+    return {
+      isoDate: cfg.isoDate,
+      b2Key: cfg.b2Key,
+      tgl: cfg.tgl,
+      hari: cfg.hari,
+      namaHari: cfg.namaHari,
+      shortLabel: cfg.shortLabel,
+      noBkk: cfg.noBkk,
+      isTarget: false,
+      isSavedDay: true,
+      isHoliday: true,
+      kirim: 0,
+      bonus: 0,
+      retur: 0,
+      laku: 0,
+      omzet: 0,
+      modalAwal,
+      belanja: 0,
+      sisaEndapanKas: modalAwal,
+      alokasiBelanjaHarian: 0,
+      tabunganBahanAwet: 0,
+      recoveryModal: 0,
+      targetHpp: 0,
+      deficitToCover: 0,
+      plafonModal: modalAwal,
+      gajiBos: 0,
+      kasSiapEsok: modalAwal,
+      endapanHarian: modalAwal,
+      labaBersih: 0
+    };
+  }
+
   // Data konsinyasi resmi yang masuk ke Buku 3 hanya yang sudah disimpan (committed)
   const rows = (auraData.buku1Committed && auraData.buku1Committed[isoDate])
     ? auraData.buku1Committed[isoDate]
@@ -1047,21 +1083,33 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   // 1. Modal Awal Kas Dapur (Saldo Kas Fisik sebelum belanja hari ini)
   const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
 
-  // 2. Sisa Endapan Kas Fisik setelah Belanja Bahan
+  // 2. Sisa Kas Fisik setelah Belanja Bahan Hari Ini
   const sisaEndapanKas = modalAwal - belanja;
 
-  // 3. Plafon Modal Kerja (minimum Rp 100.000 atau sebesar belanja aktual)
-  const targetModal = Math.max(100000, belanja);
+  // 3. Alokasi Kas Berjenjang Berdasarkan Jumlah Kirim & Laku Hari Tersebut:
+  // - Pos 1: Belanja Harian Bahan Segar Pasar (~Rp 280/pcs atau belanja riil)
+  // - Pos 2: Tabungan Bahan Awet & Utilitas (~Rp 200/pcs: Sosis, Collins, Keju, Panir, Minyak, Gas)
+  // - Pos 3: Penghasilan Bersih Bos -> Sisa omzet murni setelah kas dapur Pos 1 & Pos 2 aman
+  let alokasiBelanjaHarian = 0;
+  let tabunganBahanAwet = 0;
+  let gajiBos = 0;
 
-  // 4. Pemulihan modal belanja dari omzet setoran agar kas kotak dapur kembali penuh siap esok
-  const recoveryNeeded = Math.max(0, targetModal - sisaEndapanKas);
-  const recoveryModal = Math.min(omzet, recoveryNeeded);
+  if (laku > 0 && omzet > 0) {
+    alokasiBelanjaHarian = belanja > 0 ? belanja : Math.round(laku * 280);
+    tabunganBahanAwet = Math.round(laku * 200);
+    const kasDapurWajib = alokasiBelanjaHarian + tabunganBahanAwet;
+    gajiBos = Math.max(0, omzet - kasDapurWajib);
+  } else if (omzet > 0) {
+    alokasiBelanjaHarian = belanja;
+    tabunganBahanAwet = Math.round(omzet * 0.25);
+    gajiBos = Math.max(0, omzet - (alokasiBelanjaHarian + tabunganBahanAwet));
+  } else {
+    gajiBos = 0;
+  }
 
-  // 5. Amplop 2: Gaji Bersih Murni Pemilik (sisa omzet setelah belanja tertutup)
-  const gajiBos = Math.max(0, omzet - recoveryModal);
-
-  // 6. Kas Dapur Siap Operasional Esok Hari
-  let kasSiapEsok = sisaEndapanKas + recoveryModal;
+  // 4. Kas Fisik Kotak Dapur Siap Operasional Esok Hari
+  // Kas di kotak = Sisa endapan setelah belanja + (omzet - gaji bos)
+  let kasSiapEsok = sisaEndapanKas + (omzet - gajiBos);
   if (omzet === 0 && belanja === 0) {
     kasSiapEsok = modalAwal;
   }
@@ -1079,6 +1127,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     noBkk: cfg.noBkk,
     isTarget: isTarget,
     isSavedDay: isSavedDay,
+    isHoliday: false,
     kirim,
     bonus,
     retur,
@@ -1087,10 +1136,12 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     modalAwal,
     belanja,
     sisaEndapanKas,
-    recoveryModal,
+    alokasiBelanjaHarian,
+    tabunganBahanAwet,
+    recoveryModal: (omzet - gajiBos),
     targetHpp: computeDayTargetHPP(isoDate),
     deficitToCover,
-    plafonModal: targetModal,
+    plafonModal: 100000,
     gajiBos,
     kasSiapEsok,
     endapanHarian,
@@ -1508,6 +1559,124 @@ window.resetKuitansiCurrentDay = function() {
       window.showSuccessModal("Belanja Direset", "Seluruh catatan belanja lembar " + selectedBuku2Date + " telah dibersihkan.");
     }
   );
+};
+
+
+// ==============================================================
+// MODUL OPERASIONAL: SIMPAN HASIL PENJUALAN, HARI LIBUR, & GAJI JUMAT SORE
+// ==============================================================
+
+window.toggleBuku1Holiday = function() {
+  if (!auraData.buku1HolidayDates) auraData.buku1HolidayDates = {};
+  const current = !!auraData.buku1HolidayDates[activeDate];
+  auraData.buku1HolidayDates[activeDate] = !current;
+
+  // Jika ditandai libur, otomatis kunci hari ini
+  if (!current) {
+    if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+    auraData.buku1SavedDates[activeDate] = true;
+    buku1EditModeDates[activeDate] = false;
+  }
+
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  renderAllViews();
+  if (typeof pushToFirestoreCloud === 'function') {
+    pushToFirestoreCloud(true).catch(err => console.warn('Sync holiday to cloud:', err));
+  }
+
+  if (typeof window.showSuccessModal === 'function') {
+    if (!current) {
+      window.showSuccessModal(
+        'Hari Libur Diaktifkan',
+        'Tanggal <strong>' + activeDate + '</strong> telah ditandai sebagai <strong>Hari Libur Operasional</strong>.<br><br>' +
+        'Pengiriman diset 0 pcs, kas dapur bergulir aman ke hari berikutnya, dan tidak tercatat sebagai defisit/tekor.'
+      );
+    } else {
+      window.showSuccessModal(
+        'Status Libur Dibatalkan',
+        'Tanggal <strong>' + activeDate + '</strong> telah dibuka kembali sebagai <strong>Hari Operasional Aktif</strong>.'
+      );
+    }
+  }
+};
+
+window.savePenjualanHariIni = async function() {
+  if (!auraData.buku1Committed) auraData.buku1Committed = {};
+  auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
+  if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+  auraData.buku1SavedDates[activeDate] = true;
+  buku1EditModeDates[activeDate] = false;
+
+  const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
+  if (cfg) cfg.isTarget = false;
+
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  renderAllViews();
+
+  const namaHari = cfg ? cfg.namaHari : activeDate;
+  window.showLoadingModal('Menyimpan Hasil Penjualan...', 'Sedang menyimpan data penjualan <strong>' + namaHari + '</strong> ke Cloud Firestore...');
+  setCloudStatusUI('syncing', 'Menyimpan Penjualan...');
+
+  try {
+    await pushToFirestoreCloud(true);
+    window.hideLoadingModal();
+    if (typeof window.showSuccessModal === 'function') {
+      window.showSuccessModal(
+        'Hasil Penjualan Berhasil Disimpan',
+        'Data penjualan mitra untuk hari <strong>' + namaHari + '</strong> telah berhasil disimpan secara resmi.<br><br>' +
+        'Kas belanja pasar, tabungan bahan awet, gaji bos, dan laporan keuangan telah terintegrasi live ke cloud.'
+      );
+    }
+  } catch (err) {
+    console.error('Gagal simpan penjualan ke cloud:', err);
+    window.hideLoadingModal();
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Tersimpan Lokal', 'Hasil penjualan telah tersimpan di memori perangkat ini.');
+    }
+  }
+};
+
+window.tarikGajiJumatSore = async function() {
+  const allDays = getAllDaysAccounting();
+  const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const totalGajiBos = verifiedDays.reduce((sum, d) => sum + (d.gajiBos || 0), 0);
+
+  if (totalGajiBos <= 0) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Belum Ada Gaji Tersedia', 'Belum ada akumulasi laba bersih yang terkumpul untuk ditarik.');
+    }
+    return;
+  }
+
+  if (typeof window.showConfirmModal === 'function') {
+    window.showConfirmModal(
+      'Tarik Gaji Mingguan (Jumat Sore)',
+      'Tarik akumulasi gaji bersih pemilik sebesar <strong>Rp ' + totalGajiBos.toLocaleString('id-ID') + '</strong> ke Dompet Pribadi?',
+      async () => {
+        if (!auraData.gajiDitarikJumat) auraData.gajiDitarikJumat = {};
+        auraData.gajiDitarikJumat[activeDate] = true;
+        auraData.gajiLastWithdrawnAmount = totalGajiBos;
+        auraData.gajiLastWithdrawnDate = activeDate;
+
+        if (auraData) auraData._lastUpdated = Date.now();
+        localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+        renderAllViews();
+        if (typeof pushToFirestoreCloud === 'function') {
+          pushToFirestoreCloud(true).catch(err => console.warn('Sync withdrawal:', err));
+        }
+
+        if (typeof window.showSuccessModal === 'function') {
+          window.showSuccessModal(
+            'Gaji Berhasil Ditarik',
+            'Selamat! Gaji bersih mingguan sebesar <strong>Rp ' + totalGajiBos.toLocaleString('id-ID') + '</strong> telah berhasil ditarik ke Dompet Bos.<br><br>' +
+            'Target Modal Awal Rp 100.000 telah lunas dipulihkan!'
+          );
+        }
+      }
+    );
+  }
 };
 
 window.saveAndLockBuku1Day = function() {
@@ -3970,7 +4139,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku1\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
+      '<button type="button" class="btn-card-toggle-all" onclick="window.savePenjualanHariIni()" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.5); font-weight: 800;">Simpan Hasil Penjualan</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4360,10 +4529,30 @@ function renderBuku1View() {
   const rowsBuku1 = getActiveBuku1Rows();
 
   const isDaySaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
-  const isEditingAllowed = !isDaySaved || !!buku1EditModeDates[activeDate];
+  const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[activeDate]);
+  const isEditingAllowed = !isHoliday && (!isDaySaved || !!buku1EditModeDates[activeDate]);
+
+  const btnToggleLiburEl = document.getElementById('btnToggleLiburBuku1');
+  const btnSimpanPenjualanEl = document.getElementById('btnSimpanPenjualanBuku1');
+
+  if (btnToggleLiburEl) {
+    if (isHoliday) {
+      btnToggleLiburEl.innerText = 'Batalkan Libur (Buka Operasional)';
+      btnToggleLiburEl.style.borderColor = 'rgba(16, 185, 129, 0.6)';
+      btnToggleLiburEl.style.color = '#34D399';
+    } else {
+      btnToggleLiburEl.innerText = 'Tandai Hari Ini Libur';
+      btnToggleLiburEl.style.borderColor = 'rgba(251, 191, 36, 0.5)';
+      btnToggleLiburEl.style.color = '#FBBF24';
+    }
+  }
 
   if (statusBadgeEl) {
-    if (isDaySaved && !isEditingAllowed) {
+    if (isHoliday) {
+      statusBadgeEl.innerText = 'Hari Libur Operasional';
+      statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
+      statusBadgeEl.style.color = '#EF4444';
+    } else if (isDaySaved && !isEditingAllowed) {
       statusBadgeEl.innerText = 'Tersimpan';
       statusBadgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
       statusBadgeEl.style.color = '#34D399';
@@ -4397,6 +4586,12 @@ function renderBuku1View() {
 
   if (b1Body) {
     b1Body.innerHTML = '';
+    if (isHoliday) {
+      b1Body.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px 16px; background: rgba(239, 68, 68, 0.08); color: #EF4444; font-weight: 700; font-size: 0.92rem;">HARI INI DITANDAI LIBUR OPERASIONAL<br><span style="font-size: 0.78rem; color: #94A3B8; font-weight: normal; margin-top: 6px; display: inline-block;">Tidak ada pengiriman atau penitipan mitra. Kas dapur bergulir aman ke hari operasional berikutnya.</span></td></tr>';
+      if (b1Foot) b1Foot.innerHTML = '';
+      renderBuku1Cards([], 0, 0, 0, 0, 0);
+      return;
+    }
     let sumKirim = 0, sumBonus = 0, sumRetur = 0, sumLaku = 0, sumSetor = 0;
 
     rowsBuku1.forEach((r, idx) => {
@@ -4745,20 +4940,55 @@ function renderBuku3View() {
     const bepTarget = 100000;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
     const bepPct = Math.min(100, ((totalGajiAll / bepTarget) * 100)).toFixed(1);
-    const avgDailyGaji = totalGajiAll > 0 ? (totalGajiAll / 3) : 0;
-    const daysRemain = (avgDailyGaji > 0 && bepRemain > 0) ? Math.ceil(bepRemain / avgDailyGaji) : 0;
+    
+    // Rata-rata laba harian dari hari-hari yang sudah menghasilkan omzet
+    const daysWithGaji = verifiedList.filter(k => (k.gaji || 0) > 0);
+    const avgDailyGaji = daysWithGaji.length > 0 ? (totalGajiAll / daysWithGaji.length) : 34000;
+    const daysRemain = bepRemain > 0 ? Math.ceil(bepRemain / avgDailyGaji) : 0;
 
     const accEl = document.getElementById('bepAccumulated');
     const remEl = document.getElementById('bepRemaining');
     const estEl = document.getElementById('bepDaysEstimate');
     const pctEl = document.getElementById('bepPercent');
     const barEl = document.getElementById('bepBarFill');
+    const btnTarikGajiEl = document.getElementById('btnTarikGajiJumat');
 
     if (accEl) accEl.innerText = 'Rp ' + totalGajiAll.toLocaleString('id-ID');
     if (remEl) remEl.innerText = 'Rp ' + bepRemain.toLocaleString('id-ID');
-    if (estEl) estEl.innerText = bepRemain === 0 ? 'LUNAS BEP 100%!' : (daysRemain > 0 ? '~' + daysRemain + ' Hari Kerja' : 'Menunggu Penjualan Senin');
     if (pctEl) pctEl.innerText = bepPct + '%';
     if (barEl) barEl.style.width = bepPct + '%';
+
+    if (estEl) {
+      if (bepRemain === 0) {
+        estEl.innerText = 'LUNAS BEP 100%!';
+        estEl.style.color = '#34D399';
+      } else if (daysRemain > 0) {
+        estEl.innerText = '~' + daysRemain + ' Hari Kerja (Target Impas Minggu Ini)';
+        estEl.style.color = '#38BDF8';
+      } else {
+        estEl.innerText = 'Menunggu Operasional';
+        estEl.style.color = '#94A3B8';
+      }
+    }
+
+    // Tombol Tarik Gaji Jumat Sore
+    const isFriday = activeDate.includes('-10-30') || (new Date().getDay() === 5);
+    const isWithdrawn = !!(auraData.gajiDitarikJumat && auraData.gajiDitarikJumat[activeDate]);
+    if (btnTarikGajiEl) {
+      if (isFriday && totalGajiAll > 0 && !isWithdrawn) {
+        btnTarikGajiEl.style.display = 'inline-flex';
+        btnTarikGajiEl.innerText = 'Tarik Gaji Jumat Sore (Rp ' + totalGajiAll.toLocaleString('id-ID') + ')';
+        btnTarikGajiEl.disabled = false;
+        btnTarikGajiEl.style.opacity = '1';
+      } else if (isWithdrawn) {
+        btnTarikGajiEl.style.display = 'inline-flex';
+        btnTarikGajiEl.innerText = 'Gaji Jumat Sore Telah Ditarik';
+        btnTarikGajiEl.disabled = true;
+        btnTarikGajiEl.style.opacity = '0.6';
+      } else {
+        btnTarikGajiEl.style.display = 'none';
+      }
+    }
   }
 }
 
