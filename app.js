@@ -1855,6 +1855,10 @@ window.printBuku1 = function() {
   window.print();
 };
 
+window.printBuku3 = function() {
+  window.print();
+};
+
 window.saveBuku1 = function() {
   window.saveAndLockBuku1Day();
 };
