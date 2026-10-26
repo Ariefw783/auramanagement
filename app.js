@@ -723,6 +723,24 @@ if (!auraData.buku1SavedDates) {
     '2026-10-21': true
   };
 }
+if (!auraData.buku2SavedDates) {
+  auraData.buku2SavedDates = {
+    '19/10': true,
+    '20/10': true,
+    '21/10': true
+  };
+}
+if (!auraData.buku1Committed) {
+  auraData.buku1Committed = {};
+  ['2026-10-19', '2026-10-20', '2026-10-21'].forEach(k => {
+    if (auraData.buku1History && auraData.buku1History[k]) {
+      auraData.buku1Committed[k] = JSON.parse(JSON.stringify(auraData.buku1History[k]));
+    }
+  });
+}
+if (!auraData.buku2Committed) {
+  auraData.buku2Committed = (auraData.buku2Belanja || []).filter(b => ['19/10', '20/10', '21/10'].includes(b.tgl));
+}
 if (!auraData.buku1CustomDays) {
   auraData.buku1CustomDays = [];
 }
@@ -877,7 +895,31 @@ function saveLocal() {
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   renderAllViews();
-  pushToFirestoreCloud();
+}
+
+function saveBuku1Draft() {
+  window._hasUnsavedLocalChanges = true;
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  if (typeof renderBuku1View === 'function') renderBuku1View();
+  if (typeof renderSlipBoxView === 'function') renderSlipBoxView();
+  if (typeof window.syncRecipeFromBuku1 === 'function') {
+    window.syncRecipeFromBuku1(false);
+  }
+}
+
+function saveKuitansiDraft() {
+  window._hasUnsavedLocalChanges = true;
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  if (typeof renderKuitansiView === 'function') renderKuitansiView();
+}
+
+function saveStokDraft() {
+  window._hasUnsavedLocalChanges = true;
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  if (typeof renderStokView === 'function') renderStokView();
 }
 
 // Ambil baris data Buku 1 untuk tanggal aktif
@@ -965,12 +1007,20 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     hari: isoDate,
     namaHari: isoDate,
     shortLabel: isoDate,
-    noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-01',
+    noBkk: 'BKK-01',
     modal: 100000,
     isTarget: false
   };
 
-  const rows = (auraData.buku1History && auraData.buku1History[isoDate]) ? auraData.buku1History[isoDate] : [];
+  const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
+  
+  // Data konsinyasi resmi yang masuk ke Buku 3 hanya yang sudah disimpan (committed)
+  const rows = (auraData.buku1Committed && auraData.buku1Committed[isoDate])
+    ? auraData.buku1Committed[isoDate]
+    : (isSavedDay && auraData.buku1History && auraData.buku1History[isoDate])
+      ? auraData.buku1History[isoDate]
+      : [];
+
   let kirim = 0, bonus = 0, retur = 0, laku = 0, omzet = 0;
   rows.forEach(r => {
     kirim += (r.kirim || 0);
@@ -980,51 +1030,44 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     omzet += (r.setor || 0);
   });
 
-  const belanja = (auraData.buku2Belanja || [])
+  // Belanja resmi yang masuk ke Buku 3 hanya yang sudah tersimpan (committed)
+  const isSavedBelanja = !!(auraData.buku2SavedDates && auraData.buku2SavedDates[cfg.b2Key]);
+  const belanjaList = (auraData.buku2Committed && auraData.buku2Committed.length > 0)
+    ? auraData.buku2Committed
+    : (isSavedBelanja && auraData.buku2Belanja)
+      ? auraData.buku2Belanja
+      : [];
+
+  const belanja = belanjaList
     .filter(b => b.tgl === cfg.b2Key)
     .reduce((sum, b) => sum + (b.biaya || 0), 0);
 
-  const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
   const isTarget = !isSavedDay && cfg.isTarget && belanja === 0 && retur === 0;
 
-  // 1. Plafon Modal Dapur Dinamis: modal awal Amplop 1 adalah Rp 100.000 atau sesuai plafon operasional
-  const targetHpp = computeDayTargetHPP(isoDate);
-  let plafonModalBase = cfg.modal ? cfg.modal : (targetHpp > 0 ? targetHpp : 100000);
-  // Jika belanja riil lebih besar dari plafon target (misal beli gas/minyak/collins bulk),
-  // modal dapur tetap melindungi seluruh belanja aktual
-  if (belanja > plafonModalBase) {
-    plafonModalBase = belanja;
+  // 1. Modal Awal Kas Dapur (Saldo Kas Fisik sebelum belanja hari ini)
+  const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
+
+  // 2. Sisa Endapan Kas Fisik setelah Belanja Bahan
+  const sisaEndapanKas = modalAwal - belanja;
+
+  // 3. Plafon Modal Kerja (minimum Rp 100.000 atau sebesar belanja aktual)
+  const targetModal = Math.max(100000, belanja);
+
+  // 4. Pemulihan modal belanja dari omzet setoran agar kas kotak dapur kembali penuh siap esok
+  const recoveryNeeded = Math.max(0, targetModal - sisaEndapanKas);
+  const recoveryModal = Math.min(omzet, recoveryNeeded);
+
+  // 5. Amplop 2: Gaji Bersih Murni Pemilik (sisa omzet setelah belanja tertutup)
+  const gajiBos = Math.max(0, omzet - recoveryModal);
+
+  // 6. Kas Dapur Siap Operasional Esok Hari
+  let kasSiapEsok = sisaEndapanKas + recoveryModal;
+  if (omzet === 0 && belanja === 0) {
+    kasSiapEsok = modalAwal;
   }
-
-  // 2. Kas Dapur Bergulir (Revolving Working Capital):
-  // Saldo awal kotak kas sebelum belanja hari ini
-  const prevEndapan = (prevRollingEndapan !== undefined) ? prevRollingEndapan : 100000;
-  const sisaKasDapur = prevEndapan - belanja;
-
-  // Kas yang dibutuhkan agar kotak dapur kembali penuh ke plafon target
-  const deficitToCover = prevEndapan < 0 ? Math.abs(prevEndapan) : 0;
-  const topupNeeded = Math.max(0, plafonModalBase - sisaKasDapur);
-
-  let plafonModal = plafonModalBase;
-  let gajiBos = 0;
-  let endapanHarian = prevEndapan;
-
-  if (omzet > 0) {
-    const actualTopup = Math.min(omzet, topupNeeded);
-    gajiBos = Math.max(0, omzet - actualTopup);
-    endapanHarian = sisaKasDapur + actualTopup;
-    plafonModal = Math.max(plafonModalBase, endapanHarian);
-  } else {
-    // Jika belum ada omzet (hari baru sebelum setor sore atau lembar target draft):
-    if (belanja > 0) {
-      endapanHarian = sisaKasDapur;
-    } else {
-      endapanHarian = prevEndapan; // Kas bergulir Rp 100.000 tetap utuh
-    }
-    gajiBos = 0;
-  }
-
+  const endapanHarian = kasSiapEsok;
   const labaBersih = omzet - belanja;
+  const deficitToCover = sisaEndapanKas < 0 ? Math.abs(sisaEndapanKas) : 0;
 
   return {
     isoDate: cfg.isoDate,
@@ -1041,11 +1084,15 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     retur,
     laku,
     omzet,
-    targetHpp,
-    deficitToCover,
-    plafonModal,
-    gajiBos,
+    modalAwal,
     belanja,
+    sisaEndapanKas,
+    recoveryModal,
+    targetHpp: computeDayTargetHPP(isoDate),
+    deficitToCover,
+    plafonModal: targetModal,
+    gajiBos,
+    kasSiapEsok,
     endapanHarian,
     labaBersih
   };
@@ -1463,6 +1510,8 @@ window.resetKuitansiCurrentDay = function() {
 };
 
 window.saveAndLockBuku1Day = function() {
+  if (!auraData.buku1Committed) auraData.buku1Committed = {};
+  auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
   if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
   auraData.buku1SavedDates[activeDate] = true;
   buku1EditModeDates[activeDate] = false;
@@ -1470,11 +1519,7 @@ window.saveAndLockBuku1Day = function() {
   const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
   if (cfg) cfg.isTarget = false;
 
-  saveLocal();
-  window.showSuccessModal(
-    "Lembar Telah Dikunci (Tutup Buku)",
-    "Data Kontrol Konsinyasi untuk tanggal " + (cfg ? cfg.namaHari : activeDate) + " telah dikunci dari perubahan tidak sengaja. Jika sewaktu-waktu diperlukan koreksi, klik tombol 'Buka Kunci (Edit)'."
-  );
+  window.saveAndSyncModule('buku1');
 };
 
 // Buka Kembali Kunci Edit pada Buku 1
@@ -1600,11 +1645,9 @@ window.openEditBuku1RowModal = function(idx) {
       r.hargaSetor = hargaSetor;
       r.setor = setor;
 
-      window.syncRecipeFromBuku1(false);
       window.closeAppModal();
-      saveLocal();
-      renderAllViews();
-      window.showSuccessModal("Baris Diperbarui", 'Data konsinyasi "' + nama + '" berhasil diperbarui dan disimpan.');
+      saveBuku1Draft();
+      window.showSuccessModal("Baris Diperbarui", 'Data konsinyasi "' + nama + '" berhasil diperbarui (Draft Disimpan). Gunakan tombol Simpan & Sinkronkan untuk menyimpan ke cloud.');
     };
   }
 
@@ -1728,9 +1771,7 @@ window.updateBuku1DropQty = function(idx, prodId, val) {
   const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
   row.setor = row.laku * unitRate;
 
-  window.syncRecipeFromBuku1(false);
-  saveLocal();
-  renderAllViews();
+  saveBuku1Draft();
 };
 
 window.addBuku1DropProduct = function(idx, prodId) {
@@ -1763,9 +1804,7 @@ window.removeBuku1DropProduct = function(idx, prodId) {
   const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
   row.setor = row.laku * unitRate;
 
-  window.syncRecipeFromBuku1(false);
-  saveLocal();
-  renderAllViews();
+  saveBuku1Draft();
 };
 
 window.updateBuku1RowPlan = function(idx, field, val) {
@@ -1788,8 +1827,7 @@ window.updateBuku1RowPlan = function(idx, field, val) {
   const unitRate = row.hargaSetor !== undefined ? row.hargaSetor : (row.nama.includes('Ragil') ? 1000 : 800);
   row.setor = row.laku * unitRate;
 
-  window.syncRecipeFromBuku1(false);
-  saveLocal();
+  saveBuku1Draft();
 };
 
 window.syncRecipeFromBuku1 = function(showNotice) {
@@ -1857,7 +1895,7 @@ window.updateBuku1RowRetur = function(idx, val) {
     auraData.titik[idx].status = r === 0 ? 'done' : 'progress';
   }
 
-  saveLocal();
+  saveBuku1Draft();
 };
 
 window.updateBuku1RowSetor = function(idx, val) {
@@ -1870,7 +1908,7 @@ window.updateBuku1RowSetor = function(idx, val) {
   if (activeDate === '2026-10-21' && auraData.titik[idx]) {
     auraData.titik[idx].setor = row.setor;
   }
-  saveLocal();
+  saveBuku1Draft();
 };
 
 // Edit Tarif Slip Box
@@ -1887,7 +1925,7 @@ window.updateSlipRate = function(idx, field, val) {
       auraData.titik[idx].setor = row.setor;
     }
   }
-  saveLocal();
+  saveBuku1Draft();
 };
 
 // ==============================================================
@@ -1979,13 +2017,18 @@ function renderExecutiveFinancials() {
   }
 
   if (endapanEl) {
-    endapanEl.innerText = curDay.endapanHarian < 0
-      ? '-Rp ' + Math.abs(curDay.endapanHarian).toLocaleString('id-ID')
-      : 'Rp ' + curDay.endapanHarian.toLocaleString('id-ID');
-    endapanEl.style.color = curDay.endapanHarian < 0 ? '#FB7185' : '#FBBF24';
+    const dispVal = curDay.sisaEndapanKas !== undefined ? curDay.sisaEndapanKas : curDay.endapanHarian;
+    endapanEl.innerText = dispVal < 0
+      ? '-Rp ' + Math.abs(dispVal).toLocaleString('id-ID')
+      : 'Rp ' + dispVal.toLocaleString('id-ID');
+    endapanEl.style.color = dispVal < 0 ? '#FB7185' : '#FBBF24';
   }
   if (endapanSubEl) {
-    endapanSubEl.innerText = 'Saldo cadangan kotak: Rp ' + cumEndapan.toLocaleString('id-ID');
+    if (curDay.omzet > 0) {
+      endapanSubEl.innerText = 'Sisa belanja Rp ' + (curDay.sisaEndapanKas || 0).toLocaleString('id-ID') + ' • Siap esok: Rp ' + (curDay.kasSiapEsok || 0).toLocaleString('id-ID');
+    } else {
+      endapanSubEl.innerText = 'Sisa kas fisik kotak dapur setelah belanja';
+    }
   }
 
   const rankDateTag = document.getElementById('rankDateTag');
@@ -2604,8 +2647,8 @@ window.handleAddBelanjaToKuitansi = function(e) {
   if (document.getElementById('kuitansiInputQty')) document.getElementById('kuitansiInputQty').value = '';
   if (document.getElementById('kuitansiInputBiaya')) document.getElementById('kuitansiInputBiaya').value = '';
 
-  saveLocal();
-  window.showSuccessModal("Dicatat ke Kuitansi", 'Item "' + nama + '" senilai Rp ' + biaya.toLocaleString('id-ID') + ' berhasil dicatat.');
+  saveKuitansiDraft();
+  window.showSuccessModal("Dicatat ke Kuitansi", 'Item "' + nama + '" senilai Rp ' + biaya.toLocaleString('id-ID') + ' berhasil dicatat (Draft). Klik "Simpan & Sinkronkan" untuk menghubungkan ke Buku Kas & Cloud.');
 };
 
 // Fitur Edit Item Belanja Kuitansi (Stage 3)
@@ -2671,9 +2714,9 @@ window.openEditBelanjaModal = function(globalIdx) {
       item.qty = qty;
       item.biaya = biaya;
 
-      saveLocal();
+      saveKuitansiDraft();
       window.closeAppModal();
-      window.showSuccessModal("Berhasil Diperbarui", "Item kuitansi berhasil diperbarui dan total kas disesuaikan!");
+      window.showSuccessModal("Berhasil Diperbarui", "Item kuitansi berhasil diperbarui (Draft Disimpan)!");
     };
   }
 
@@ -2690,7 +2733,7 @@ window.handleDeleteBelanjaFromKuitansi = function(idx) {
     () => {
       auraData.buku2Belanja.splice(idx, 1);
       auraData.buku2Belanja.forEach((b, i) => b.no = i + 1);
-      saveLocal();
+      saveKuitansiDraft();
       window.showSuccessModal("Terhapus", "Item belanja berhasil dihapus dari lembar kuitansi.");
     }
   );
@@ -3839,10 +3882,7 @@ window.updateStokVal = function(idx, val) {
   item.stokGram = Math.round(item.stok * ratio);
 
   applyStokStatusAndAction(item);
-  window._hasUnsavedLocalChanges = true;
-  saveLocal();
-  pushToFirestoreCloud(true);
-  pushToFirestoreCloud(true);
+  saveStokDraft();
 };
 
 window.updateStokFromGram = function(idx, gramVal) {
@@ -3856,9 +3896,7 @@ window.updateStokFromGram = function(idx, gramVal) {
   item.stok = Number.isInteger(rawUnits) ? rawUnits : +rawUnits.toFixed(2);
 
   applyStokStatusAndAction(item);
-  window._hasUnsavedLocalChanges = true;
-  saveLocal();
-  pushToFirestoreCloud(true);
+  saveStokDraft();
 };
 
 // ==============================================================
@@ -4121,8 +4159,9 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
     card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
     card.id = 'buku3Card_' + idx;
 
-    const endapanFormatted = k.endapan < 0 ? '-Rp ' + Math.abs(k.endapan).toLocaleString('id-ID') : 'Rp ' + (k.endapan || 0).toLocaleString('id-ID');
-    const endapanColor = k.endapan < 0 ? '#FB7185' : '#34D399';
+    const sisaEndapanFmt = k.sisaEndapanKas < 0 ? '-Rp ' + Math.abs(k.sisaEndapanKas).toLocaleString('id-ID') : 'Rp ' + (k.sisaEndapanKas || 0).toLocaleString('id-ID');
+    const sisaEndapanColor = k.sisaEndapanKas < 0 ? '#FB7185' : '#FBBF24';
+    const kasSiapFmt = 'Rp ' + (k.kasSiapEsok || 0).toLocaleString('id-ID');
 
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku3\', ' + idx + ')">' +
@@ -4131,17 +4170,18 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
           '<strong class="record-title-name">' + k.hari + '</strong>' +
         '</div>' +
         '<div class="record-header-meta">' +
-          '<span class="record-chip success">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="record-chip success">Omzet: Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</span>' +
           '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="record-card-body">' +
         '<div class="record-meta-row"><span class="label">Konsinyasi:</span><span class="val">Kirim ' + k.kirim + ' • Retur ' + k.retur + ' • <strong>Laku ' + k.laku + ' pcs</strong></span></div>' +
         '<div class="record-meta-row"><span class="label">Total Omzet Kas:</span><strong class="val" style="color:#34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Amplop 1 (Modal Dapur):</span><span class="val">Rp ' + (k.modal || 0).toLocaleString('id-ID') + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Amplop 2 (Gaji Bersih):</span><strong class="val" style="color:#818CF8;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Belanja Riil:</span><span class="val" style="color:#FB7185;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Endapan Cadangan:</span><strong class="val" style="color:' + endapanColor + ';">' + endapanFormatted + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Modal Awal Kotak:</span><span class="val" style="color:#94A3B8;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Belanja Riil Bahan:</span><span class="val" style="color:#FB7185;">-Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Sisa Endapan Kas:</span><strong class="val" style="color:' + sisaEndapanColor + ';">' + sisaEndapanFmt + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Amplop 2 (Gaji Bersih Bos):</span><strong class="val" style="color:#818CF8; font-size: 0.95rem;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Kas Dapur Siap Esok:</span><strong class="val" style="color:#34D399;">' + kasSiapFmt + '</strong></div>' +
       '</div>';
     container.appendChild(card);
   });
@@ -4154,8 +4194,9 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
       '<div class="card-stat-pill"><span>Total Kirim:</span><strong>' + totKirim + ' pcs</strong></div>' +
       '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + totLaku + ' pcs</strong></div>' +
       '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL OMZET KAS:</span><strong>Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Gaji Bos:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
       '<div class="card-stat-pill"><span>Total Belanja:</span><strong style="color:#F87171;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Gaji Bos:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>KAS DAPUR SIAP OPERASIONAL:</span><strong style="color:#34D399;">Rp ' + totEndapan.toLocaleString('id-ID') + '</strong></div>' +
     '</div>';
   container.appendChild(summary);
 }
@@ -4291,17 +4332,10 @@ function renderStokCards(list) {
 }
 
 // ==============================================================
-// MASTER RENDER ENGINE (SINKRONISASI INTEGRAL SELURUH MODUL)
+// MODULAR VIEW RENDERERS (DRAFT VS COMMITTED ISOLATION)
 // ==============================================================
-function renderAllViews() {
-  syncDateDisplays();
 
-  // 1. EXECUTIVE DASHBOARD FINANCIALS, CHARTS & RANKING
-  renderExecutiveFinancials();
-  renderAccountingChart();
-  renderOutletRanking();
-
-  // 2. DISTRIBUSI & PENJUALAN MITRA SPREADSHEET (DENGAN FITUR SET HARI INI, SIMPAN/KUNCI, & EDIT)
+function renderBuku1View() {
   const b1Body = document.getElementById('buku1TableBody');
   const b1Foot = document.getElementById('buku1TableFoot');
   const printDateDisplay = document.getElementById('buku1PrintDateDisplay');
@@ -4324,7 +4358,7 @@ function renderAllViews() {
       statusBadgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
       statusBadgeEl.style.color = '#FBBF24';
     } else {
-      statusBadgeEl.innerText = 'Mode Input';
+      statusBadgeEl.innerText = 'Mode Input (Draft)';
       statusBadgeEl.style.background = 'rgba(56, 189, 248, 0.2)';
       statusBadgeEl.style.color = '#38BDF8';
     }
@@ -4439,8 +4473,10 @@ function renderAllViews() {
 
     renderBuku1Cards(rowsBuku1, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor);
   }
+}
 
-  // 3. SLIP BOX 6 TITIK (CERDAS: HANYA MENAMPILKAN PRODUK YANG DIKIRIM > 0)
+function renderSlipBoxView() {
+  const rowsBuku1 = getActiveBuku1Rows();
   const slipContainer = document.getElementById('slipBoxContainer');
   if (slipContainer) {
     slipContainer.innerHTML = '';
@@ -4452,7 +4488,6 @@ function renderAllViews() {
       const marginMitra = t.marginMitra !== undefined ? t.marginMitra : 200;
       const drops = getRowDrops(t);
 
-      // Filter hanya produk yang kuota kirimnya > 0
       const activeProducts = Object.entries(drops).filter(([pId, qty]) => (parseInt(qty, 10) || 0) > 0);
 
       let itemsHtml = '';
@@ -4494,39 +4529,30 @@ function renderAllViews() {
       slipContainer.appendChild(card);
     });
   }
+}
 
-  // 4. BUKU 2 KUITANSI (STATUS STRUK DIHAPUS + TOMBOL EDIT DIAKTIFKAN)
-  const dateSelectEl = document.getElementById('kuitansiDateSelect');
-  const kuitansiBody = document.getElementById('kuitansiTableBody');
-  const kuitansiTotalEl = document.getElementById('kuitansiTableTotal');
-  const kuitansiTerbilangEl = document.getElementById('kuitansiTerbilangDisplay');
+function renderKuitansiView() {
+  const kuitansiCurrentDayLabelEl = document.getElementById('kuitansiCurrentDayLabel');
   const kuitansiNoEl = document.getElementById('kuitansiNoDisplay');
   const kuitansiTglEl = document.getElementById('kuitansiTglDisplay');
   const kuitansiPlafonEl = document.getElementById('kuitansiPlafonDisplay');
-  const kuitansiRekapModalEl = document.getElementById('kuitansiRekapModal');
-  const kuitansiRekapBelanjaEl = document.getElementById('kuitansiRekapBelanja');
-  const kuitansiRekapEndapanEl = document.getElementById('kuitansiRekapEndapan');
-  const kuitansiCurrentDayLabelEl = document.getElementById('kuitansiCurrentDayLabel');
-
-  const defaultDates = OPERATIONAL_DAYS_CONFIG.map(c => c.b2Key);
-  const dataDates = (auraData.buku2Belanja || []).map(b => b.tgl);
-  const allKuitansiDates = [...new Set([...defaultDates, ...dataDates])].filter(Boolean);
-
-  if (!allKuitansiDates.includes(selectedBuku2Date)) {
-    selectedBuku2Date = allKuitansiDates[0] || '26/10';
-  }
-
-  const dayTotals = {};
-  allKuitansiDates.forEach(d => dayTotals[d] = 0);
-  (auraData.buku2Belanja || []).forEach(b => {
-    if (dayTotals[b.tgl] !== undefined) dayTotals[b.tgl] += (b.biaya || 0);
-    else dayTotals[b.tgl] = (b.biaya || 0);
-  });
+  const kuitansiRekapModalEl = document.getElementById('kuitansiRekapModalDisplay');
+  const kuitansiRekapBelanjaEl = document.getElementById('kuitansiRekapBelanjaDisplay');
+  const kuitansiRekapEndapanEl = document.getElementById('kuitansiRekapEndapanDisplay');
+  const kuitansiTotalEl = document.getElementById('kuitansiTotalDisplay');
+  const kuitansiTerbilangEl = document.getElementById('kuitansiTerbilangDisplay');
+  const kuitansiBody = document.getElementById('kuitansiTableBody');
+  const dateSelectEl = document.getElementById('kuitansiDateSelect');
 
   if (dateSelectEl) {
     dateSelectEl.innerHTML = '';
-    allKuitansiDates.forEach(d => {
-      const cfg = KUITANSI_DATE_CONFIG[d] || { namaHari: 'Hari ' + d };
+    const dayTotals = {};
+    (auraData.buku2Belanja || []).forEach(b => {
+      dayTotals[b.tgl] = (dayTotals[b.tgl] || 0) + (b.biaya || 0);
+    });
+
+    Object.keys(KUITANSI_DATE_CONFIG).forEach(d => {
+      const cfg = KUITANSI_DATE_CONFIG[d];
       const totalNum = dayTotals[d] || 0;
       const totalStr = totalNum > 0 ? ' • Total: Rp ' + totalNum.toLocaleString('id-ID') : ' • Belum ada belanja';
       const isHariIni = (d === REAL_TODAY_B2KEY) ? ' [Hari Ini]' : '';
@@ -4606,8 +4632,9 @@ function renderAllViews() {
     }
     renderKuitansiCards(currentItems, dayTotal);
   }
+}
 
-  // 5. ARUS KAS & LABA BERSIH (100% REAL-TIME DARI DISTRIBUSI & KAS KELUAR)
+function renderBuku3View() {
   const b3Body = document.getElementById('buku3TableBody');
   const b3Foot = document.getElementById('buku3TableFoot');
   const allDaysAccounting = getAllDaysAccounting();
@@ -4622,34 +4649,36 @@ function renderAllViews() {
     retur: d.retur,
     laku: d.laku,
     setor: d.omzet,
+    modalAwal: d.modalAwal,
     modal: d.plafonModal,
     gaji: d.gajiBos,
     realBelanja: d.belanja,
+    sisaEndapanKas: d.sisaEndapanKas,
+    kasSiapEsok: d.kasSiapEsok,
     endapan: d.endapanHarian
   }));
 
   if (b3Body) {
     b3Body.innerHTML = '';
-    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0, totalEndapanAll = 0;
+    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0;
 
     auraData.buku3Kas.forEach(k => {
-      // Hanya jumlahkan hari yang sudah terverifikasi (atau jika hari tersebut sedang dipilih aktif)
       const includeInVerifiedTotal = !k.isTarget || k.isoDate === activeDate;
       if (includeInVerifiedTotal) {
         totalKirimAll += (k.kirim || 0);
         totalReturAll += (k.retur || 0);
         totalLakuAll += (k.laku || 0);
         totalSetorAll += (k.setor || 0);
-        totalModalAll += (k.modal || 0);
-        totalGajiAll += (k.gaji || 0);
         totalBelanjaAll += (k.realBelanja || 0);
-        totalEndapanAll += (k.endapan || 0);
+        totalGajiAll += (k.gaji || 0);
       }
 
-      const endapanFormatted = k.endapan < 0
-        ? '-Rp ' + Math.abs(k.endapan).toLocaleString('id-ID')
-        : 'Rp ' + (k.endapan || 0).toLocaleString('id-ID');
-      const endapanColor = k.endapan < 0 ? '#FB7185' : '#34D399';
+      const sisaEndapanFormatted = k.sisaEndapanKas < 0
+        ? '-Rp ' + Math.abs(k.sisaEndapanKas).toLocaleString('id-ID')
+        : 'Rp ' + (k.sisaEndapanKas || 0).toLocaleString('id-ID');
+      const sisaEndapanColor = k.sisaEndapanKas < 0 ? '#FB7185' : '#FBBF24';
+      const kasSiapFormatted = 'Rp ' + (k.kasSiapEsok || 0).toLocaleString('id-ID');
+
       const hariLabel = k.isTarget
         ? '<strong>' + k.hari + '</strong> <span class="mini-tag" style="font-size: 0.62rem; padding: 1px 5px; background: rgba(251, 191, 36, 0.15); color: #FBBF24;">Target</span>'
         : '<strong>' + k.hari + '</strong>';
@@ -4661,18 +4690,18 @@ function renderAllViews() {
       tr.innerHTML = 
         '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + k.tgl + '</td>' +
         '<td data-label="Hari">' + hariLabel + '</td>' +
-        '<td data-label="Kirim" style="font-family: var(--font-mono);">' + k.kirim + '</td>' +
-        '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24;">' + k.retur + '</td>' +
-        '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8;">' + k.laku + '</td>' +
-        '<td data-label="Total Kas" style="font-family: var(--font-mono); font-weight: 800; color: #34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Amplop 1 (Modal)" style="font-family: var(--font-mono); color: #94A3B8;">Rp ' + (k.modal || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #F87171;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Endapan Kas" style="font-family: var(--font-mono); font-weight: 800; color: ' + endapanColor + ';">' + endapanFormatted + '</td>';
+        '<td data-label="Kirim" style="font-family: var(--font-mono); text-align: center;">' + k.kirim + '</td>' +
+        '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24; text-align: center;">' + k.retur + '</td>' +
+        '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + k.laku + '</td>' +
+        '<td data-label="Omzet Kas" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Modal Awal" style="font-family: var(--font-mono); color: #94A3B8; text-align: right;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #FB7185; text-align: right;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); font-weight: 800; color: ' + sisaEndapanColor + '; text-align: right;" title="Saldo kas di kotak dapur setelah belanja">' + sisaEndapanFormatted + '</td>' +
+        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8; text-align: right;" title="Laba bersih murni dompet bos">' + (k.gaji > 0 ? 'Rp ' + k.gaji.toLocaleString('id-ID') : 'Rp 0') + '</td>' +
+        '<td data-label="Kas Siap Esok" style="font-family: var(--font-mono); font-weight: 900; color: #34D399; text-align: right;" title="Saldo kas kotak dapur kembali utuh untuk modal besok">' + kasSiapFormatted + '</td>';
       b3Body.appendChild(tr);
     });
 
-        // Saldo akhir kas dapur adalah saldo berjalan kas Amplop 1 hari terverifikasi terakhir
     const latestVerifiedEndapan = allDaysAccounting.length > 0 
       ? allDaysAccounting[allDaysAccounting.length - 1].cumEndapan 
       : 100000;
@@ -4681,15 +4710,16 @@ function renderAllViews() {
     if (b3Foot) {
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-          '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL AKTUAL TERVERIFIKASI:</td>' +
-          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px;">' + totalKirimAll + '</td>' +
-          '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px;">' + totalReturAll + '</td>' +
-          '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px;">' + totalLakuAll + '</td>' +
-          '<td data-label="Total Setor" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Modal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px;" title="Plafon Modal Kerja Berjalan (Revolving Capital)">Rp ' + modalPlafonAktif.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Gaji" style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Belanja" style="font-family: var(--font-mono); color: #F87171; font-weight: 800; padding: 12px 14px;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Endapan" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px;" title="Saldo Kas Kotak Dapur Saat Ini">Rp ' + latestVerifiedEndapan.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL TERVERIFIKASI:</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalKirimAll + '</td>' +
+          '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalReturAll + '</td>' +
+          '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + totalLakuAll + '</td>' +
+          '<td data-label="Total Omzet" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Modal Awal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + modalPlafonAktif.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Belanja" style="font-family: var(--font-mono); color: #FB7185; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + Math.max(0, modalPlafonAktif - totalBelanjaAll).toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Gaji" style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px; text-align: right;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Kas Siap Esok" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px; text-align: right;" title="Saldo Kas Kotak Dapur Saat Ini">Rp ' + latestVerifiedEndapan.toLocaleString('id-ID') + '</td>' +
         '</tr>';
     }
 
@@ -4713,11 +4743,9 @@ function renderAllViews() {
     if (pctEl) pctEl.innerText = bepPct + '%';
     if (barEl) barEl.style.width = bepPct + '%';
   }
+}
 
-  // 6. MASTER BAHAN TABLE
-  window.renderMasterBahanTable();
-
-  // 7. MANAJEMEN STOK DENGAN SATUAN EKSPLISIT & KPI SUMMARY (CLEAN & MINIMAL)
+function renderStokView() {
   const stokBody = document.getElementById('stokTableBody');
   if (stokBody) {
     stokBody.innerHTML = '';
@@ -4739,7 +4767,6 @@ function renderAllViews() {
       }
 
       if (isLow || isCritical) {
-        // Hitung estimasi biaya restock langsung dari harga terbaru di Master Bahan Baku
         const nLow = (s.nama || '').toLowerCase();
         const orderPackagesMatch = String(s.orderQty || '1').match(/(\d+)/);
         const orderPackages = orderPackagesMatch ? parseInt(orderPackagesMatch[1], 10) : 1;
@@ -4842,10 +4869,30 @@ function renderAllViews() {
 
     renderStokCards(auraData.stokBahan);
   }
+}
 
-  // 8. KALKULATOR TAKARAN RESEP & VISUAL SOP FORMULA
-  window.calculateTakaran();
-  renderRecipeVisualGrid();
+// ==============================================================
+// MASTER RENDER ENGINE (SINKRONISASI INTEGRAL SELURUH MODUL)
+// ==============================================================
+function renderAllViews() {
+  syncDateDisplays();
+
+  // 1. EXECUTIVE DASHBOARD FINANCIALS, CHARTS & RANKING
+  renderExecutiveFinancials();
+  renderAccountingChart();
+  renderOutletRanking();
+
+  // 2. MODULAR MODULE VIEWS
+  renderBuku1View();
+  renderSlipBoxView();
+  renderKuitansiView();
+  renderBuku3View();
+  if (typeof window.renderMasterBahanTable === 'function') window.renderMasterBahanTable();
+  renderStokView();
+
+  // 3. KALKULATOR TAKARAN RESEP & VISUAL SOP FORMULA
+  if (typeof window.calculateTakaran === 'function') window.calculateTakaran();
+  if (typeof renderRecipeVisualGrid === 'function') renderRecipeVisualGrid();
 }
 
 // ==============================================================
@@ -5162,8 +5209,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.3';
-const APP_BUILD_TIME = '26/10/2026 12:25 WIB';
+const APP_VERSION = 'v6.4.4';
+const APP_BUILD_TIME = '26/10/2026 13:30 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5424,6 +5471,25 @@ window.resetDatabaseToCleanRoot = function(showConfirm = true) {
 // ==============================================================
 window.saveAndSyncModule = async function(moduleName) {
   window._hasUnsavedLocalChanges = true;
+
+  // Komit data modul yang aktif ke basis data resmi
+  if (moduleName === 'buku1') {
+    if (!auraData.buku1Committed) auraData.buku1Committed = {};
+    auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
+    if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+    auraData.buku1SavedDates[activeDate] = true;
+    buku1EditModeDates[activeDate] = false;
+    const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
+    if (cfg) cfg.isTarget = false;
+  } else if (moduleName === 'kuitansi') {
+    auraData.buku2Committed = JSON.parse(JSON.stringify(auraData.buku2Belanja || []));
+    if (!auraData.buku2SavedDates) auraData.buku2SavedDates = {};
+    auraData.buku2SavedDates[selectedBuku2Date] = true;
+  } else if (moduleName === 'stok') {
+    auraData.stokCommitted = JSON.parse(JSON.stringify(auraData.stokBahan || []));
+    auraData.stokLastSaved = Date.now();
+  }
+
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   renderAllViews();
