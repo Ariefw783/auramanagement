@@ -94,19 +94,35 @@ function initFirestoreSync(retryCount = 0) {
 
     isFirestoreInitialized = true;
     const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+    const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
 
     // ==============================================================
-    // NETWORK-FIRST INITIAL HYDRATION:
-    // Selalu paksa query langsung ke server Firestore terlebih dahulu.
-    // Memastikan HP/PC tidak terjebak membaca cache IndexedDB usang.
+    // KASIRPRO HANDSHAKE: METADATA TIMESTAMP PING
+    // Cek dokumen meta_sync berbobot sangat ringan (<100 bytes) terlebih dahulu
     // ==============================================================
-    docRef.get({ source: 'server' })
+    metaRef.get({ source: 'server' })
+      .then(metaDoc => {
+        const localUpdated = (auraData && auraData._lastUpdated) || 0;
+        if (metaDoc.exists) {
+          const cloudMeta = metaDoc.data();
+          if (cloudMeta && cloudMeta.lastUpdated && cloudMeta.lastUpdated > localUpdated) {
+            console.log('[Firestore] KasirPro Handshake: Cloud lebih baru dari lokal, unduh payload server...');
+            return docRef.get({ source: 'server' });
+          } else {
+            console.log('[Firestore] KasirPro Handshake: Data lokal paling mutakhir, 0 read payload.');
+            setCloudStatusUI('connected', 'Online • Sinkron');
+            return null;
+          }
+        } else {
+          return docRef.get({ source: 'server' });
+        }
+      })
       .then(doc => {
+        if (!doc) return;
         if (doc.exists) {
           const cloudDoc = doc.data();
           if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
             const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            // Jika cloud lebih baru ATAU perangkat lokal bersih belum menginput perubahan
             if (cloudDoc.lastUpdated >= localUpdated || !window._hasUnsavedLocalChanges) {
               console.log('[Firestore] Network-First sukses memuat data server:', cloudDoc.lastUpdated);
               auraData = cloudDoc.payload;
@@ -122,7 +138,7 @@ function initFirestoreSync(retryCount = 0) {
         setCloudStatusUI('connected', 'Online');
       })
       .catch(err => {
-        console.warn('[Firestore] Network-first server fetch note:', err.code, err.message);
+        console.warn('[Firestore] Handshake fetch note:', err.code, err.message);
         if (err.code === 'permission-denied') {
           setCloudStatusUI('error', 'Izin Firestore Ditolak');
         } else if (!navigator.onLine) {
@@ -210,12 +226,22 @@ function pushToFirestoreCloud(immediate = false) {
       if (auraData) auraData._lastUpdated = now;
       const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
-      firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7').set({
-        lastUpdated: now,
-        clientAgent: 'PWA Dapur Mom Fitri Web',
-        version: APP_VERSION,
-        payload: cleanPayload
-      }, { merge: true })
+      const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
+
+      Promise.all([
+        docRef.set({
+          lastUpdated: now,
+          clientAgent: 'PWA Dapur Mom Fitri Web',
+          version: APP_VERSION,
+          payload: cleanPayload
+        }, { merge: true }),
+        metaRef.set({
+          lastUpdated: now,
+          version: APP_VERSION,
+          updatedBy: 'PWA Web'
+        }, { merge: true })
+      ])
       .then(() => {
         window._hasUnsavedLocalChanges = false;
         const timeStr = new Date(now).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -1083,39 +1109,65 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 
   const isTarget = !isSavedDay && cfg.isTarget && belanja === 0 && retur === 0;
 
-  // 1. Modal Awal Kas Dapur (Saldo Kas Fisik sebelum belanja hari ini)
+  // 1. Modal Awal Kas Dapur (Saldo Kas Fisik yang mengendap di kotak sebelum transaksi hari ini)
   let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
   if (cfg.isoDate === '2026-10-25') {
     modalAwal = 100000;
   }
 
-  // 2. Sisa Kas Fisik setelah Belanja Bahan Hari Ini
-  const sisaEndapanKas = modalAwal - belanja;
+  // 2. Total Kas Fisik yang Benar-Benar Tersedia di Tangan
+  // Hari Minggu: kas tersedia = modal awal Rp 100.000 (belum ada omzet jualan)
+  // Hari Operasional: kas tersedia = sisa uang di kotak (modalAwal) + omzet penarikan sore
+  const totalKasTersedia = (cfg.isoDate === '2026-10-25') ? modalAwal : (modalAwal + omzet);
 
-  // 3. Alokasi 3 Amplop Riil:
-  // Pembagian 3 amplop baru dihitung riil setelah omzet penarikan sore DAN belanja malam diketahui!
+  // 3. Sisa Kas Fisik setelah Belanja Bahan Malam Hari Ini
+  const sisaKasSetelahBelanja = totalKasTersedia - belanja;
+  const isDefisitBelanja = sisaKasSetelahBelanja < 0;
+  const defisitBelanja = isDefisitBelanja ? Math.abs(sisaKasSetelahBelanja) : 0;
+
+  // 4. Alokasi 3 Amplop Riil Berbasis Kas Fisik Nyata (Bebas Angka Fiktif)
   let alokasiBelanjaHarian = 0;
   let tabunganBahanAwet = 0;
+  let targetTabunganAwet = 0;
   let gajiBos = 0;
   let status3Amplop = 'KOSONG';
 
   if (cfg.isoDate === '2026-10-25' || (omzet === 0 && belanja > 0)) {
-    // Belanja perdana (Minggu): modal 100rb - belanja 97.500 = sisa kas 2.500
+    // Belanja perdana (Minggu): modal 100rb - belanja 97.500 = sisa kas fisik 2.500
     alokasiBelanjaHarian = belanja;
     tabunganBahanAwet = 0;
+    targetTabunganAwet = 0;
     gajiBos = 0;
     status3Amplop = 'BELANJA_PERDANA';
   } else if (omzet > 0 && belanja > 0) {
-    // KEDUANYA SUDAH DIKETAHUI: Hitung 3 amplop secara riil & pasti!
+    // KEDUANYA SUDAH DIKETAHUI: Belanja malam & Omzet sore sudah selesai
     alokasiBelanjaHarian = belanja;
-    tabunganBahanAwet = Math.round(laku * 200);
-    const kasDapurWajib = alokasiBelanjaHarian + tabunganBahanAwet;
-    gajiBos = Math.max(0, omzet - kasDapurWajib);
-    status3Amplop = 'LENGKAP';
+    targetTabunganAwet = Math.round(laku * 200);
+
+    if (isDefisitBelanja) {
+      // Kasus Defisit: Belanja malam > Total kas tersedia! Butuh talangan modal bos
+      tabunganBahanAwet = 0;
+      gajiBos = 0;
+      status3Amplop = 'DEFISIT_KAS';
+    } else {
+      // Prioritas 2: Tabungan Bahan Awet HANYA menyerap dari sisa uang fisik nyata yang tersisa
+      tabunganBahanAwet = Math.min(targetTabunganAwet, sisaKasSetelahBelanja);
+
+      // Prioritas 3: Gaji Bersih Bos HANYA diambil dari sisa murni setelah Belanja dan Target Tabungan terpenuhi
+      const sisaMurniLaba = sisaKasSetelahBelanja - targetTabunganAwet;
+      gajiBos = Math.max(0, sisaMurniLaba);
+
+      if (tabunganBahanAwet < targetTabunganAwet) {
+        status3Amplop = 'TABUNGAN_PARSIAL';
+      } else {
+        status3Amplop = 'LENGKAP';
+      }
+    }
   } else if (omzet > 0 && belanja === 0) {
     // Penarikan sore sudah ada, tapi belanja malam belum dicatat
     alokasiBelanjaHarian = 0;
-    tabunganBahanAwet = Math.round(laku * 200);
+    targetTabunganAwet = Math.round(laku * 200);
+    tabunganBahanAwet = 0;
     gajiBos = 0; // Kas belum dibagi ke bos sebelum belanja malam diketahui
     status3Amplop = 'MENUNGGU_BELANJA_MALAM';
   } else {
@@ -1123,18 +1175,23 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     status3Amplop = 'KOSONG';
   }
 
-  // 4. Saldo Kas Fisik Kotak Dapur Siap Operasional Esok Hari
+  // 5. Saldo Kas Fisik Kotak Dapur Riil Mengendap untuk Operasional Esok Hari
   let kasSiapEsok = modalAwal;
   if (status3Amplop === 'BELANJA_PERDANA') {
     kasSiapEsok = Math.max(0, modalAwal - belanja);
-  } else if (status3Amplop === 'LENGKAP') {
-    kasSiapEsok = modalAwal + tabunganBahanAwet;
+  } else if (status3Amplop === 'DEFISIT_KAS') {
+    kasSiapEsok = -defisitBelanja;
+  } else if (status3Amplop === 'LENGKAP' || status3Amplop === 'TABUNGAN_PARSIAL') {
+    // Sisa fisik kas kotak setelah belanja dan pengalokasian gaji bos
+    kasSiapEsok = Math.max(0, sisaKasSetelahBelanja - gajiBos);
   } else if (status3Amplop === 'MENUNGGU_BELANJA_MALAM') {
-    kasSiapEsok = modalAwal + omzet;
+    kasSiapEsok = totalKasTersedia;
   }
+
   const endapanHarian = kasSiapEsok;
   const labaBersih = omzet - belanja;
-  const deficitToCover = sisaEndapanKas < 0 ? Math.abs(sisaEndapanKas) : 0;
+  const sisaEndapanKas = sisaKasSetelahBelanja;
+  const deficitToCover = defisitBelanja;
 
   return {
     isoDate: cfg.isoDate,
@@ -1154,9 +1211,11 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     omzet,
     modalAwal,
     belanja,
+    totalKasTersedia,
     sisaEndapanKas,
     alokasiBelanjaHarian,
     tabunganBahanAwet,
+    targetTabunganAwet,
     recoveryModal: (omzet - gajiBos),
     targetHpp: computeDayTargetHPP(isoDate),
     deficitToCover,
@@ -1748,13 +1807,45 @@ window.openEditBuku1RowModal = function(idx) {
       '</div>';
   });
 
+  const checkboxesHtml = recipes.map(p => {
+    const isChecked = (drops[p.id] > 0 || (p.id === 'prod_ubi' && r.ubi > 0) || (p.id === 'prod_sayur' && r.sayur > 0) || (p.id === 'prod_roti' && r.roti > 0) || r.kirim === 0);
+    return '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #E2E8F0; cursor: pointer;">' +
+      '<input type="checkbox" class="b1-split-chk" value="' + p.id + '" ' + (isChecked ? 'checked' : '') + '> ' +
+      '<span style="color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700;">' + (p.shortName || p.nama) + '</span>' +
+    '</label>';
+  }).join('');
+
   body.innerHTML =
     '<form id="formEditBuku1Row">' +
       '<div style="margin-bottom: 10px;">' +
         '<label class="form-label">Nama Warung / Kantin</label>' +
         '<input type="text" id="b1EditNama" class="form-control-slate" value="' + r.nama + '" required>' +
       '</div>' +
-      '<div style="margin-bottom: 8px;"><strong style="font-size:0.75rem; color:#94A3B8; text-transform:uppercase;">Rencana Drop Produk:</strong></div>' +
+
+      '<!-- FITUR PEMBAGIAN OTOMATIS (AUTO-SPLIT) -->' +
+      '<div style="background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">' +
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+          '<strong style="font-size: 0.78rem; color: #38BDF8; text-transform: uppercase;">Pembagian Otomatis (Auto-Split):</strong>' +
+          '<span style="font-size: 0.7rem; color: #94A3B8;">Bagi rata target kirim</span>' +
+        '</div>' +
+        '<div style="display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 8px;">' +
+          '<div style="flex: 1; min-width: 120px;">' +
+            '<label class="form-label" style="font-size: 0.7rem; margin-bottom: 3px;">Total Target Kirim (Pcs)</label>' +
+            '<input type="number" id="b1AutoSplitTotal" class="form-control-slate" placeholder="Contoh: 25" min="1" value="' + (r.kirim || 25) + '" style="padding: 5px 8px; font-weight: 700;">' +
+          '</div>' +
+          '<div>' +
+            '<button type="button" class="tool-btn tool-btn-primary" id="btnRunAutoSplit" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 800;">Bagi Otomatis</button>' +
+          '</div>' +
+        '</div>' +
+        '<div>' +
+          '<span style="font-size: 0.7rem; color: #94A3B8; display: block; margin-bottom: 4px;">Pilih produk yang ingin dititipkan:</span>' +
+          '<div style="display: flex; gap: 10px; flex-wrap: wrap;">' +
+            checkboxesHtml +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom: 8px;"><strong style="font-size:0.75rem; color:#94A3B8; text-transform:uppercase;">Rincian Drop Produk (Hasil Input / Auto-Split):</strong></div>' +
       '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-bottom: 10px;">' +
         dropsInputsHtml +
         '<div>' +
@@ -1800,6 +1891,45 @@ window.openEditBuku1RowModal = function(idx) {
       const el = document.getElementById(id);
       if (el) el.addEventListener('input', recalcModalPreview);
     });
+
+    const btnSplit = document.getElementById('btnRunAutoSplit');
+    if (btnSplit) {
+      btnSplit.onclick = (e) => {
+        e.preventDefault();
+        const targetTotal = Math.max(0, parseInt(document.getElementById('b1AutoSplitTotal')?.value, 10) || 0);
+        if (targetTotal <= 0) return;
+        const checkedInps = Array.from(document.querySelectorAll('.b1-split-chk:checked'));
+        if (checkedInps.length === 0) {
+          if (typeof window.showAlertModal === 'function') {
+            window.showAlertModal('Pilih Produk', 'Pilih minimal satu varian produk yang dicentang untuk pembagian otomatis.');
+          }
+          return;
+        }
+        const count = checkedInps.length;
+        const baseEach = Math.floor(targetTotal / count);
+        let remainder = targetTotal % count;
+
+        // Kosongkan seluruh input produk terlebih dahulu
+        recipes.forEach(p => {
+          const inp = document.getElementById('b1EditProd_' + p.id);
+          if (inp) inp.value = 0;
+        });
+
+        // Bagikan secara merata & proporsional ke produk yang dicentang
+        checkedInps.forEach(chk => {
+          const prodId = chk.value;
+          const inp = document.getElementById('b1EditProd_' + prodId);
+          let qty = baseEach;
+          if (remainder > 0) {
+            qty += 1;
+            remainder--;
+          }
+          if (inp) inp.value = qty;
+        });
+
+        recalcModalPreview();
+      };
+    }
   }, 20);
 
   footer.innerHTML =
@@ -2227,15 +2357,31 @@ function renderExecutiveFinancials() {
         </div>`;
     } else if (curDay.omzet > 0 && curDay.belanja > 0) {
       // Penarikan sore dan belanja malam KEDUANYA SUDAH DIKETAHUI!
-      const alokasiBelanja = curDay.belanja;
-      const tabunganAwet = Math.round((curDay.laku || 0) * 200);
-      const labaMurni = Math.max(0, curDay.omzet - alokasiBelanja - tabunganAwet);
+      const alokasiBelanja = curDay.alokasiBelanjaHarian || curDay.belanja;
+      const tabunganAwet = curDay.tabunganBahanAwet || 0;
+      const targetAwet = curDay.targetTabunganAwet || Math.round((curDay.laku || 0) * 200);
+      const labaMurni = curDay.gajiBos || 0;
+      const uangKasNyata = (curDay.kasSiapEsok !== undefined) ? curDay.kasSiapEsok : (curDay.sisaEndapanKas || 0);
+
+      let badgeStatusHtml = '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 800;">Lengkap Terverifikasi</span>';
+      let amplop2Subtext = 'Cadangan sosis, minyak, collins, gas (aman di dapur)';
+      let amplop3Subtext = 'Laba bersih hak bos (Diambil Jumat sore)';
+
+      if (curDay.status3Amplop === 'DEFISIT_KAS') {
+        badgeStatusHtml = '<span class="mini-tag" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-weight: 800;">Defisit Kas Belanja</span>';
+        amplop2Subtext = 'Kas tidak cukup untuk tabungan awet hari ini';
+        amplop3Subtext = 'Gaji bos Rp 0 (Belanja malam butuh talangan modal)';
+      } else if (curDay.status3Amplop === 'TABUNGAN_PARSIAL') {
+        badgeStatusHtml = '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; font-weight: 800;">Kas Dapur Diamankan</span>';
+        amplop2Subtext = 'Terisi Rp ' + tabunganAwet.toLocaleString('id-ID') + ' dari target Rp ' + targetAwet.toLocaleString('id-ID') + ' (Sisa kas fisik diprioritaskan)';
+        amplop3Subtext = 'Laba bos Rp 0 hari ini (Kas difokuskan amankan belanja & bahan dapur)';
+      }
 
       card3AmpContainer.innerHTML = `
         <div style="padding: 16px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
             <strong style="color: #38BDF8; font-size: 0.88rem;">Pembagian 3 Amplop Riil Hari Ini (Penarikan & Belanja Selesai)</strong>
-            <span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 800;">Lengkap Terverifikasi</span>
+            ${badgeStatusHtml}
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
@@ -2250,19 +2396,19 @@ function renderExecutiveFinancials() {
             <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 14px; border-radius: 8px; border-top: 3px solid #FBBF24;">
               <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; display: block;">Amplop 2: Tabungan Bahan Awet</span>
               <strong style="font-size: 1.15rem; color: #FBBF24; display: block; margin: 4px 0;">Rp ${tabunganAwet.toLocaleString('id-ID')}</strong>
-              <span style="font-size: 0.72rem; color: #94A3B8;">Cadangan sosis, minyak, collins, gas (aman di dapur)</span>
+              <span style="font-size: 0.72rem; color: #94A3B8;">${amplop2Subtext}</span>
             </div>
 
             <!-- Amplop 3 -->
             <div style="background: rgba(30, 41, 59, 0.6); padding: 12px 14px; border-radius: 8px; border-top: 3px solid #818CF8;">
               <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; display: block;">Amplop 3: Penghasilan Murni Bos</span>
               <strong style="font-size: 1.15rem; color: #818CF8; display: block; margin: 4px 0;">Rp ${labaMurni.toLocaleString('id-ID')}</strong>
-              <span style="font-size: 0.72rem; color: #94A3B8;">Laba bersih hak bos (Diambil Jumat sore)</span>
+              <span style="font-size: 0.72rem; color: #94A3B8;">${amplop3Subtext}</span>
             </div>
           </div>
 
           <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--card-border); font-size: 0.76rem; color: #94A3B8;">
-            Total Uang Kas Mengendap di Kotak Dapur: <strong style="color: #34D399;">Rp ${(curDay.kasSiapEsok || 0).toLocaleString('id-ID')}</strong> (Siap digunakan operasional berikutnya).
+            Total Uang Kas Mengendap di Kotak Dapur: <strong style="color: ${uangKasNyata < 0 ? '#FB7185' : '#34D399'};">Rp ${uangKasNyata.toLocaleString('id-ID')}</strong> (Siap digunakan operasional berikutnya).
           </div>
         </div>`;
     } else if (curDay.omzet > 0 && curDay.belanja === 0) {
@@ -4732,7 +4878,10 @@ function renderBuku1View() {
             '</div>' +
           '</td>' +
           '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
-            '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
+            '<div style="display: flex; gap: 4px; justify-content: center;">' +
+              '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
+              '<button type="button" class="btn-del-row" style="color: #34D399; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Bagi Otomatis Target Kirim">Bagi</button>' +
+            '</div>' +
           '</td>';
       } else {
         tr.innerHTML = 
@@ -4829,10 +4978,11 @@ function renderKuitansiView() {
   const kuitansiNoEl = document.getElementById('kuitansiNoDisplay');
   const kuitansiTglEl = document.getElementById('kuitansiTglDisplay');
   const kuitansiPlafonEl = document.getElementById('kuitansiPlafonDisplay');
-  const kuitansiRekapModalEl = document.getElementById('kuitansiRekapModalDisplay');
-  const kuitansiRekapBelanjaEl = document.getElementById('kuitansiRekapBelanjaDisplay');
-  const kuitansiRekapEndapanEl = document.getElementById('kuitansiRekapEndapanDisplay');
-  const kuitansiTotalEl = document.getElementById('kuitansiTotalDisplay');
+  const kuitansiRekapModalEl = document.getElementById('kuitansiRekapModal') || document.getElementById('kuitansiRekapModalDisplay');
+  const kuitansiRekapBelanjaEl = document.getElementById('kuitansiRekapBelanja') || document.getElementById('kuitansiRekapBelanjaDisplay');
+  const kuitansiRekapEndapanEl = document.getElementById('kuitansiRekapEndapan') || document.getElementById('kuitansiRekapEndapanDisplay');
+  const kuitansiTableTotalEl = document.getElementById('kuitansiTableTotal');
+  const kuitansiTotalEl = document.getElementById('kuitansiTotalDisplay') || kuitansiTableTotalEl;
   const kuitansiTerbilangEl = document.getElementById('kuitansiTerbilangDisplay');
   const kuitansiBody = document.getElementById('kuitansiTableBody');
   const dateSelectEl = document.getElementById('kuitansiDateSelect');
@@ -4890,13 +5040,14 @@ function renderKuitansiView() {
   if (kuitansiPlafonEl) kuitansiPlafonEl.innerText = 'Rp ' + dayPlafon.toLocaleString('id-ID');
   if (kuitansiRekapModalEl) kuitansiRekapModalEl.innerText = 'Rp ' + dayPlafon.toLocaleString('id-ID');
   if (kuitansiRekapBelanjaEl) kuitansiRekapBelanjaEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
+  if (kuitansiTableTotalEl) kuitansiTableTotalEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
+  if (kuitansiTotalEl) kuitansiTotalEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
   if (kuitansiRekapEndapanEl) {
     kuitansiRekapEndapanEl.innerText = dayEndapan < 0
       ? '-Rp ' + Math.abs(dayEndapan).toLocaleString('id-ID') + ' (Subsidi Kotak)'
       : 'Rp ' + dayEndapan.toLocaleString('id-ID');
     kuitansiRekapEndapanEl.style.color = dayEndapan < 0 ? '#FB7185' : '#34D399';
   }
-  if (kuitansiTotalEl) kuitansiTotalEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
   if (kuitansiTerbilangEl) kuitansiTerbilangEl.innerText = '# ' + terbilangRupiah(dayTotal) + ' #';
 
   if (kuitansiBody) {
@@ -4979,7 +5130,7 @@ function renderBuku3View() {
       totalGajiAll += (k.gaji || 0);
     });
 
-    auraData.buku3Kas.forEach(k => {
+    verifiedList.forEach(k => {
 
       const sisaEndapanFormatted = k.sisaEndapanKas < 0
         ? '-Rp ' + Math.abs(k.sisaEndapanKas).toLocaleString('id-ID')
@@ -5031,7 +5182,7 @@ function renderBuku3View() {
         '</tr>';
     }
 
-    renderBuku3Cards(auraData.buku3Kas, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan);
+    renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan);
 
     const bepTarget = 100000;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
@@ -5552,8 +5703,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.5.0';
-const APP_BUILD_TIME = '26/10/2026 16:58 WIB';
+const APP_VERSION = 'v6.6.0';
+const APP_BUILD_TIME = '26/10/2026 19:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5904,29 +6055,39 @@ window.saveAndSyncModule = async function(moduleName) {
   }
 };
 
-// Otomatis tarik pembaruan Cloud saat tab HP kembali aktif dari latar belakang (Network First)
+// Otomatis verifikasi pembaruan Cloud saat tab HP/PC aktif kembali (KasirPro Handshake)
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized) {
-      const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
-      docRef.get({ source: 'server' }).then(doc => {
-        if (doc.exists) {
-          const cloudDoc = doc.data();
-          if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
-            const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
-              console.log('[Firestore] Tab aktif: Network-First memperbarui data dari Cloud');
-              auraData = cloudDoc.payload;
-              auraData._lastUpdated = cloudDoc.lastUpdated;
-              localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-              renderAllViews();
-              const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-              setCloudStatusUI('connected', 'Online • ' + timeStr);
-            }
+      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
+      metaRef.get({ source: 'server' }).then(metaDoc => {
+        if (metaDoc.exists) {
+          const metaData = metaDoc.data();
+          const localUpdated = (auraData && auraData._lastUpdated) || 0;
+          if (metaData && metaData.lastUpdated > localUpdated) {
+            console.log('[Firestore] KasirPro Handshake (Tab Aktif): Cloud terdeteksi baru, tarik payload...');
+            const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+            docRef.get({ source: 'server' }).then(doc => {
+              if (doc.exists) {
+                const cloudDoc = doc.data();
+                if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
+                  auraData = cloudDoc.payload;
+                  auraData._lastUpdated = cloudDoc.lastUpdated;
+                  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+                  renderAllViews();
+                  const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                  setCloudStatusUI('connected', 'Online • ' + timeStr);
+                }
+              }
+            }).catch(err => {
+              console.warn('[Firestore] Payload fetch note:', err.code);
+            });
+          } else {
+            console.log('[Firestore] KasirPro Handshake (Tab Aktif): Data lokal sudah mutakhir, lewati unduhan payload.');
           }
         }
       }).catch(err => {
-        console.warn('[Firestore] Visibility sync note:', err.code);
+        console.warn('[Firestore] Visibility meta handshake note:', err.code);
       });
     }
   });

@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.5.0</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.6.0</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -639,6 +639,43 @@
           </div>
         </div>
 
+        <!-- FORM INPUT PENGELUARAN CEPAT (ERGONOMIS & TERPISAH) -->
+        <div class="slate-card no-print" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <strong style="color: #38BDF8; font-size: 0.95rem;">Catat Pengeluaran Belanja Baru</strong>
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">Input nota pembelian bahan ke lembar tanggal <strong id="kuitansiCurrentDayLabel" style="color: #FBBF24;">26/10</strong></div>
+            </div>
+          </div>
+          <form id="formAddBelanjaKuitansi" onsubmit="window.handleAddBelanjaToKuitansi(event)">
+            <div class="kuitansi-input-grid">
+              <div style="flex: 2; min-width: 180px;">
+                <label class="form-label">Nama Bahan / Rincian Belanja</label>
+                <input type="text" id="kuitansiInputNama" class="form-control-slate" placeholder="Contoh: Roti Tawar Kupas" required>
+              </div>
+              <div style="flex: 1.2; min-width: 120px;">
+                <label class="form-label">Kuantitas</label>
+                <input type="text" id="kuitansiInputQty" class="form-control-slate" placeholder="Contoh: 2 bungkus" required>
+              </div>
+              <div style="flex: 1.2; min-width: 120px;">
+                <label class="form-label">Biaya Riil (Rp)</label>
+                <input type="number" id="kuitansiInputBiaya" class="form-control-slate" placeholder="Contoh: 20000" min="0" required>
+              </div>
+              <div style="flex: 1.6; min-width: 160px;">
+                <label class="form-label">Kategori Belanja</label>
+                <select id="kuitansiInputKategori" class="form-control-slate">
+                  <option value="Toko / Minimarket">Toko / Minimarket</option>
+                  <option value="Pasar Subuh">Pasar Subuh</option>
+                  <option value="Operasional & Gas">Operasional & Gas</option>
+                </select>
+              </div>
+              <div style="align-self: flex-end;">
+                <button type="submit" class="tool-btn tool-btn-success" style="padding: 9px 18px; font-weight: 800;">+ Catat ke Kuitansi</button>
+              </div>
+            </div>
+          </form>
+        </div>
+
         <!-- LEMBAR KUITANSI FISIK A5 (VOUCHER KAS KELUAR) -->
         <div class="kuitansi-voucher-wrap" id="kuitansiPrintArea">
           <div class="kuitansi-voucher-box">
@@ -647,13 +684,12 @@
             <div class="kuitansi-kop">
               <div class="kuitansi-brand-col">
                 <div class="kuitansi-brand-badge">DAPUR MOM FITRI</div>
-                <div class="kuitansi-brand-sub">AUTOMATED UTILITY & REVENUE ASSISTANT</div>
                 <div class="kuitansi-brand-loc">Sistem Operasional Konsinyasi • Dokumen Kontrol Kas Internal</div>
               </div>
               <div class="kuitansi-doc-col">
-                <div class="kuitansi-doc-title">BUKTI KAS KELUAR</div>
-                <div class="kuitansi-doc-no" id="kuitansiNoDisplay">BKK-20261021-03</div>
-                <div class="kuitansi-doc-badge">FORMAT LEMBAR A5 HARIAN</div>
+                <div class="kuitansi-doc-title">BUKTI KAS KELUAR (BKK)</div>
+                <div class="kuitansi-doc-no" id="kuitansiNoDisplay">BKK-20261026-01</div>
+                <div class="kuitansi-doc-badge">FORMAT LEMBAR ARSIP A5</div>
               </div>
             </div>
 
@@ -661,7 +697,7 @@
             <div class="kuitansi-meta-grid">
               <div class="kuitansi-meta-cell meta-tgl">
                 <span class="kuitansi-meta-lbl">HARI & TANGGAL:</span>
-                <strong class="kuitansi-meta-val" id="kuitansiTglDisplay">Rabu, 21 Oktober 2026</strong>
+                <strong class="kuitansi-meta-val" id="kuitansiTglDisplay">Senin, 26 Oktober 2026</strong>
               </div>
               <div class="kuitansi-meta-cell meta-sumber">
                 <span class="kuitansi-meta-lbl">SUMBER DANA KAS:</span>
@@ -672,12 +708,12 @@
                 <strong class="kuitansi-meta-val" style="color: #34D399;" id="kuitansiPlafonDisplay">Rp 100.000</strong>
               </div>
               <div class="kuitansi-meta-cell meta-kepada">
-                <span class="kuitansi-meta-lbl">DIBAYARKAN KEPADA:</span>
-                <strong class="kuitansi-meta-val" style="color: #FBBF24;">Pedagang Pasar Subuh & Toko / Minimarket</strong>
+                <span class="kuitansi-meta-lbl">TUJUAN PENGELUARAN:</span>
+                <strong class="kuitansi-meta-val" style="color: #FBBF24;">Pembelian Bahan Baku & Keperluan Dapur</strong>
               </div>
             </div>
 
-            <!-- TABEL RINCIAN PENGELUARAN PADA KUITANSI (STATUS STRUK DIHAPUS) -->
+            <!-- TABEL RINCIAN PENGELUARAN PADA KUITANSI -->
             <div class="table-responsive-wrapper" style="margin-bottom: 14px;">
               <table class="slate-table kuitansi-table">
                 <thead>
@@ -706,45 +742,11 @@
             <!-- TAMPILAN KARTU BELANJA DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
             <div id="kuitansiCardsContainer" class="collapsible-cards-container"></div>
 
-            <!-- IN-LINE FORM: TAMBAH ITEM KE KUITANSI HARI INI -->
-            <div class="kuitansi-add-item-box no-print">
-              <div class="kuitansi-add-title">
-                <span>Form Input Pengeluaran Kas Baru (Tambah ke Lembar <span id="kuitansiCurrentDayLabel">26/10</span>)</span>
-              </div>
-              <form id="formAddBelanjaKuitansi" onsubmit="window.handleAddBelanjaToKuitansi(event)">
-                <div class="kuitansi-input-grid">
-                  <div style="flex: 2; min-width: 180px;">
-                    <label class="form-label">Nama Bahan / Rincian</label>
-                    <input type="text" id="kuitansiInputNama" class="form-control-slate" placeholder="Contoh: Roti Tawar Kupas" required>
-                  </div>
-                  <div style="flex: 1.2; min-width: 120px;">
-                    <label class="form-label">Kuantitas</label>
-                    <input type="text" id="kuitansiInputQty" class="form-control-slate" placeholder="Contoh: 2 bungkus" required>
-                  </div>
-                  <div style="flex: 1.2; min-width: 120px;">
-                    <label class="form-label">Biaya Riil (Rp)</label>
-                    <input type="number" id="kuitansiInputBiaya" class="form-control-slate" placeholder="Contoh: 20000" min="0" required>
-                  </div>
-                  <div style="flex: 1.6; min-width: 160px;">
-                    <label class="form-label">Kategori Belanja</label>
-                    <select id="kuitansiInputKategori" class="form-control-slate">
-                      <option value="Toko / Minimarket">Toko / Minimarket</option>
-                      <option value="Pasar Subuh">Pasar Subuh</option>
-                      <option value="Operasional & Gas">Operasional / Gas</option>
-                    </select>
-                  </div>
-                  <div style="align-self: flex-end;">
-                    <button type="submit" class="tool-btn tool-btn-success" style="padding: 9px 18px; font-weight: 800;">+ Catat ke Kuitansi</button>
-                  </div>
-                </div>
-              </form>
-            </div>
-
             <!-- TERBILANG KUITANSI BOX -->
             <div class="kuitansi-terbilang-wrap">
               <span class="kuitansi-terbilang-tag">TERBILANG:</span>
               <div class="kuitansi-terbilang-text" id="kuitansiTerbilangDisplay">
-                # Lima Puluh Tujuh Ribu Lima Ratus Rupiah #
+                # Nol Rupiah #
               </div>
             </div>
 
@@ -769,36 +771,21 @@
                   <span class="kuitansi-rekap-lbl">3. SISA KAS MENGENDAP DI KOTAK</span>
                 </div>
                 <strong class="kuitansi-rekap-val" id="kuitansiRekapEndapan">Rp 100.000</strong>
-                <span class="kuitansi-rekap-sub">Sisa uang tunai (Cadangan gas & minyak)</span>
+                <span class="kuitansi-rekap-sub">Sisa kas fisik dapur</span>
               </div>
             </div>
 
             <!-- LEMBAR TANDA TANGAN & PENGESAHAN KUITANSI (A5 OFFICIAL) -->
-            <div class="kuitansi-signatures-wrap">
-              <div class="kuitansi-sig-box">
-                <div class="kuitansi-sig-title">Diserahkan Kepada / Toko:</div>
-                <div class="kuitansi-sig-line">
-                  <div class="kuitansi-sig-name">( Pedagang / Toko Bahan )</div>
-                  <div class="kuitansi-sig-role">Struk / Nota Fisik Terlampir</div>
-                </div>
+            <div class="kuitansi-signatures-wrap" style="display: flex; justify-content: space-between; margin-top: 24px; padding-top: 14px; border-top: 1px dashed var(--card-border);">
+              <div class="kuitansi-sig-box" style="text-align: center; flex: 1;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 45px;">Dibelanjakan Oleh:</div>
+                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.82rem;">( Tim Dapur / Belanja )</div>
+                <div style="font-size: 0.68rem; color: var(--text-secondary);">Pelaksana Operasional</div>
               </div>
-
-              <!-- CAP STEMPEL KUITANSI -->
-              <div class="kuitansi-stamp-box">
-                <div class="kuitansi-stamp-inner">
-                  <span class="stamp-star">★ ★ ★</span>
-                  <span class="stamp-main">LUNAS DIBAYAR</span>
-                  <span class="stamp-account">AMPLOP 1 DAPUR</span>
-                  <span class="stamp-status">ZERO-LEAKAGE VERIFIED</span>
-                </div>
-              </div>
-
-              <div class="kuitansi-sig-box">
-                <div class="kuitansi-sig-title">Penanggung Jawab Kas / Bos:</div>
-                <div class="kuitansi-sig-line">
-                  <div class="kuitansi-sig-name">( Bos / Otorisator Kas )</div>
-                  <div class="kuitansi-sig-role">Penanggung Jawab Kas Utama</div>
-                </div>
+              <div class="kuitansi-sig-box" style="text-align: center; flex: 1;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 45px;">Disetujui & Diverifikasi Oleh:</div>
+                <div style="font-weight: 700; color: #FFFFFF; font-size: 0.82rem;">( Pemilik / Fitri )</div>
+                <div style="font-size: 0.68rem; color: var(--text-secondary);">Penanggung Jawab Keuangan</div>
               </div>
             </div>
 
