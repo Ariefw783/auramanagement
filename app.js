@@ -1109,7 +1109,8 @@ function getAllDaysAccounting() {
 
   return sortedDays.map(cfg => {
     const day = computeDayAccounting(cfg.isoDate, rollingEndapan);
-    const isCounted = !day.isTarget || day.isoDate === activeDate;
+    // Hanya hari yang sah (sudah disimpan atau ada transaksi riil) yang mempengaruhi akumulasi keuangan
+    const isCounted = !day.isTarget || day.isSavedDay || (day.omzet > 0 || day.belanja > 0);
     if (isCounted) {
       rollingEndapan = day.endapanHarian;
       cumGaji += day.gajiBos;
@@ -1962,17 +1963,21 @@ function renderExecutiveFinancials() {
   const allDays = getAllDaysAccounting();
   const curDay = allDays.find(d => d.isoDate === activeDate) || computeDayAccounting(activeDate);
 
-  const pctTerjual = curDay.kirim > 0 ? ((curDay.laku / curDay.kirim) * 100).toFixed(1) : '0.0';
-  const cumGaji = curDay.cumGaji !== undefined ? curDay.cumGaji : curDay.gajiBos;
-  const cumEndapan = curDay.cumEndapan !== undefined ? curDay.cumEndapan : curDay.endapanHarian;
-  const totalKasBersih = cumGaji + cumEndapan;
+  // 1. Akumulasi Sah Seluruh Bisnis (Stabil & Bebas dari Fluktuasi Navigasi Tanggal)
+  const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const totalGajiBisnis = verifiedDays.reduce((sum, d) => sum + (d.gajiBos || 0), 0);
 
-  // Update Top-Right Balance Card (Akumulasi Kas Bersih s/d Tanggal Terpilih)
+  // Saldo fisik kas dapur terkini (dari hari operasional berjalan terakhir)
+  const latestVerifiedDay = verifiedDays.length > 0 ? verifiedDays[verifiedDays.length - 1] : curDay;
+  const kasDapurSaatIni = latestVerifiedDay ? latestVerifiedDay.endapanHarian : 100000;
+  const totalKasBisnisNyata = totalGajiBisnis + kasDapurSaatIni;
+
+  // Header Saldo Kas Bersih Utama (Konsisten & Menunjukkan Posisi Kas Riil Perusahaan)
   const balanceDisplay = document.getElementById('balanceDisplay');
   const balanceSubDisplay = document.getElementById('balanceSubDisplay');
-  if (balanceDisplay) balanceDisplay.innerText = 'Rp ' + totalKasBersih.toLocaleString('id-ID');
+  if (balanceDisplay) balanceDisplay.innerText = 'Rp ' + totalKasBisnisNyata.toLocaleString('id-ID');
   if (balanceSubDisplay) {
-    balanceSubDisplay.innerText = 'Dompet Bos: Rp ' + cumGaji.toLocaleString('id-ID') + ' • Kotak Dapur: Rp ' + cumEndapan.toLocaleString('id-ID');
+    balanceSubDisplay.innerText = 'Dompet Bos: Rp ' + totalGajiBisnis.toLocaleString('id-ID') + ' • Kotak Dapur: Rp ' + kasDapurSaatIni.toLocaleString('id-ID');
   }
 
   // Update 5 Financial Scorecards (100% Sinkron dengan Distribusi, Belanja, dan Arus Kas)
@@ -1987,6 +1992,7 @@ function renderExecutiveFinancials() {
   const endapanEl = document.getElementById('kpiEndapanVal');
   const endapanSubEl = document.getElementById('kpiEndapanSub');
 
+  const pctTerjual = curDay.kirim > 0 ? Math.round((curDay.laku / curDay.kirim) * 100) : 0;
   if (omzetEl) omzetEl.innerText = 'Rp ' + curDay.omzet.toLocaleString('id-ID');
   if (omzetSubEl) omzetSubEl.innerText = curDay.laku + ' / ' + curDay.kirim + ' pcs terjual (' + pctTerjual + '%)';
 
@@ -2051,9 +2057,9 @@ function renderAccountingChart() {
   const d22 = allDays.find(d => d.isoDate === '2026-10-22') || computeDayAccounting('2026-10-22');
   const d23 = allDays.find(d => d.isoDate === '2026-10-23') || computeDayAccounting('2026-10-23');
 
-  // Hanya masukkan hari target (belum ada belanja/retur) jika hari tersebut sedang dipilih aktif
-  const verifiedDays = allDays.filter(d => !d.isTarget || d.isoDate === activeDate);
-  const w4Days = [d22, d23].filter(d => !d.isTarget || d.isoDate === activeDate);
+  // Hanya masukkan hari terverifikasi (tidak bergantung pada tanggal navigasi yang sedang dipilih)
+  const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const w4Days = [d22, d23].filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
 
   let chartData = [];
 
@@ -2834,6 +2840,14 @@ function getRecipeIngredientQty(prod, bahanKeyKeyword, fallbackVal) {
   if (!prod || !prod.komposisi) return fallbackVal;
   const item = prod.komposisi.find(k => k.bahanKey.toLowerCase().includes(bahanKeyKeyword.toLowerCase()) || (k.nama && k.nama.toLowerCase().includes(bahanKeyKeyword.toLowerCase())));
   return item ? (Number(item.qtyPerPcs) || 0) : fallbackVal;
+}
+
+function getStokGramByKey(keyword) {
+  const list = (typeof auraData !== 'undefined' && Array.isArray(auraData.stokBahan)) ? auraData.stokBahan : [];
+  const kw = (keyword || '').toLowerCase();
+  const found = list.find(b => (b.nama || '').toLowerCase().includes(kw));
+  if (!found) return 999999;
+  return typeof found.stokGram === 'number' ? found.stokGram : ((found.stok || 0) * (found.gramPerUnit || 1));
 }
 
 window.calculateTakaran = function() {
@@ -4660,18 +4674,21 @@ function renderBuku3View() {
 
   if (b3Body) {
     b3Body.innerHTML = '';
+
+    // Hanya rekap hari-hari yang sah terverifikasi secara stabil (TIDAK terpengaruh posisi activeDate)
+    const verifiedList = auraData.buku3Kas.filter(k => !k.isTarget || k.isSavedDay || (k.setor > 0 || k.realBelanja > 0));
     let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0;
 
+    verifiedList.forEach(k => {
+      totalKirimAll += (k.kirim || 0);
+      totalReturAll += (k.retur || 0);
+      totalLakuAll += (k.laku || 0);
+      totalSetorAll += (k.setor || 0);
+      totalBelanjaAll += (k.realBelanja || 0);
+      totalGajiAll += (k.gaji || 0);
+    });
+
     auraData.buku3Kas.forEach(k => {
-      const includeInVerifiedTotal = !k.isTarget || k.isoDate === activeDate;
-      if (includeInVerifiedTotal) {
-        totalKirimAll += (k.kirim || 0);
-        totalReturAll += (k.retur || 0);
-        totalLakuAll += (k.laku || 0);
-        totalSetorAll += (k.setor || 0);
-        totalBelanjaAll += (k.realBelanja || 0);
-        totalGajiAll += (k.gaji || 0);
-      }
 
       const sisaEndapanFormatted = k.sisaEndapanKas < 0
         ? '-Rp ' + Math.abs(k.sisaEndapanKas).toLocaleString('id-ID')
@@ -4702,8 +4719,8 @@ function renderBuku3View() {
       b3Body.appendChild(tr);
     });
 
-    const latestVerifiedEndapan = allDaysAccounting.length > 0 
-      ? allDaysAccounting[allDaysAccounting.length - 1].cumEndapan 
+    const latestVerifiedEndapan = verifiedList.length > 0 
+      ? (verifiedList[verifiedList.length - 1].kasSiapEsok || verifiedList[verifiedList.length - 1].endapan) 
       : 100000;
     const modalPlafonAktif = 100000;
 
@@ -5209,8 +5226,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.4';
-const APP_BUILD_TIME = '26/10/2026 13:30 WIB';
+const APP_VERSION = 'v6.4.5';
+const APP_BUILD_TIME = '26/10/2026 15:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
