@@ -5101,67 +5101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Copy WhatsApp Sayur
-  const btnWa = document.getElementById('btnCopyWa');
-  if (btnWa) {
-    btnWa.addEventListener('click', () => {
-      const needed = [];
-      const surplus = [];
-
-      auraData.stokBahan.forEach(s => {
-        if (s.jalur === 'B') {
-          const min = s.minTrigger !== undefined ? s.minTrigger : 1;
-          if (s.stok <= min) {
-            needed.push('• ' + s.nama + ' : ' + s.orderQty);
-          } else {
-            surplus.push(s.nama.replace(' Segar', '').replace(' Pasar', '').toLowerCase());
-          }
-        }
-      });
-
-      let msg = "Assalamu'alaikum Mang/Mbak, titip belanjaan pasar untuk diantar besok pagi ya:\n\n";
-      if (needed.length > 0) msg += needed.join('\n') + '\n\n';
-      else msg += "• (Alhamdulillah seluruh bahan pasar utama masih aman di kulkas, tidak ada pesanan baru).\n\n";
-
-      if (surplus.length > 0) msg += "(Catatan: Stok " + surplus.join(', ') + " masih ada di kulkas). Terima kasih banyak!";
-      else msg += "Terima kasih banyak!";
-
-      navigator.clipboard.writeText(msg).then(() => {
-        window.showSuccessModal("Tersalin ke Clipboard", "Teks pesanan WA tukang sayur (Siklus L+2) berhasil disalin!\n\n" + msg);
-      }).catch(() => {
-        window.showAlertModal("Pesan WA Sayur", msg);
-      });
-    });
-  }
-
-  // Copy Belanja Toko Malam
-  const btnToko = document.getElementById('btnCopyToko');
-  if (btnToko) {
-    btnToko.addEventListener('click', () => {
-      const needed = [];
-      auraData.stokBahan.forEach(s => {
-        if (s.jalur === 'A') {
-          const min = s.minTrigger !== undefined ? s.minTrigger : 1;
-          if (s.stok <= min) needed.push('• ' + s.nama + ' : ' + s.orderQty);
-        }
-      });
-
-      let msg = "DAFTAR BELANJA TOKO / MINIMARKET (MALAM INI UNTUK SUBUH):\n\n";
-      if (needed.length > 0) {
-        msg += needed.join('\n') + '\n\n';
-        msg += "Wajib dibeli malam ini menggunakan dana Amplop 1 agar subuh siap produksi!";
-      } else {
-        msg += "• Seluruh bahan toko (Roti, Keju, SKM, Minyak) masih aman di dapur!";
-      }
-
-      navigator.clipboard.writeText(msg).then(() => {
-        window.showSuccessModal("Tersalin ke Clipboard", "List belanja toko bahan kue / minimarket berhasil disalin!\n\n" + msg);
-      }).catch(() => {
-        window.showAlertModal("List Belanja Toko", msg);
-      });
-    });
-  }
-
   // Copy Checklist Takaran Subuh
   const btnTakaran = document.getElementById('btnCopyTakaran');
   if (btnTakaran) {
@@ -5223,8 +5162,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.4.2';
-const APP_BUILD_TIME = '26/10/2026 12:15 WIB';
+const APP_VERSION = 'v6.4.3';
+const APP_BUILD_TIME = '26/10/2026 12:25 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
