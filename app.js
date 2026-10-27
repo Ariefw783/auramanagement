@@ -5028,8 +5028,9 @@ function renderKuitansiView() {
     modal: 100000
   };
 
+  const allDaysAccounting = getAllDaysAccounting();
   const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === selectedBuku2Date);
-  const dayAccounting = matchedDayCfg ? computeDayAccounting(matchedDayCfg.isoDate) : null;
+  const dayAccounting = allDaysAccounting.find(d => d.b2Key === selectedBuku2Date || (matchedDayCfg && d.isoDate === matchedDayCfg.isoDate)) || (matchedDayCfg ? computeDayAccounting(matchedDayCfg.isoDate) : null);
   const dayTotal = currentItems.reduce((acc, cur) => acc + (cur.biaya || 0), 0);
   const kasTersedia = dayAccounting ? (dayAccounting.totalKasTersedia || dayAccounting.modalAwal || 100000) : (currentDayCfg.modal || 100000);
   const sisaKasFisik = kasTersedia - dayTotal;
@@ -5705,8 +5706,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.6.1';
-const APP_BUILD_TIME = '27/10/2026 10:05 WIB';
+const APP_VERSION = 'v6.6.2';
+const APP_BUILD_TIME = '27/10/2026 10:55 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
