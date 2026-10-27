@@ -4605,18 +4605,6 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
         '</div>' +
       '</div>';
 
-    const actionsHtml = 
-      '<div class="b1-card-actions">' +
-        '<button type="button" class="b1-action-btn primary" onclick="window.openDetailNotaModal(' + idx + ')">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
-          '<span>Buka Slip Setoran</span>' +
-        '</button>' +
-        '<button type="button" class="b1-action-btn secondary" onclick="window.openDetailNotaModal(' + idx + ', true)">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' +
-          '<span>Cetak</span>' +
-        '</button>' +
-      '</div>';
-
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku1\', ' + idx + ')">' +
         '<div class="record-title-wrap">' +
@@ -4649,7 +4637,6 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
         '</div>' +
         section2Html +
         section3Html +
-        actionsHtml +
       '</div>';
 
     container.appendChild(card);
@@ -5916,8 +5903,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.7.1';
-const APP_BUILD_TIME = '27/10/2026 12:05 WIB';
+const APP_VERSION = 'v6.7.2';
+const APP_BUILD_TIME = '27/10/2026 12:45 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 

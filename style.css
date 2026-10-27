@@ -2031,11 +2031,18 @@ body {
 }
 
 /* Print Stylesheet for Physical Box Slips & Kuitansi */
+@page {
+  size: A4 portrait;
+  margin: 12mm 10mm 14mm 10mm;
+}
+
 @media print {
   body {
     background: #FFFFFF !important;
     color: #000000 !important;
     padding: 0 !important;
+    font-size: 9pt !important;
+    line-height: 1.4 !important;
   }
 
   .app-frame {
@@ -2047,19 +2054,45 @@ body {
     max-width: 100% !important;
   }
 
+  /* Elemen Web / Kontrol yang DILARANG masuk cetakan */
   .app-sidebar,
   .topbar-header,
   .mobile-bottom-nav,
   .mobile-topbar,
   .tool-btn,
   .sidebar-status-box,
-  .no-print {
+  .no-print,
+  .slate-table th.no-print,
+  .slate-table td.no-print,
+  .btn-del-row,
+  .btn-del-mini,
+  .b1-drop-del,
+  .b1-add-product-wrap,
+  .b1-card-actions,
+  .collapsible-cards-container,
+  .card-view-header-bar,
+  .buku1-save-action-bar,
+  .kuitansi-nav-card,
+  .kuitansi-filter-bar,
+  .date-stepper-container,
+  .date-display-trigger,
+  .master-bahan-toolbar,
+  .search-input-wrap,
+  .stok-toolbar,
+  .app-modal-overlay,
+  #appLoadingOverlay {
     display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
   }
 
   .main-workspace {
     background: #FFFFFF !important;
-    padding: 10px !important;
+    padding: 0 !important;
     overflow: visible !important;
   }
 
@@ -2075,15 +2108,117 @@ body {
     border: none !important;
     box-shadow: none !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
 
+  .slate-card-header {
+    display: none !important;
+  }
+
+  /* Table Container & Layout */
+  .table-responsive-wrapper {
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .slate-table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    background: #FFFFFF !important;
+  }
+
+  .slate-table thead {
+    display: table-header-group !important;
+  }
+  .slate-table tbody {
+    display: table-row-group !important;
+  }
+  .slate-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .slate-table tr {
+    display: table-row !important;
+    background: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .slate-table th,
+  .slate-table td {
+    display: table-cell !important;
+    color: #000000 !important;
+    border: 1px solid #475569 !important;
+    font-size: 8.5pt !important;
+    padding: 5px 8px !important;
+  }
+
+  .slate-table th {
+    background: #F1F5F9 !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+  }
+
+  .slate-table td[data-label]::before {
+    display: none !important;
+  }
+
+  /* Bersihkan input form agar tampak seperti teks laporan cetak */
+  .slate-table input,
+  .buku1-table input,
+  .kuitansi-table input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    width: auto !important;
+    text-align: inherit !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+  }
+  .slate-table input::-webkit-outer-spin-button,
+  .slate-table input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+
+  .buku1-printable-wrap {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .buku1-print-kop {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+  .buku1-print-kop * {
+    color: #000000 !important;
+  }
+
+  /* Kuitansi Voucher Print Ready */
   .kuitansi-voucher-box {
     background: #FFFFFF !important;
     border: 2px solid #000000 !important;
     box-shadow: none !important;
     color: #000000 !important;
-    padding: 14px !important;
-    page-break-inside: avoid;
+    padding: 16px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     width: 100% !important;
   }
 
@@ -2945,7 +3080,7 @@ body {
   .buku1-print-kop {
     display: flex !important;
     justify-content: space-between !important;
-    align-items: center !important;
+    align-items: flex-start !important;
   }
 
   .table-responsive-wrapper {
@@ -2957,6 +3092,7 @@ body {
     display: table !important;
     width: 100% !important;
     table-layout: auto !important;
+    border-collapse: collapse !important;
   }
 
   .slate-table thead {
@@ -2976,16 +3112,28 @@ body {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   .slate-table th,
   .slate-table td {
     display: table-cell !important;
     color: #000000 !important;
-    border: 1px solid #CCCCCC !important;
-    font-size: 0.78rem !important;
+    border: 1px solid #475569 !important;
+    font-size: 8.5pt !important;
     padding: 6px 8px !important;
-    white-space: nowrap !important;
+  }
+
+  /* Sembunyikan kolom Aksi / Edit dari tabel cetak */
+  .slate-table th.no-print,
+  .slate-table td.no-print,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    padding: 0 !important;
+    border: none !important;
   }
 
   .slate-table td[data-label]::before {
@@ -2993,7 +3141,7 @@ body {
   }
 
   .buku1-table {
-    border: 1px solid #000000 !important;
+    border: 1.5px solid #000000 !important;
   }
 
   .buku1-table input {
@@ -3001,6 +3149,8 @@ body {
     border: none !important;
     color: #000000 !important;
     font-weight: 800 !important;
+    padding: 0 !important;
+    width: auto !important;
   }
 }
 
@@ -4385,6 +4535,19 @@ body {
     background: #FFFFFF !important;
     color: #000000 !important;
     border: 2px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .kuitansi-strip-metrics {
+    border: 1px solid #000000 !important;
+    background: #F8FAFC !important;
+  }
+  .kuitansi-strip-metric {
+    border-right-color: #CBD5E1 !important;
+  }
+  .kuitansi-strip-val {
+    color: #000000 !important;
   }
 }
 
