@@ -3134,6 +3134,101 @@ window.printKuitansi = function() {
   window.print();
 };
 
+// ==============================================================
+// INTEGRASI MASTER BAHAN -> KUITANSI BELANJA & AUTO-UPDATE HARGA
+// ==============================================================
+function populateKuitansiMasterSelect() {
+  const select = document.getElementById('kuitansiSelectMasterBahan');
+  if (!select) return;
+
+  const currentVal = select.value;
+  select.innerHTML = '';
+
+  const optDefault = document.createElement('option');
+  optDefault.value = '';
+  optDefault.innerText = '-- Pilih Bahan Acuan dari Katalog (Otomatis Isi Data) --';
+  select.appendChild(optDefault);
+
+  const optManual = document.createElement('option');
+  optManual.value = 'manual';
+  optManual.innerText = '[+ Ketik Manual / Pengeluaran Non-Katalog]';
+  select.appendChild(optManual);
+
+  const list = (auraData && auraData.masterBahan && auraData.masterBahan.length > 0)
+    ? auraData.masterBahan
+    : INITIAL_MASTER_BAHAN;
+
+  // Group by category
+  const categories = ['Pasar Subuh', 'Toko / Minimarket', 'Operasional & Gas', 'Kemasan'];
+  categories.forEach(cat => {
+    const itemsInCat = list.filter(m => (m.kategori || '').toLowerCase().includes(cat.toLowerCase().split(' ')[0]));
+    if (itemsInCat.length > 0) {
+      const group = document.createElement('optgroup');
+      group.label = cat;
+      itemsInCat.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id || item.nama;
+        opt.innerText = item.nama + ' — Rp ' + (item.harga || 0).toLocaleString('id-ID') + ' / ' + (item.satuan || 'item');
+        group.appendChild(opt);
+      });
+      select.appendChild(group);
+    }
+  });
+
+  const otherItems = list.filter(m => !categories.some(cat => (m.kategori || '').toLowerCase().includes(cat.toLowerCase().split(' ')[0])));
+  if (otherItems.length > 0) {
+    const group = document.createElement('optgroup');
+    group.label = 'Bahan Lainnya';
+    otherItems.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id || item.nama;
+      opt.innerText = item.nama + ' — Rp ' + (item.harga || 0).toLocaleString('id-ID') + ' / ' + (item.satuan || 'item');
+      group.appendChild(opt);
+    });
+    select.appendChild(group);
+  }
+
+  if (currentVal) select.value = currentVal;
+}
+
+window.handleSelectMasterBahanForKuitansi = function(val) {
+  const inputNama = document.getElementById('kuitansiInputNama');
+  const inputQty = document.getElementById('kuitansiInputQty');
+  const inputBiaya = document.getElementById('kuitansiInputBiaya');
+  const inputKat = document.getElementById('kuitansiInputKategori');
+
+  if (!inputNama || !inputQty || !inputBiaya || !inputKat) return;
+
+  if (!val) return;
+
+  if (val === 'manual') {
+    inputNama.value = '';
+    inputQty.value = '';
+    inputBiaya.value = '';
+    inputNama.focus();
+    return;
+  }
+
+  const list = (auraData && auraData.masterBahan && auraData.masterBahan.length > 0)
+    ? auraData.masterBahan
+    : INITIAL_MASTER_BAHAN;
+
+  const found = list.find(m => m.id === val || m.nama === val);
+  if (found) {
+    inputNama.value = found.nama;
+    inputQty.value = found.satuan || ('1 ' + (found.unitFisik || 'bungkus'));
+    inputBiaya.value = found.harga || 0;
+    
+    const kLow = (found.kategori || '').toLowerCase();
+    if (kLow.includes('pasar')) inputKat.value = 'Pasar Subuh';
+    else if (kLow.includes('gas') || kLow.includes('operasional')) inputKat.value = 'Operasional & Gas';
+    else if (kLow.includes('kemasan')) inputKat.value = 'Kemasan';
+    else inputKat.value = 'Toko / Minimarket';
+
+    inputBiaya.focus();
+  }
+};
+
 window.handleAddBelanjaToKuitansi = function(e) {
   if (e) e.preventDefault();
   const nama = (document.getElementById('kuitansiInputNama')?.value || '').trim();
@@ -3159,15 +3254,43 @@ window.handleAddBelanjaToKuitansi = function(e) {
     paraf: kategori
   });
 
+  // FEATURE 2: AUTO-UPDATE HARGA DI MASTER BAHAN (ROLLING COST)
+  let priceUpdateMsg = '';
+  if (Array.isArray(auraData.masterBahan)) {
+    const nLow = nama.toLowerCase().trim();
+    const matchedMaster = auraData.masterBahan.find(m => {
+      const mLow = m.nama.toLowerCase().trim();
+      return mLow === nLow || (nLow.length > 4 && mLow.includes(nLow)) || (mLow.length > 4 && nLow.includes(mLow));
+    });
+
+    if (matchedMaster) {
+      // Deteksi jika pembelian merupakan kelipatan kemasan (misal "2 bungkus" Rp 20.000 -> harga master per kemasan Rp 10.000)
+      const pMatch = qty.match(/^(\d+(?:[.,]\d+)?)/);
+      const packageCount = pMatch ? parseFloat(pMatch[1].replace(',', '.')) : 1;
+      const calculatedUnitCost = packageCount > 1 ? Math.round(biaya / packageCount) : biaya;
+
+      if (calculatedUnitCost > 0 && matchedMaster.harga !== calculatedUnitCost) {
+        const oldPrice = matchedMaster.harga || 0;
+        matchedMaster.harga = calculatedUnitCost;
+        matchedMaster.tglUpdate = selectedBuku2Date.includes('/') ? ('2026-10-' + selectedBuku2Date.split('/')[0]) : selectedBuku2Date;
+        priceUpdateMsg = '<br><br><span style="color: #38BDF8; font-weight: 700;">Harga acuan "' + matchedMaster.nama + '" di Master Bahan otomatis diperbarui: Rp ' + oldPrice.toLocaleString('id-ID') + ' &rarr; Rp ' + calculatedUnitCost.toLocaleString('id-ID') + ' (' + matchedMaster.tglUpdate + ').</span>';
+        
+        if (typeof renderMasterBahanTable === 'function') renderMasterBahanTable();
+        if (typeof renderMasterBahanCards === 'function') renderMasterBahanCards(auraData.masterBahan);
+      }
+    }
+  }
+
+  if (document.getElementById('kuitansiSelectMasterBahan')) document.getElementById('kuitansiSelectMasterBahan').value = '';
   if (document.getElementById('kuitansiInputNama')) document.getElementById('kuitansiInputNama').value = '';
   if (document.getElementById('kuitansiInputQty')) document.getElementById('kuitansiInputQty').value = '';
   if (document.getElementById('kuitansiInputBiaya')) document.getElementById('kuitansiInputBiaya').value = '';
 
   saveKuitansiDraft();
-  window.showSuccessModal("Dicatat ke Kuitansi", 'Item "' + nama + '" senilai Rp ' + biaya.toLocaleString('id-ID') + ' berhasil dicatat (Draft). Klik "Simpan & Sinkronkan" untuk menghubungkan ke Buku Kas & Cloud.');
+  window.showSuccessModal("Dicatat ke Kuitansi", 'Item "<strong>' + nama + '</strong>" senilai <strong>Rp ' + biaya.toLocaleString('id-ID') + '</strong> berhasil dicatat.' + priceUpdateMsg);
 };
 
-// Fitur Edit Item Belanja Kuitansi (Stage 3)
+// Fitur Edit Item Belanja Kuitansi (Stage 3 + Rolling Cost Update)
 window.openEditBelanjaModal = function(globalIdx) {
   const item = auraData.buku2Belanja[globalIdx];
   if (!item) return;
@@ -3195,6 +3318,7 @@ window.openEditBelanjaModal = function(globalIdx) {
             '<option value="Toko / Minimarket"' + (item.paraf.includes('Toko') ? ' selected' : '') + '>Toko / Minimarket</option>' +
             '<option value="Pasar Subuh"' + (item.paraf.includes('Pasar') ? ' selected' : '') + '>Pasar Subuh</option>' +
             '<option value="Operasional & Gas"' + (item.paraf.includes('Operasional') || item.paraf.includes('Gas') ? ' selected' : '') + '>Operasional / Gas</option>' +
+            '<option value="Kemasan"' + (item.paraf.includes('Kemasan') ? ' selected' : '') + '>Kemasan</option>' +
           '</select>' +
         '</div>' +
         '<div style="flex: 1;">' +
@@ -3230,9 +3354,32 @@ window.openEditBelanjaModal = function(globalIdx) {
       item.qty = qty;
       item.biaya = biaya;
 
+      // Auto-update master bahan price if matched
+      let priceUpdateMsg = '';
+      if (Array.isArray(auraData.masterBahan)) {
+        const nLow = nama.toLowerCase().trim();
+        const matchedMaster = auraData.masterBahan.find(m => {
+          const mLow = m.nama.toLowerCase().trim();
+          return mLow === nLow || (nLow.length > 4 && mLow.includes(nLow)) || (mLow.length > 4 && nLow.includes(mLow));
+        });
+        if (matchedMaster) {
+          const pMatch = qty.match(/^(\d+(?:[.,]\d+)?)/);
+          const packageCount = pMatch ? parseFloat(pMatch[1].replace(',', '.')) : 1;
+          const calculatedUnitCost = packageCount > 1 ? Math.round(biaya / packageCount) : biaya;
+          if (calculatedUnitCost > 0 && matchedMaster.harga !== calculatedUnitCost) {
+            const oldPrice = matchedMaster.harga || 0;
+            matchedMaster.harga = calculatedUnitCost;
+            matchedMaster.tglUpdate = selectedBuku2Date.includes('/') ? ('2026-10-' + selectedBuku2Date.split('/')[0]) : selectedBuku2Date;
+            priceUpdateMsg = '<br><br><span style="color: #38BDF8; font-weight: 700;">Harga acuan "' + matchedMaster.nama + '" di Master Bahan otomatis diperbarui: Rp ' + oldPrice.toLocaleString('id-ID') + ' &rarr; Rp ' + calculatedUnitCost.toLocaleString('id-ID') + '.</span>';
+            if (typeof renderMasterBahanTable === 'function') renderMasterBahanTable();
+            if (typeof renderMasterBahanCards === 'function') renderMasterBahanCards(auraData.masterBahan);
+          }
+        }
+      }
+
       saveKuitansiDraft();
       window.closeAppModal();
-      window.showSuccessModal("Berhasil Diperbarui", "Item kuitansi berhasil diperbarui (Draft Disimpan)!");
+      window.showSuccessModal("Berhasil Diperbarui", "Item kuitansi berhasil diperbarui!" + priceUpdateMsg);
     };
   }
 
@@ -3253,6 +3400,137 @@ window.handleDeleteBelanjaFromKuitansi = function(idx) {
       window.showSuccessModal("Terhapus", "Item belanja berhasil dihapus dari lembar kuitansi.");
     }
   );
+};
+
+// ==============================================================
+// FITUR 3: 1-KLIK TRANSFER REKOMENDASI BELANJA STOK KE KUITANSI
+// ==============================================================
+window.transferStokBelanjaToKuitansi = function() {
+  if (!auraData.stokBahan || auraData.stokBahan.length === 0) {
+    window.showAlertModal("Data Stok Kosong", "Tidak ada data stok dapur yang tersedia.");
+    return;
+  }
+
+  // Filter bahan berstatus Habis (stok <= 0) atau Menipis (stok <= minTrigger)
+  const needRestock = auraData.stokBahan.filter(s => {
+    const min = s.minTrigger !== undefined ? s.minTrigger : 1;
+    return s.stok <= min;
+  });
+
+  if (needRestock.length === 0) {
+    window.showAlertModal("Stok Aman", "Seluruh stok fisik dapur saat ini masih dalam kondisi aman. Belum ada bahan yang berstatus Habis atau Menipis.");
+    return;
+  }
+
+  if (!auraData.buku2Belanja) auraData.buku2Belanja = [];
+  const currentSheetDate = selectedBuku2Date || '26/10';
+  const existingToday = auraData.buku2Belanja.filter(b => b.tgl === currentSheetDate);
+  const existingNames = existingToday.map(b => b.nama.toLowerCase().trim());
+
+  let addedCount = 0;
+  let skippedCount = 0;
+  const addedItemsSummary = [];
+
+  const masterList = (auraData.masterBahan && auraData.masterBahan.length > 0)
+    ? auraData.masterBahan
+    : INITIAL_MASTER_BAHAN;
+
+  needRestock.forEach(s => {
+    const sNameClean = s.nama.toLowerCase().trim();
+    // Anti-duplikasi check
+    const alreadyExists = existingNames.some(en => en === sNameClean || (en.includes(sNameClean) && sNameClean.length > 4));
+    if (alreadyExists) {
+      skippedCount++;
+      return;
+    }
+
+    // Cari item acuan di Master Bahan
+    const matchedMaster = masterList.find(m => {
+      const mLow = m.nama.toLowerCase().trim();
+      return mLow === sNameClean || mLow.includes(sNameClean) || sNameClean.includes(mLow);
+    });
+
+    const orderQtyStr = s.orderQty || '1 bungkus';
+    const pkgMatch = String(orderQtyStr).match(/^(\d+)/);
+    const orderPackages = pkgMatch ? parseInt(pkgMatch[1], 10) : 1;
+
+    let itemCost = 0;
+    let kategori = s.jalur === 'B' ? 'Pasar Subuh' : 'Toko / Minimarket';
+
+    if (matchedMaster) {
+      itemCost = (matchedMaster.harga || 0) * orderPackages;
+      if (matchedMaster.kategori) kategori = matchedMaster.kategori;
+    } else {
+      const nLow = sNameClean;
+      if (nLow.includes('roti')) itemCost = 10000 * orderPackages;
+      else if (nLow.includes('keju')) itemCost = 12000 * orderPackages;
+      else if (nLow.includes('minyak')) itemCost = 19000 * orderPackages;
+      else if (nLow.includes('kulit')) itemCost = 10000 * orderPackages;
+      else if (nLow.includes('ubi')) itemCost = 11000 * orderPackages;
+      else if (nLow.includes('wortel')) itemCost = 7000;
+      else if (nLow.includes('jagung')) itemCost = 5000;
+      else if (nLow.includes('telur')) itemCost = 5000;
+      else if (nLow.includes('daun bawang')) itemCost = 2000;
+      else if (nLow.includes('sosis')) itemCost = 18000;
+      else if (nLow.includes('collins')) itemCost = 53000;
+      else if (nLow.includes('panir')) itemCost = 10000;
+      else itemCost = 10000;
+    }
+
+    const nextNo = auraData.buku2Belanja.length > 0
+      ? Math.max(...auraData.buku2Belanja.map(b => b.no || 0)) + 1
+      : 1;
+
+    auraData.buku2Belanja.push({
+      no: nextNo,
+      tgl: currentSheetDate,
+      nama: s.nama,
+      qty: orderQtyStr,
+      biaya: itemCost,
+      paraf: kategori
+    });
+
+    existingNames.push(sNameClean);
+    addedCount++;
+    addedItemsSummary.push('• <strong>' + s.nama + '</strong> (' + orderQtyStr + ' &mdash; Rp ' + itemCost.toLocaleString('id-ID') + ')');
+  });
+
+  if (addedCount === 0) {
+    window.showAlertModal(
+      "Semua Bahan Sudah Dicatat",
+      "Seluruh bahan kebutuhan belanja dapur malam ini (" + needRestock.length + " item) sudah pernah dimasukkan ke Lembar Kuitansi tanggal <strong>" + currentSheetDate + "</strong>."
+    );
+    return;
+  }
+
+  saveKuitansiDraft();
+
+  const msg = 
+    addedCount + ' bahan kebutuhan dapur berhasil ditransfer ke Lembar Kuitansi tanggal <strong>' + currentSheetDate + '</strong>:<br><br>' +
+    '<div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 6px; font-size: 0.82rem; line-height: 1.6; border: 1px solid var(--card-border); margin-bottom: 12px; text-align: left;">' +
+      addedItemsSummary.join('<br>') +
+    '</div>' +
+    (skippedCount > 0 ? '<div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 10px;">(' + skippedCount + ' bahan lainnya dilewati karena sudah ada di kuitansi)</div>' : '') +
+    'Total pengeluaran kas dan saldo kas kotak dapur otomatis diperbarui.';
+
+  const overlay = document.getElementById('appModalOverlay');
+  const icon = document.getElementById('appModalIcon');
+  const titleEl = document.getElementById('appModalTitle');
+  const body = document.getElementById('appModalBody');
+  const footer = document.getElementById('appModalFooter');
+
+  if (overlay && titleEl && body && footer) {
+    if (icon) {
+      icon.innerHTML = '<span style="font-size: 1.2rem; color: #34D399; font-weight: 800;">OK</span>';
+      icon.style.display = 'inline-flex';
+    }
+    titleEl.innerText = 'Daftar Belanja Ditransfer';
+    body.innerHTML = '<div style="text-align: center; color: var(--text-pure); font-size: 0.88rem;">' + msg + '</div>';
+    footer.innerHTML = 
+      '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Tutup</button>' +
+      '<button type="button" class="tool-btn tool-btn-primary" onclick="window.closeAppModal(); window.switchTab(\'tab-buku2\');" style="font-weight: 800;">Buka Lembar Kuitansi</button>';
+    overlay.style.display = 'flex';
+  }
 };
 
 // ==============================================================
@@ -5171,6 +5449,7 @@ function renderSlipBoxView() {
 }
 
 function renderKuitansiView() {
+  populateKuitansiMasterSelect();
   const kuitansiCurrentDayLabelEl = document.getElementById('kuitansiCurrentDayLabel');
   const kuitansiNoEl = document.getElementById('kuitansiNoDisplay');
   const kuitansiTglEl = document.getElementById('kuitansiTglDisplay');
@@ -5903,8 +6182,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.8.1';
-const APP_BUILD_TIME = '27/10/2026 13:38 WIB';
+const APP_VERSION = 'v6.9.0';
+const APP_BUILD_TIME = '27/10/2026 15:30 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
