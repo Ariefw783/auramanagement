@@ -362,33 +362,33 @@ function handleSyncErrorAlert(err) {
 }
 // 25 Master Bahan Baku Terstandarisasi Dapur Mom Fitri (Dikalibrasi Sesuai Harga Beli Terkini)
 const INITIAL_MASTER_BAHAN = [
-  { id: 'mb-01', nama: 'Kulit Lumpia Segar', kategori: 'Pasar Subuh', satuan: 'Bungkus (isi 36 lbr)', unitFisik: 'lembar', qtyPerBeli: 36, gramPerUnit: 7, totalGram: 252, harga: 10000, vendor: 'Tukang Sayur Pasar Subuh', tglUpdate: '2026-10-24' },
-  { id: 'mb-02', nama: 'Ubi Ungu Segar', kategori: 'Pasar Subuh', satuan: 'Kilogram (≈ 5 buah)', unitFisik: 'buah', qtyPerBeli: 5, gramPerUnit: 200, totalGram: 1000, harga: 11000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-03', nama: 'Wortel Segar Super', kategori: 'Pasar Subuh', satuan: 'Pak 500g (≈ 4 buah)', unitFisik: 'buah', qtyPerBeli: 4, gramPerUnit: 125, totalGram: 500, harga: 7000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-04', nama: 'Jagung Manis Segar', kategori: 'Pasar Subuh', satuan: 'Paket (3 tongkol ≈ 390g)', unitFisik: 'tongkol', qtyPerBeli: 3, gramPerUnit: 130, totalGram: 390, harga: 5000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-05', nama: 'Telur Ayam Ras', kategori: 'Pasar Subuh', satuan: 'Paket (4 butir)', unitFisik: 'butir', qtyPerBeli: 4, gramPerUnit: 55, totalGram: 220, harga: 5000, vendor: 'Tukang Telur Pasar', tglUpdate: '2026-10-24' },
-  { id: 'mb-06', nama: 'Daun Bawang & Seledri', kategori: 'Pasar Subuh', satuan: 'Ikat segar (≈ 4 btg)', unitFisik: 'ikat', qtyPerBeli: 1, gramPerUnit: 100, totalGram: 100, harga: 2000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-07', nama: 'Bawang Putih Bersih', kategori: 'Pasar Subuh', satuan: 'Pak 250g (≈ 50 siung)', unitFisik: 'siung', qtyPerBeli: 50, gramPerUnit: 5, totalGram: 250, harga: 8000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-08', nama: 'Sosis Ayam/Sapi Ekonomis', kategori: 'Toko / Minimarket', satuan: 'Pak (isi 40 batang)', unitFisik: 'batang', qtyPerBeli: 40, gramPerUnit: 22, totalGram: 880, harga: 18000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-09', nama: 'Roti Tawar Kupas', kategori: 'Toko / Minimarket', satuan: 'Bungkus (isi 14 lbr)', unitFisik: 'lembar', qtyPerBeli: 14, gramPerUnit: 35, totalGram: 490, harga: 10000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-10', nama: 'Keju Prochiz Spready', kategori: 'Toko / Minimarket', satuan: 'Box / Pouch (160g)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 160, totalGram: 160, harga: 12000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-11', nama: 'Susu Kental Manis (SKM) Putih', kategori: 'Toko / Minimarket', satuan: 'Pouch Ekonomis (200g)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 200, totalGram: 200, harga: 8500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-12', nama: 'Susu Bubuk Putih (Dancow/Curah)', kategori: 'Toko / Minimarket', satuan: 'Sachet (26g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 26, totalGram: 26, harga: 4000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-13', nama: 'Selai Collins Choco Crunchy', kategori: 'Toko / Minimarket', satuan: 'Ember (1 kg)', unitFisik: 'ember', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 53000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-14', nama: 'Saus Tiram Saori Sachet', kategori: 'Toko / Minimarket', satuan: 'Sachet (23ml)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 23, totalGram: 23, harga: 3000, vendor: 'Toko Kelontong Berkah', tglUpdate: '2026-10-24' },
-  { id: 'mb-15', nama: 'Tepung Terigu Curah', kategori: 'Toko / Minimarket', satuan: 'Bungkus (500g)', unitFisik: 'bungkus', qtyPerBeli: 1, gramPerUnit: 500, totalGram: 500, harga: 6000, vendor: 'Toko Kelontong Berkah', tglUpdate: '2026-10-24' },
-  { id: 'mb-16', nama: 'Tepung Panir Super Krispi', kategori: 'Toko / Minimarket', satuan: 'Kilogram (1 kg)', unitFisik: 'kg', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 10000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-17', nama: 'Minyak Goreng Sawit Kemasan', kategori: 'Toko / Minimarket', satuan: 'Pouch / Botol (1.000g)', unitFisik: 'liter', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 19000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-18', nama: 'Gas LPG 3kg Subsidi', kategori: 'Operasional & Gas', satuan: 'Tabung (3 kg)', unitFisik: 'tabung', qtyPerBeli: 1, gramPerUnit: 3000, totalGram: 3000, harga: 22000, vendor: 'Pangkalan Gas Resmi', tglUpdate: '2026-10-24' },
-  { id: 'mb-19', nama: 'Mika Plastik Bening 7C', kategori: 'Kemasan', satuan: 'Pak (isi 100 pcs)', unitFisik: 'pcs', qtyPerBeli: 100, gramPerUnit: 3, totalGram: 300, harga: 12500, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
-  { id: 'mb-20', nama: 'Kertas Nasi Alas Minyak', kategori: 'Kemasan', satuan: 'Pak (isi 250 lbr)', unitFisik: 'lembar', qtyPerBeli: 250, gramPerUnit: 4, totalGram: 1000, harga: 14000, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
-  { id: 'mb-21', nama: 'Margarin Serbaguna', kategori: 'Toko / Minimarket', satuan: 'Bungkus (200g)', unitFisik: 'bungkus', qtyPerBeli: 1, gramPerUnit: 200, totalGram: 200, harga: 7500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-22', nama: 'Garam Dapur Halus', kategori: 'Pasar Subuh', satuan: 'Bungkus (250g)', unitFisik: 'bungkus', qtyPerBeli: 1, gramPerUnit: 250, totalGram: 250, harga: 4000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
-  { id: 'mb-23', nama: 'Gula Pasir Kristal', kategori: 'Toko / Minimarket', satuan: 'Kilogram (1.000g)', unitFisik: 'kg', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 17500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-24', nama: 'Royco Kaldu Ayam', kategori: 'Toko / Minimarket', satuan: 'Sachet (9g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 9, totalGram: 9, harga: 500, vendor: 'Warung Kelontong', tglUpdate: '2026-10-24' },
-  { id: 'mb-25', nama: 'Vanili Bubuk', kategori: 'Toko / Minimarket', satuan: 'Sachet (2g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 2, totalGram: 2, harga: 500, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
-  { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'pouch', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' },
-  { id: 'mb-27', nama: 'Lada Bubuk (Ladaku)', kategori: 'Toko / Minimarket', satuan: 'Sachet (4g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 4, totalGram: 4, harga: 1000, vendor: 'Warung Kelontong', tglUpdate: '2026-10-26' }
+  { id: 'mb-01', nama: 'Kulit Lumpia Segar', kategori: 'Pasar Subuh', tipeHitung: 'count', satuan: 'Bungkus (isi 36 lbr)', unitFisik: 'lembar', qtyPerBeli: 36, gramPerUnit: 0, totalGram: 0, harga: 10000, vendor: 'Tukang Sayur Pasar Subuh', tglUpdate: '2026-10-24' },
+  { id: 'mb-02', nama: 'Ubi Ungu Segar', kategori: 'Pasar Subuh', tipeHitung: 'weight', satuan: 'Kilogram (1.000g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 11000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-03', nama: 'Wortel Segar Super', kategori: 'Pasar Subuh', tipeHitung: 'weight', satuan: 'Pak 500g', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 500, totalGram: 500, harga: 7000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-04', nama: 'Jagung Manis Segar', kategori: 'Pasar Subuh', tipeHitung: 'count', satuan: 'Paket (3 tongkol)', unitFisik: 'tongkol', qtyPerBeli: 3, gramPerUnit: 130, totalGram: 390, harga: 5000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-05', nama: 'Telur Ayam Ras', kategori: 'Pasar Subuh', tipeHitung: 'count', satuan: 'Paket (4 butir)', unitFisik: 'butir', qtyPerBeli: 4, gramPerUnit: 0, totalGram: 0, harga: 5000, vendor: 'Tukang Telur Pasar', tglUpdate: '2026-10-24' },
+  { id: 'mb-06', nama: 'Daun Bawang & Seledri', kategori: 'Pasar Subuh', tipeHitung: 'weight', satuan: 'Ikat segar (≈ 100g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 100, totalGram: 100, harga: 2000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-07', nama: 'Bawang Putih Bersih', kategori: 'Pasar Subuh', tipeHitung: 'weight', satuan: 'Pak 250g', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 250, totalGram: 250, harga: 8000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-08', nama: 'Sosis Ayam/Sapi Ekonomis', kategori: 'Toko / Minimarket', tipeHitung: 'count', satuan: 'Pak (isi 40 batang)', unitFisik: 'batang', qtyPerBeli: 40, gramPerUnit: 0, totalGram: 0, harga: 18000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-09', nama: 'Roti Tawar Kupas', kategori: 'Toko / Minimarket', tipeHitung: 'count', satuan: 'Bungkus (isi 14 lbr)', unitFisik: 'lembar', qtyPerBeli: 14, gramPerUnit: 0, totalGram: 0, harga: 10000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-10', nama: 'Keju Prochiz Spready', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Box / Pouch (160g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 160, totalGram: 160, harga: 12000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-11', nama: 'Susu Kental Manis (SKM) Putih', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Pouch Ekonomis (200g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 200, totalGram: 200, harga: 8500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-12', nama: 'Susu Bubuk Putih (Dancow/Curah)', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Sachet (26g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 26, totalGram: 26, harga: 4000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-13', nama: 'Selai Collins Choco Crunchy', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Ember (1 kg)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 53000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-14', nama: 'Saus Tiram Saori Sachet', kategori: 'Toko / Minimarket', tipeHitung: 'volume', satuan: 'Sachet (23ml)', unitFisik: 'ml', qtyPerBeli: 1, gramPerUnit: 23, totalGram: 23, harga: 3000, vendor: 'Toko Kelontong Berkah', tglUpdate: '2026-10-24' },
+  { id: 'mb-15', nama: 'Tepung Terigu Curah', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bungkus (500g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 500, totalGram: 500, harga: 6000, vendor: 'Toko Kelontong Berkah', tglUpdate: '2026-10-24' },
+  { id: 'mb-16', nama: 'Tepung Panir Super Krispi', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Kilogram (1 kg)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 10000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-17', nama: 'Minyak Goreng Sawit Kemasan', kategori: 'Toko / Minimarket', tipeHitung: 'volume', satuan: 'Pouch / Botol (1.000 ml)', unitFisik: 'ml', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 19000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-18', nama: 'Gas LPG 3kg Subsidi', kategori: 'Operasional & Gas', tipeHitung: 'fixed', satuan: 'Tabung (3 kg)', unitFisik: 'tabung', qtyPerBeli: 1, gramPerUnit: 1, totalGram: 1, harga: 22000, vendor: 'Pangkalan Gas Resmi', tglUpdate: '2026-10-24' },
+  { id: 'mb-19', nama: 'Mika Plastik Bening 7C', kategori: 'Kemasan', tipeHitung: 'count', satuan: 'Pak (isi 100 pcs)', unitFisik: 'pcs', qtyPerBeli: 100, gramPerUnit: 0, totalGram: 0, harga: 12500, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
+  { id: 'mb-20', nama: 'Kertas Nasi Alas Minyak', kategori: 'Kemasan', tipeHitung: 'count', satuan: 'Pak (isi 250 lbr)', unitFisik: 'lembar', qtyPerBeli: 250, gramPerUnit: 0, totalGram: 0, harga: 14000, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
+  { id: 'mb-21', nama: 'Margarin Serbaguna', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bungkus (200g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 200, totalGram: 200, harga: 7500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-22', nama: 'Garam Dapur Halus', kategori: 'Pasar Subuh', tipeHitung: 'weight', satuan: 'Bungkus (250g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 250, totalGram: 250, harga: 4000, vendor: 'Pasar Sayur Induk', tglUpdate: '2026-10-24' },
+  { id: 'mb-23', nama: 'Gula Pasir Kristal', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Kilogram (1.000g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 17500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
+  { id: 'mb-24', nama: 'Royco Kaldu Ayam', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Sachet (9g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 9, totalGram: 9, harga: 500, vendor: 'Warung Kelontong', tglUpdate: '2026-10-24' },
+  { id: 'mb-25', nama: 'Vanili Bubuk', kategori: 'Toko / Minimarket', tipeHitung: 'count', satuan: 'Sachet (2g)', unitFisik: 'sachet', qtyPerBeli: 1, gramPerUnit: 2, totalGram: 2, harga: 500, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
+  { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' },
+  { id: 'mb-27', nama: 'Lada Bubuk (Ladaku)', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Sachet (4g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 4, totalGram: 4, harga: 1000, vendor: 'Warung Kelontong', tglUpdate: '2026-10-26' }
 ];
 
 // Standar Operasional Resep & Bill of Materials (BOM) Dinamis Dapur Mom Fitri
@@ -655,6 +655,7 @@ if (!auraData.masterBahan || auraData.masterBahan.length === 0) {
       item.id = def.id;
       item.nama = def.nama;
       item.kategori = def.kategori;
+      item.tipeHitung = def.tipeHitung;
       item.satuan = def.satuan;
       item.unitFisik = def.unitFisik;
       item.gramPerUnit = def.gramPerUnit;
@@ -818,6 +819,72 @@ if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.ma
 try {
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
 } catch (e) {}
+
+// ==============================================================
+// CONTROLLER TIPE SATUAN ALAMI (COUNT, WEIGHT, VOLUME, FIXED)
+// ==============================================================
+window.handleMbTipeHitungChange = function(prefix, tipe) {
+  const countBox = document.getElementById(prefix + 'CountBox');
+  const weightBox = document.getElementById(prefix + 'WeightBox');
+  const volumeBox = document.getElementById(prefix + 'VolumeBox');
+  const fixedBox = document.getElementById(prefix + 'FixedBox');
+
+  if (countBox) countBox.style.display = (tipe === 'count') ? 'block' : 'none';
+  if (weightBox) weightBox.style.display = (tipe === 'weight') ? 'block' : 'none';
+  if (volumeBox) volumeBox.style.display = (tipe === 'volume') ? 'block' : 'none';
+  if (fixedBox) fixedBox.style.display = (tipe === 'fixed') ? 'block' : 'none';
+};
+
+function getStokItemMeta(stokItem) {
+  const mbList = (auraData && auraData.masterBahan && auraData.masterBahan.length > 0)
+    ? auraData.masterBahan
+    : INITIAL_MASTER_BAHAN;
+  const n = (stokItem.nama || '').toLowerCase();
+  const matched = mbList.find(m => {
+    const mn = m.nama.toLowerCase();
+    return mn === n || (n.length > 4 && mn.includes(n)) || (mn.length > 4 && n.includes(mn));
+  });
+
+  const tipe = matched ? (matched.tipeHitung || (
+    (matched.unitFisik === 'lembar' || matched.unitFisik === 'batang' || matched.unitFisik === 'butir' || matched.unitFisik === 'pcs') ? 'count' :
+    (matched.unitFisik === 'liter' || matched.unitFisik === 'ml') ? 'volume' :
+    (matched.unitFisik === 'tabung') ? 'fixed' : 'weight'
+  )) : (
+    (n.includes('kulit') || n.includes('sosis') || n.includes('roti') || n.includes('telur') || n.includes('mika') || n.includes('kertas')) ? 'count' :
+    (n.includes('minyak') || n.includes('tiram')) ? 'volume' :
+    n.includes('gas') ? 'fixed' : 'weight'
+  );
+
+  let unitBeli = stokItem.satuan || (matched ? matched.satuan.split(' ')[0] : 'bungkus');
+  let unitPakai = 'gram';
+  let ratio = 1000;
+
+  if (tipe === 'count') {
+    unitPakai = matched ? (matched.unitFisik || 'lembar') : (
+      (n.includes('kulit') || n.includes('roti')) ? 'lembar' :
+      n.includes('sosis') ? 'batang' :
+      n.includes('telur') ? 'butir' : 'pcs'
+    );
+    ratio = matched ? (matched.qtyPerBeli || 36) : (
+      n.includes('kulit') ? 36 :
+      n.includes('sosis') ? 40 :
+      n.includes('roti') ? 14 :
+      n.includes('telur') ? 4 : 100
+    );
+  } else if (tipe === 'volume') {
+    unitPakai = 'ml';
+    ratio = matched ? (matched.totalGram || 1000) : 1000;
+  } else if (tipe === 'fixed') {
+    unitPakai = 'tabung';
+    ratio = 1;
+  } else {
+    // weight
+    unitPakai = 'g';
+    ratio = matched ? (matched.totalGram || matched.gramPerUnit || 1000) : getStokGramRatio(stokItem);
+  }
+
+  return { tipe, unitBeli, unitPakai, ratio };
+}
 
 // Sinkronisasi Satuan Fisik & Konversi Gram pada Manajemen Stok Bahan
 function getStokGramRatio(stokItem) {
@@ -2748,24 +2815,44 @@ window.renderMasterBahanTable = function() {
 
     const unitFisik = item.unitFisik || 'pcs';
     const qtyPerBeli = item.qtyPerBeli || 1;
-    const gramPerUnit = item.gramPerUnit || 100;
-    const totalGram = item.totalGram || Math.round(qtyPerBeli * gramPerUnit);
-    const gramInfoText = qtyPerBeli > 1
-      ? ('1 ' + unitFisik + ' ≈ ' + gramPerUnit + 'g • Total: ' + totalGram.toLocaleString('id-ID') + 'g')
-      : ('Berat Bersih: ' + totalGram.toLocaleString('id-ID') + 'g (1 ' + unitFisik + ')');
+    const totalGram = item.totalGram || 0;
+
+    const tipe = item.tipeHitung || (
+      (unitFisik === 'lembar' || unitFisik === 'batang' || unitFisik === 'butir' || unitFisik === 'pcs') ? 'count' :
+      (unitFisik === 'liter' || unitFisik === 'ml') ? 'volume' :
+      (unitFisik === 'tabung') ? 'fixed' : 'weight'
+    );
+
+    let unitInfoText = '';
+    let priceSubText = '';
+
+    if (tipe === 'count') {
+      unitInfoText = '1 kemasan = ' + qtyPerBeli + ' ' + unitFisik;
+      priceSubText = 'Rp ' + Math.round((item.harga || 0) / Math.max(1, qtyPerBeli)).toLocaleString('id-ID') + ' / ' + unitFisik;
+    } else if (tipe === 'volume') {
+      unitInfoText = 'Isi Bersih: ' + totalGram.toLocaleString('id-ID') + ' ml';
+      priceSubText = 'Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + ' / ml';
+    } else if (tipe === 'fixed') {
+      unitInfoText = 'Kemasan Tetap / Tabung';
+      priceSubText = 'Rp ' + (item.harga || 0).toLocaleString('id-ID') + ' / ' + unitFisik;
+    } else {
+      // weight
+      unitInfoText = 'Berat Bersih: ' + totalGram.toLocaleString('id-ID') + 'g';
+      priceSubText = 'Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + ' / g';
+    }
 
     const tr = document.createElement('tr');
     tr.innerHTML = 
       '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
       '<td data-label="Bahan"><strong style="color: #FFFFFF;">' + item.nama + '</strong></td>' +
       '<td data-label="Kategori"><span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span></td>' +
-      '<td data-label="Satuan & Gram">' +
+      '<td data-label="Satuan & Takaran">' +
         '<div style="font-size: 0.82rem; color: #F8FAFC; font-weight: 600;">' + item.satuan + '</div>' +
-        '<div style="font-size: 0.71rem; color: #38BDF8; font-family: var(--font-mono); margin-top: 2px;">' + gramInfoText + '</div>' +
+        '<div style="font-size: 0.71rem; color: #38BDF8; font-family: var(--font-mono); margin-top: 2px;">' + unitInfoText + '</div>' +
       '</td>' +
-      '<td data-label="Harga" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">' +
+      '<td data-label="Harga Acuan" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">' +
         '<div>Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</div>' +
-        '<div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">Rp ' + Math.round((item.harga || 0) / Math.max(1, qtyPerBeli)).toLocaleString('id-ID') + '/' + unitFisik + ' • Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + '/g</div>' +
+        '<div style="font-size: 0.68rem; color: var(--text-muted); font-weight: 600;">' + priceSubText + '</div>' +
       '</td>' +
       '<td data-label="Vendor" style="color: var(--text-secondary); font-size: 0.8rem;">' + (item.vendor || '-') + '</td>' +
       '<td data-label="Update" style="text-align: center; font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">' + (item.tglUpdate || '-') + '</td>' +
@@ -2813,7 +2900,7 @@ window.openAddMasterBahanModal = function() {
     '<form id="formModalMasterBahan">' +
       '<div style="margin-bottom: 10px;">' +
         '<label class="form-label">Nama Bahan Baku</label>' +
-        '<input type="text" id="mbInputNama" class="form-control-slate" placeholder="Contoh: Jagung Manis Segar" required>' +
+        '<input type="text" id="mbInputNama" class="form-control-slate" placeholder="Contoh: Kulit Lumpia Segar / Ubi Ungu" required>' +
       '</div>' +
       '<div style="display: flex; gap: 10px; margin-bottom: 10px;">' +
         '<div style="flex: 1;">' +
@@ -2826,29 +2913,47 @@ window.openAddMasterBahanModal = function() {
           '</select>' +
         '</div>' +
         '<div style="flex: 1.2;">' +
-          '<label class="form-label">Label Kemasan Beli</label>' +
-          '<input type="text" id="mbInputSatuan" class="form-control-slate" placeholder="Contoh: Paket (3 tongkol)" required>' +
+          '<label class="form-label">Label Kemasan Beli di Nota Pasar</label>' +
+          '<input type="text" id="mbInputSatuan" class="form-control-slate" placeholder="Contoh: Bungkus (isi 36 lbr) / 1 kg" required>' +
         '</div>' +
       '</div>' +
       '<div style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 10px; margin-bottom: 10px;">' +
-        '<div style="font-size: 0.74rem; color: #38BDF8; font-weight: 700; margin-bottom: 8px;">Konversi Satuan Fisik &lt;-&gt; Berat Gram (Contoh: 3 tongkol = 300g)</div>' +
-        '<div style="display: grid; grid-template-columns: 1.1fr 0.9fr 1fr 1fr; gap: 8px;">' +
-          '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Satuan Fisik</label>' +
-            '<input type="text" id="mbInputUnitFisik" class="form-control-slate" placeholder="tongkol/buah/lbr" value="buah">' +
+        '<label class="form-label" style="color: #38BDF8; font-weight: 700; margin-bottom: 6px;">Tipe Satuan Penggunaan di Dapur:</label>' +
+        '<select id="mbInputTipeHitung" class="form-control-slate" onchange="window.handleMbTipeHitungChange(\'mbInput\', this.value)" style="border-color: rgba(56, 189, 248, 0.4); font-weight: 600; margin-bottom: 8px;">' +
+          '<option value="count">Satuan Lembar / Batang / Biji / Pcs (Kulit Lumpia, Sosis, Telur, Mika)</option>' +
+          '<option value="weight">Satuan Timbang Berat Gram / Kg (Ubi Ungu, Tepung, Gula, Keju)</option>' +
+          '<option value="volume">Satuan Takar Cairan ml / Liter (Minyak Goreng, Saus Tiram)</option>' +
+          '<option value="fixed">Satuan Tetap / Tabung (Gas LPG, Operasional)</option>' +
+        '</select>' +
+        '<div id="mbInputCountBox" style="display: block;">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
+          '<div style="display: flex; gap: 8px;">' +
+            '<div style="flex: 1;">' +
+              '<label class="form-label" style="font-size: 0.68rem;">Nama Satuan Pakai</label>' +
+              '<input type="text" id="mbInputUnitFisik" class="form-control-slate" placeholder="lembar / batang / butir / pcs" value="lembar">' +
+            '</div>' +
+            '<div style="flex: 1;">' +
+              '<label class="form-label" style="font-size: 0.68rem;">Isi per 1 Kemasan Beli</label>' +
+              '<input type="number" step="any" min="1" id="mbInputQtyPerBeli" class="form-control-slate" placeholder="Contoh: 36" value="36">' +
+            '</div>' +
           '</div>' +
+        '</div>' +
+        '<div id="mbInputWeightBox" style="display: none;">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
           '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Isi / Kemasan</label>' +
-            '<input type="number" step="any" min="0.1" id="mbInputQtyPerBeli" class="form-control-slate" value="1" oninput="window.syncModalGramFields(\'mbInput\', \'qty\')">' +
+            '<label class="form-label" style="font-size: 0.68rem;">Total Berat Bersih Kemasan (Gram)</label>' +
+            '<input type="number" step="any" min="1" id="mbInputTotalGram" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 kg), 500 (untuk 500g)" value="1000">' +
           '</div>' +
+        '</div>' +
+        '<div id="mbInputVolumeBox" style="display: none;">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
           '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Gram / 1 Fisik</label>' +
-            '<input type="number" step="any" min="1" id="mbInputGramPerUnit" class="form-control-slate" value="100" oninput="window.syncModalGramFields(\'mbInput\', \'gpu\')">' +
+            '<label class="form-label" style="font-size: 0.68rem;">Total Volume Kemasan (ml)</label>' +
+            '<input type="number" step="any" min="1" id="mbInputTotalMl" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 Liter)" value="1000">' +
           '</div>' +
-          '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Total Gram</label>' +
-            '<input type="number" step="any" min="1" id="mbInputTotalGram" class="form-control-slate" value="100" oninput="window.syncModalGramFields(\'mbInput\', \'total\')">' +
-          '</div>' +
+        '</div>' +
+        '<div id="mbInputFixedBox" style="display: none;">' +
+          '<div style="font-size: 0.72rem; color: #94A3B8;">Biaya kemasan langsung dipakai utuh (tabung gas / borongan).</div>' +
         '</div>' +
       '</div>' +
       '<div style="display: flex; gap: 10px; margin-bottom: 10px;">' +
@@ -2873,10 +2978,35 @@ window.openAddMasterBahanModal = function() {
       const nama = document.getElementById('mbInputNama')?.value.trim();
       const kat = document.getElementById('mbInputKategori')?.value;
       const satuan = document.getElementById('mbInputSatuan')?.value.trim();
-      const unitFisik = document.getElementById('mbInputUnitFisik')?.value.trim() || 'pcs';
-      const qtyPerBeli = parseFloat(document.getElementById('mbInputQtyPerBeli')?.value) || 1;
-      const gramPerUnit = parseFloat(document.getElementById('mbInputGramPerUnit')?.value) || 100;
-      const totalGram = parseFloat(document.getElementById('mbInputTotalGram')?.value) || Math.round(qtyPerBeli * gramPerUnit);
+      const tipeHitung = document.getElementById('mbInputTipeHitung')?.value || 'count';
+      let unitFisik = 'pcs';
+      let qtyPerBeli = 1;
+      let totalGram = 0;
+      let gramPerUnit = 0;
+
+      if (tipeHitung === 'count') {
+        unitFisik = (document.getElementById('mbInputUnitFisik')?.value || '').trim() || 'lembar';
+        qtyPerBeli = Math.max(1, parseFloat(document.getElementById('mbInputQtyPerBeli')?.value) || 1);
+        totalGram = 0;
+        gramPerUnit = 0;
+      } else if (tipeHitung === 'volume') {
+        unitFisik = 'ml';
+        totalGram = Math.max(1, parseFloat(document.getElementById('mbInputTotalMl')?.value) || 1000);
+        qtyPerBeli = 1;
+        gramPerUnit = totalGram;
+      } else if (tipeHitung === 'fixed') {
+        unitFisik = 'tabung';
+        qtyPerBeli = 1;
+        totalGram = 1;
+        gramPerUnit = 1;
+      } else {
+        // weight
+        unitFisik = 'gram';
+        totalGram = Math.max(1, parseFloat(document.getElementById('mbInputTotalGram')?.value) || 1000);
+        qtyPerBeli = 1;
+        gramPerUnit = totalGram;
+      }
+
       const harga = parseInt(document.getElementById('mbInputHarga')?.value, 10) || 0;
       const vendor = document.getElementById('mbInputVendor')?.value.trim() || '-';
 
@@ -2889,6 +3019,7 @@ window.openAddMasterBahanModal = function() {
         id: 'mb-' + Date.now(),
         nama: nama,
         kategori: kat,
+        tipeHitung: tipeHitung,
         satuan: satuan,
         unitFisik: unitFisik,
         qtyPerBeli: qtyPerBeli,
@@ -2901,7 +3032,7 @@ window.openAddMasterBahanModal = function() {
 
       saveLocal();
       window.closeAppModal();
-      window.showSuccessModal("Bahan Ditambahkan", 'Bahan "' + nama + '" (' + qtyPerBeli + ' ' + unitFisik + ' ≈ ' + totalGram + 'g) berhasil disimpan!');
+      window.showSuccessModal("Bahan Ditambahkan", 'Bahan "' + nama + '" berhasil disimpan ke katalog!');
     };
   }
 
@@ -2925,8 +3056,12 @@ window.openEditMasterBahanModal = function(idx) {
 
   const uFisik = item.unitFisik || 'pcs';
   const qBeli = item.qtyPerBeli || 1;
-  const gUnit = item.gramPerUnit || 100;
-  const tGram = item.totalGram || Math.round(qBeli * gUnit);
+  const tGram = item.totalGram || 1000;
+  const tipe = item.tipeHitung || (
+    (uFisik === 'lembar' || uFisik === 'batang' || uFisik === 'butir' || uFisik === 'pcs') ? 'count' :
+    (uFisik === 'liter' || uFisik === 'ml') ? 'volume' :
+    (uFisik === 'tabung') ? 'fixed' : 'weight'
+  );
 
   body.innerHTML = 
     '<form id="formModalMasterBahan">' +
@@ -2945,29 +3080,47 @@ window.openEditMasterBahanModal = function(idx) {
           '</select>' +
         '</div>' +
         '<div style="flex: 1.2;">' +
-          '<label class="form-label">Label Kemasan Beli</label>' +
+          '<label class="form-label">Label Kemasan Beli di Nota Pasar</label>' +
           '<input type="text" id="mbEditSatuan" class="form-control-slate" value="' + item.satuan + '" required>' +
         '</div>' +
       '</div>' +
       '<div style="background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 10px; margin-bottom: 10px;">' +
-        '<div style="font-size: 0.74rem; color: #38BDF8; font-weight: 700; margin-bottom: 8px;">Konversi Satuan Fisik &lt;-&gt; Berat Gram (Otomatis Sinkron ke Stok &amp; HPP)</div>' +
-        '<div style="display: grid; grid-template-columns: 1.1fr 0.9fr 1fr 1fr; gap: 8px;">' +
-          '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Satuan Fisik</label>' +
-            '<input type="text" id="mbEditUnitFisik" class="form-control-slate" value="' + uFisik + '">' +
+        '<label class="form-label" style="color: #38BDF8; font-weight: 700; margin-bottom: 6px;">Tipe Satuan Penggunaan di Dapur:</label>' +
+        '<select id="mbEditTipeHitung" class="form-control-slate" onchange="window.handleMbTipeHitungChange(\'mbEdit\', this.value)" style="border-color: rgba(56, 189, 248, 0.4); font-weight: 600; margin-bottom: 8px;">' +
+          '<option value="count"' + (tipe === 'count' ? ' selected' : '') + '>Satuan Lembar / Batang / Biji / Pcs (Kulit Lumpia, Sosis, Telur, Mika)</option>' +
+          '<option value="weight"' + (tipe === 'weight' ? ' selected' : '') + '>Satuan Timbang Berat Gram / Kg (Ubi Ungu, Tepung, Gula, Keju)</option>' +
+          '<option value="volume"' + (tipe === 'volume' ? ' selected' : '') + '>Satuan Takar Cairan ml / Liter (Minyak Goreng, Saus Tiram)</option>' +
+          '<option value="fixed"' + (tipe === 'fixed' ? ' selected' : '') + '>Satuan Tetap / Tabung (Gas LPG, Operasional)</option>' +
+        '</select>' +
+        '<div id="mbEditCountBox" style="display: ' + (tipe === 'count' ? 'block' : 'none') + ';">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
+          '<div style="display: flex; gap: 8px;">' +
+            '<div style="flex: 1;">' +
+              '<label class="form-label" style="font-size: 0.68rem;">Nama Satuan Pakai</label>' +
+              '<input type="text" id="mbEditUnitFisik" class="form-control-slate" placeholder="lembar / batang / butir / pcs" value="' + uFisik + '">' +
+            '</div>' +
+            '<div style="flex: 1;">' +
+              '<label class="form-label" style="font-size: 0.68rem;">Isi per 1 Kemasan Beli</label>' +
+              '<input type="number" step="any" min="1" id="mbEditQtyPerBeli" class="form-control-slate" placeholder="Contoh: 36" value="' + qBeli + '">' +
+            '</div>' +
           '</div>' +
+        '</div>' +
+        '<div id="mbEditWeightBox" style="display: ' + (tipe === 'weight' ? 'block' : 'none') + ';">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
           '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Isi / Kemasan</label>' +
-            '<input type="number" step="any" min="0.1" id="mbEditQtyPerBeli" class="form-control-slate" value="' + qBeli + '" oninput="window.syncModalGramFields(\'mbEdit\', \'qty\')">' +
+            '<label class="form-label" style="font-size: 0.68rem;">Total Berat Bersih Kemasan (Gram)</label>' +
+            '<input type="number" step="any" min="1" id="mbEditTotalGram" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 kg), 500 (untuk 500g)" value="' + tGram + '">' +
           '</div>' +
+        '</div>' +
+        '<div id="mbEditVolumeBox" style="display: ' + (tipe === 'volume' ? 'block' : 'none') + ';">' +
+          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
           '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Gram / 1 ' + uFisik + '</label>' +
-            '<input type="number" step="any" min="1" id="mbEditGramPerUnit" class="form-control-slate" value="' + gUnit + '" oninput="window.syncModalGramFields(\'mbEdit\', \'gpu\')">' +
+            '<label class="form-label" style="font-size: 0.68rem;">Total Volume Kemasan (ml)</label>' +
+            '<input type="number" step="any" min="1" id="mbEditTotalMl" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 Liter)" value="' + tGram + '">' +
           '</div>' +
-          '<div>' +
-            '<label class="form-label" style="font-size: 0.68rem;">Total Gram</label>' +
-            '<input type="number" step="any" min="1" id="mbEditTotalGram" class="form-control-slate" value="' + tGram + '" oninput="window.syncModalGramFields(\'mbEdit\', \'total\')">' +
-          '</div>' +
+        '</div>' +
+        '<div id="mbEditFixedBox" style="display: ' + (tipe === 'fixed' ? 'block' : 'none') + ';">' +
+          '<div style="font-size: 0.72rem; color: #94A3B8;">Biaya kemasan langsung dipakai utuh (tabung gas / borongan).</div>' +
         '</div>' +
       '</div>' +
       '<div style="display: flex; gap: 10px; margin-bottom: 10px;">' +
@@ -2992,10 +3145,35 @@ window.openEditMasterBahanModal = function(idx) {
       const nama = document.getElementById('mbEditNama')?.value.trim();
       const kat = document.getElementById('mbEditKategori')?.value;
       const satuan = document.getElementById('mbEditSatuan')?.value.trim();
-      const unitFisik = document.getElementById('mbEditUnitFisik')?.value.trim() || 'pcs';
-      let qtyPerBeli = parseFloat(document.getElementById('mbEditQtyPerBeli')?.value) || 1;
-      const gramPerUnit = parseFloat(document.getElementById('mbEditGramPerUnit')?.value) || 100;
-      const totalGram = parseFloat(document.getElementById('mbEditTotalGram')?.value) || Math.round(qtyPerBeli * gramPerUnit);
+      const tipeHitung = document.getElementById('mbEditTipeHitung')?.value || 'count';
+      let unitFisik = 'pcs';
+      let qtyPerBeli = 1;
+      let totalGram = 0;
+      let gramPerUnit = 0;
+
+      if (tipeHitung === 'count') {
+        unitFisik = (document.getElementById('mbEditUnitFisik')?.value || '').trim() || 'lembar';
+        qtyPerBeli = Math.max(1, parseFloat(document.getElementById('mbEditQtyPerBeli')?.value) || 1);
+        totalGram = 0;
+        gramPerUnit = 0;
+      } else if (tipeHitung === 'volume') {
+        unitFisik = 'ml';
+        totalGram = Math.max(1, parseFloat(document.getElementById('mbEditTotalMl')?.value) || 1000);
+        qtyPerBeli = 1;
+        gramPerUnit = totalGram;
+      } else if (tipeHitung === 'fixed') {
+        unitFisik = 'tabung';
+        qtyPerBeli = 1;
+        totalGram = 1;
+        gramPerUnit = 1;
+      } else {
+        // weight
+        unitFisik = 'gram';
+        totalGram = Math.max(1, parseFloat(document.getElementById('mbEditTotalGram')?.value) || 1000);
+        qtyPerBeli = 1;
+        gramPerUnit = totalGram;
+      }
+
       const harga = parseInt(document.getElementById('mbEditHarga')?.value, 10) || 0;
       const vendor = document.getElementById('mbEditVendor')?.value.trim() || '-';
 
@@ -3004,37 +3182,28 @@ window.openEditMasterBahanModal = function(idx) {
         return;
       }
 
-      // Jika pengguna mengubah angka di teks Label Kemasan (misal "Bungkus (isi 10 lbr)") tanpa mengubah kolom Isi/Kemasan, sinkronkan otomatis
-      const numInSatuan = satuan.match(/(\d+(?:[.,]\d+)?)/);
-      if (numInSatuan && qtyPerBeli === (item.qtyPerBeli || 1) && satuan !== item.satuan) {
-        const parsedNum = parseFloat(numInSatuan[1].replace(',', '.'));
-        if (parsedNum > 0 && parsedNum <= 250) {
-          qtyPerBeli = parsedNum;
-        }
-      }
-
       item.nama = nama;
       item.kategori = kat;
+      item.tipeHitung = tipeHitung;
       item.satuan = satuan;
       item.unitFisik = unitFisik;
       item.qtyPerBeli = qtyPerBeli;
       item.gramPerUnit = gramPerUnit;
-      item.totalGram = Math.round(qtyPerBeli * gramPerUnit);
+      item.totalGram = totalGram;
       item.harga = harga;
       item.vendor = vendor;
       item.tglUpdate = new Date().toISOString().slice(0, 10);
 
-      // Sinkronkan ulang rasio gram di stokBahan
+      // Sinkronkan ulang rasio di stokBahan
       if (auraData.stokBahan) {
         auraData.stokBahan.forEach(s => {
           s.gramPerUnit = getStokGramRatio(s);
-          s.stokGram = Math.round((s.stok || 0) * s.gramPerUnit);
         });
       }
 
       saveLocal();
       window.closeAppModal();
-      window.showSuccessModal("Perubahan Disimpan", 'Data "' + nama + '" (1 ' + unitFisik + ' ≈ ' + gramPerUnit + 'g, Total ' + item.totalGram + 'g) berhasil diperbarui!');
+      window.showSuccessModal("Perubahan Disimpan", 'Data "' + nama + '" berhasil diperbarui!');
     };
   }
 
@@ -4678,27 +4847,53 @@ window.updateStokVal = function(idx, val) {
   const s = parseFloat(val);
   const item = auraData.stokBahan[idx];
   if (!item) return;
-  const ratio = getStokGramRatio(item);
+  const meta = getStokItemMeta(item);
+  const ratio = Math.max(1, meta.ratio);
   item.gramPerUnit = ratio;
   item.stok = isNaN(s) ? 0 : Math.max(0, s);
-  item.stokGram = Math.round(item.stok * ratio);
+  if (meta.tipe === 'count') {
+    item.stokFisik = Math.round(item.stok * ratio);
+    item.stokGram = 0;
+  } else {
+    item.stokGram = Math.round(item.stok * ratio);
+  }
+
+  applyStokStatusAndAction(item);
+  saveStokDraft();
+};
+
+window.updateStokFromSubUnit = function(idx, subVal) {
+  const v = parseFloat(subVal);
+  const item = auraData.stokBahan[idx];
+  if (!item) return;
+  const meta = getStokItemMeta(item);
+  const ratio = Math.max(1, meta.ratio);
+
+  if (isNaN(v) || v <= 0) {
+    item.stok = 0;
+    if (meta.tipe === 'count') {
+      item.stokFisik = 0;
+      item.stokGram = 0;
+    } else {
+      item.stokGram = 0;
+    }
+  } else {
+    const rawUnits = v / ratio;
+    item.stok = Number.isInteger(rawUnits) ? rawUnits : +rawUnits.toFixed(2);
+    if (meta.tipe === 'count') {
+      item.stokFisik = Math.round(v);
+      item.stokGram = 0;
+    } else {
+      item.stokGram = Math.round(v);
+    }
+  }
 
   applyStokStatusAndAction(item);
   saveStokDraft();
 };
 
 window.updateStokFromGram = function(idx, gramVal) {
-  const g = parseFloat(gramVal);
-  const item = auraData.stokBahan[idx];
-  if (!item) return;
-  const ratio = getStokGramRatio(item);
-  item.gramPerUnit = ratio;
-  item.stokGram = isNaN(g) ? 0 : Math.max(0, Math.round(g));
-  const rawUnits = item.stokGram / Math.max(1, ratio);
-  item.stok = Number.isInteger(rawUnits) ? rawUnits : +rawUnits.toFixed(2);
-
-  applyStokStatusAndAction(item);
-  saveStokDraft();
+  window.updateStokFromSubUnit(idx, gramVal);
 };
 
 // ==============================================================
@@ -5094,6 +5289,34 @@ function renderMasterBahanCards(list) {
     else if (item.kategori.includes('Gas') || item.kategori.includes('Operasional')) catBadgeClass = 'badge-gas';
     else if (item.kategori.includes('Kemasan')) catBadgeClass = 'mini-tag';
 
+    const unitFisik = item.unitFisik || 'pcs';
+    const qtyPerBeli = item.qtyPerBeli || 1;
+    const totalGram = item.totalGram || 0;
+
+    const tipe = item.tipeHitung || (
+      (unitFisik === 'lembar' || unitFisik === 'batang' || unitFisik === 'butir' || unitFisik === 'pcs') ? 'count' :
+      (unitFisik === 'liter' || unitFisik === 'ml') ? 'volume' :
+      (unitFisik === 'tabung') ? 'fixed' : 'weight'
+    );
+
+    let unitInfoText = '';
+    let priceSubText = '';
+
+    if (tipe === 'count') {
+      unitInfoText = '1 kemasan = ' + qtyPerBeli + ' ' + unitFisik;
+      priceSubText = 'Rp ' + Math.round((item.harga || 0) / Math.max(1, qtyPerBeli)).toLocaleString('id-ID') + ' / ' + unitFisik;
+    } else if (tipe === 'volume') {
+      unitInfoText = 'Isi Bersih: ' + totalGram.toLocaleString('id-ID') + ' ml';
+      priceSubText = 'Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + ' / ml';
+    } else if (tipe === 'fixed') {
+      unitInfoText = 'Kemasan Tetap / Tabung';
+      priceSubText = 'Rp ' + (item.harga || 0).toLocaleString('id-ID') + ' / ' + unitFisik;
+    } else {
+      // weight
+      unitInfoText = 'Berat Bersih: ' + totalGram.toLocaleString('id-ID') + 'g';
+      priceSubText = 'Rp ' + ((item.harga || 0) / Math.max(1, totalGram)).toFixed(1) + ' / g';
+    }
+
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'master\', ' + idx + ')">' +
         '<div class="record-title-wrap">' +
@@ -5107,8 +5330,9 @@ function renderMasterBahanCards(list) {
         '</div>' +
       '</div>' +
       '<div class="record-card-body">' +
-        '<div class="record-meta-row"><span class="label">Satuan & Takaran:</span><span class="val">' + item.satuan + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Harga Terakhir:</span><strong class="val" style="color:#34D399;">Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Satuan Beli:</span><span class="val">' + item.satuan + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Rasio Takaran:</span><span class="val" style="color: #38BDF8;">' + unitInfoText + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Harga Acuan:</span><strong class="val" style="color:#34D399;">Rp ' + (item.harga || 0).toLocaleString('id-ID') + ' <span style="font-size:0.75rem; color:#94A3B8; font-weight:normal;">(' + priceSubText + ')</span></strong></div>' +
         '<div class="record-meta-row"><span class="label">Vendor Langganan:</span><span class="val">' + (item.vendor || '-') + '</span></div>' +
         '<div class="record-meta-row"><span class="label">Update Terakhir:</span><span class="val">' + (item.tglUpdate || '-') + '</span></div>' +
         '<div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 6px;">' +
@@ -5157,9 +5381,16 @@ function renderStokCards(list) {
     if (isCritical) statusBadge = '<span class="badge-status alert">Habis</span>';
     else if (isLow) statusBadge = '<span class="badge-status progress">Menipis</span>';
 
-    const ratio = getStokGramRatio(s);
-    const curGram = s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio);
-    const unitLabel = s.satuan || 'pcs';
+    const meta = getStokItemMeta(s);
+    const isCount = meta.tipe === 'count';
+    const isFixed = meta.tipe === 'fixed';
+    const ratio = meta.ratio;
+    s.gramPerUnit = ratio;
+    const unitLabel = meta.unitBeli;
+    const subUnitLabel = meta.unitPakai;
+    const curSubUnitVal = isCount
+      ? (s.stokFisik !== undefined ? s.stokFisik : Math.round((s.stok || 0) * ratio))
+      : (s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio));
 
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'stok\', ' + idx + ')">' +
@@ -5178,11 +5409,16 @@ function renderStokCards(list) {
         '<div class="record-meta-row"><span class="label">Rekomendasi Restock:</span><span class="val" style="color:#FBBF24;">' + (s.action || '-') + '</span></div>' +
         '<div class="record-field-block" style="margin-top: 4px;">' +
           '<div class="record-field-label">UPDATE SISA STOK FISIK:</div>' +
-          '<div style="display: flex; gap: 8px; align-items: center;">' +
-            '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Satuan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
-            '<span style="color:#94A3B8; font-weight:700; padding-top:14px;">≈</span>' +
-            '<div style="flex: 1;"><span style="font-size:0.68rem; color:#38BDF8;">Gram (g):</span><input type="number" step="any" min="0" class="dark-input" value="' + curGram + '" onchange="window.updateStokFromGram(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; color:#38BDF8; font-weight:700;"></div>' +
-          '</div>' +
+          (isFixed
+            ? ('<div style="display: flex; gap: 8px; align-items: center;">' +
+                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Kemasan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
+              '</div>')
+            : ('<div style="display: flex; gap: 8px; align-items: center;">' +
+                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Satuan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
+                '<span style="color:#94A3B8; font-weight:700; padding-top:14px;">≈</span>' +
+                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#38BDF8;">Isi (' + subUnitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + curSubUnitVal + '" onchange="window.updateStokFromSubUnit(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; color:#38BDF8; font-weight:700;"></div>' +
+              '</div>')
+          ) +
         '</div>' +
       '</div>';
     container.appendChild(card);
@@ -5785,31 +6021,46 @@ function renderStokView() {
         ? 'color: #FCA5A5; font-weight: 600;'
         : (isLow ? 'color: #FCD34D;' : 'color: var(--text-secondary);');
 
-      const ratio = getStokGramRatio(s);
+      const meta = getStokItemMeta(s);
+      const isCount = meta.tipe === 'count';
+      const isFixed = meta.tipe === 'fixed';
+      const ratio = meta.ratio;
       s.gramPerUnit = ratio;
-      const curGram = s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio);
-      const unitLabel = s.satuan || 'pcs';
+      const unitLabel = meta.unitBeli;
+      const subUnitLabel = meta.unitPakai;
+      const curSubUnitVal = isCount
+        ? (s.stokFisik !== undefined ? s.stokFisik : Math.round((s.stok || 0) * ratio))
+        : (s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio));
 
       const tr = document.createElement('tr');
       tr.innerHTML = 
         '<td data-label="No" style="text-align: center; font-family: var(--font-mono); color: var(--text-muted);">' + (idx + 1) + '</td>' +
         '<td data-label="Bahan Baku">' +
           '<span style="color: #F8FAFC; font-weight: 600; display: block;">' + s.nama + '</span>' +
-          '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">1 ' + unitLabel + ' ≈ ' + ratio.toLocaleString('id-ID') + 'g</span>' +
+          (isFixed
+            ? '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">Kemasan Utuh (' + unitLabel + ')</span>'
+            : '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">1 ' + unitLabel + ' = ' + ratio.toLocaleString('id-ID') + ' ' + subUnitLabel + '</span>'
+          ) +
         '</td>' +
         '<td data-label="Jalur" style="color: var(--text-secondary); font-size: 0.8rem;">' + jalurText + '</td>' +
         '<td data-label="Sisa Stok" style="text-align: center;">' +
-          '<div style="display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap; justify-content: center;">' +
-            '<div class="stok-input-wrap" style="margin: 0;">' +
-              '<input type="number" step="any" min="0" class="dark-input" style="width: 58px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
-              '<span class="stok-unit-tag">' + unitLabel + '</span>' +
-            '</div>' +
-            '<span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700;">≈</span>' +
-            '<div class="stok-input-wrap" style="margin: 0;">' +
-              '<input type="number" step="any" min="0" class="dark-input" style="width: 66px; color: #38BDF8; font-weight: 700; padding: 4px 6px;" value="' + curGram + '" onchange="window.updateStokFromGram(' + idx + ', this.value)" title="Ketik sisa langsung dalam gram (g)">' +
-              '<span class="stok-unit-tag" style="color: #38BDF8;">g</span>' +
-            '</div>' +
-          '</div>' +
+          (isFixed
+            ? ('<div class="stok-input-wrap" style="margin: 0; justify-content: center;">' +
+                '<input type="number" step="any" min="0" class="dark-input" style="width: 65px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
+                '<span class="stok-unit-tag">' + unitLabel + '</span>' +
+              '</div>')
+            : ('<div style="display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap; justify-content: center;">' +
+                '<div class="stok-input-wrap" style="margin: 0;">' +
+                  '<input type="number" step="any" min="0" class="dark-input" style="width: 58px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
+                  '<span class="stok-unit-tag">' + unitLabel + '</span>' +
+                '</div>' +
+                '<span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700;">≈</span>' +
+                '<div class="stok-input-wrap" style="margin: 0;">' +
+                  '<input type="number" step="any" min="0" class="dark-input" style="width: 66px; color: #38BDF8; font-weight: 700; padding: 4px 6px;" value="' + curSubUnitVal + '" onchange="window.updateStokFromSubUnit(' + idx + ', this.value)" title="Ketik sisa langsung dalam ' + subUnitLabel + '">' +
+                  '<span class="stok-unit-tag" style="color: #38BDF8;">' + subUnitLabel + '</span>' +
+                '</div>' +
+              '</div>')
+          ) +
         '</td>' +
         '<td data-label="Status" style="text-align: center;">' + statusBadge + '</td>' +
         '<td data-label="Tindakan" style="font-size: 0.82rem; ' + actionStyle + '">' + cleanAction + '</td>';
@@ -6182,8 +6433,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.9.0';
-const APP_BUILD_TIME = '27/10/2026 15:30 WIB';
+const APP_VERSION = 'v6.9.1';
+const APP_BUILD_TIME = '27/10/2026 16:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
