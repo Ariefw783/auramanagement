@@ -4663,3 +4663,321 @@ body {
     display: none;
   }
 }
+
+/* ============================================================== */
+/* BUKU 1 ULTRA-COMPACT MOBILE CARD LAYOUT (v6.7.1)               */
+/* ============================================================== */
+.b1-card-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.b1-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.b1-section-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94A3B8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.b1-total-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.b1-total-label {
+  font-size: 0.65rem;
+  color: #94A3B8;
+}
+.b1-total-val {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #38BDF8;
+}
+
+.b1-rate-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: #94A3B8;
+}
+.b1-rate-badge strong {
+  color: #FBBF24;
+  font-family: var(--font-mono);
+}
+
+/* Dynamic Drops Grid inside Section 1 */
+.b1-drops-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+  gap: 6px;
+}
+
+.b1-drop-item {
+  background: #182334;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid #38BDF8;
+  border-radius: 6px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.b1-drop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+.b1-drop-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.b1-drop-del {
+  background: transparent;
+  border: none;
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 3px;
+  margin: -2px -2px 0 0;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+}
+.b1-drop-del:hover {
+  color: #FB7185;
+  background: rgba(251, 113, 133, 0.15);
+}
+
+.b1-drop-input {
+  width: 100% !important;
+  text-align: center;
+  padding: 4px 6px !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  font-family: var(--font-mono);
+  color: #FFFFFF !important;
+  background: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 4px !important;
+}
+
+.b1-drop-val-static {
+  text-align: center;
+  padding: 4px 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  color: #FFFFFF;
+}
+
+/* Quick Add Selector */
+.b1-add-product-wrap {
+  margin-top: 2px;
+}
+.b1-add-select {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  background: #182334;
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  color: #38BDF8;
+  cursor: pointer;
+}
+.b1-add-select:focus {
+  border-style: solid;
+  border-color: #38BDF8;
+}
+
+/* 3-Column Afternoon Metrics */
+.b1-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.b1-metric-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: #182334;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 6px 4px;
+}
+.b1-metric-box.bonus {
+  border-top: 2px solid #818CF8;
+}
+.b1-metric-box.retur {
+  border-top: 2px solid #FB7185;
+}
+.b1-metric-box.laku {
+  border-top: 2px solid #38BDF8;
+}
+
+.b1-metric-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  text-align: center;
+}
+.b1-metric-input {
+  width: 100% !important;
+  max-width: 65px;
+  text-align: center;
+  padding: 4px 2px !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  font-family: var(--font-mono);
+  background: #0F172A !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 4px !important;
+}
+.b1-metric-box.bonus .b1-metric-input {
+  color: #818CF8 !important;
+}
+.b1-metric-box.retur .b1-metric-input {
+  color: #FB7185 !important;
+}
+.b1-metric-val {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #38BDF8;
+  padding: 4px 0;
+}
+
+/* Hero Cash Deposit Strip */
+.b1-setor-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(6, 78, 59, 0.28));
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: 8px;
+  padding: 8px 12px;
+  gap: 8px;
+}
+
+.b1-setor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.b1-setor-title {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #34D399;
+  text-transform: uppercase;
+}
+.b1-setor-sub {
+  font-size: 0.65rem;
+  color: #94A3B8;
+  font-family: var(--font-mono);
+}
+
+.b1-setor-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.b1-setor-prefix {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #64748B;
+}
+.b1-setor-input {
+  width: 105px !important;
+  text-align: right;
+  padding: 5px 8px !important;
+  font-size: 1.05rem !important;
+  font-weight: 900 !important;
+  font-family: var(--font-mono);
+  color: #34D399 !important;
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(52, 211, 153, 0.4) !important;
+  border-radius: 6px !important;
+}
+.b1-setor-val-static {
+  font-size: 1.1rem;
+  font-weight: 900;
+  font-family: var(--font-mono);
+  color: #34D399;
+}
+
+/* Card Action Bar (Buka Slip & Cetak) */
+.b1-card-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.b1-action-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+.b1-action-btn.primary {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38BDF8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+}
+.b1-action-btn.primary:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38BDF8;
+}
+.b1-action-btn.secondary {
+  flex: 0 0 auto;
+  min-width: 75px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #CBD5E1;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+.b1-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+

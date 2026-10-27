@@ -4525,33 +4525,97 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
     card.id = 'buku1Card_' + idx;
 
     const drops = getRowDrops(r);
+    const dropEntries = Object.entries(drops);
 
     let dropsBoxesHtml = '';
-    Object.entries(drops).forEach(([pId, qty]) => {
-      const p = recipes.find(x => x.id === pId) || { id: pId, nama: pId, shortName: pId, badgeColor: '#38BDF8' };
-      dropsBoxesHtml +=
-        '<div class="card-input-box" style="position: relative; border-left: 3px solid ' + (p.badgeColor || '#38BDF8') + '; padding-right: ' + (isDropEditingAllowed ? '20px' : '8px') + ';">' +
-          (isDropEditingAllowed ? '<button type="button" class="btn-del-mini" style="position: absolute; right: 2px; top: 2px;" onclick="window.removeBuku1DropProduct(' + idx + ', \'' + p.id + '\')" title="Hapus varian drop ini">&times;</button>' : '') +
-          '<span style="color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700;">' + (p.shortName || p.nama) + '</span>' +
-          (isDropEditingAllowed
-            ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FFFFFF; font-weight: 800;" value="' + qty + '" onchange="window.updateBuku1DropQty(' + idx + ', \'' + p.id + '\', this.value)">'
-            : '<strong style="color: #FFFFFF; font-size: 0.95rem; font-family: var(--font-mono); padding: 4px 0; display: block; text-align: center;">' + qty + ' pcs</strong>'
-          ) +
-        '</div>';
-    });
+    if (dropEntries.length === 0) {
+      dropsBoxesHtml = '<div style="color: var(--text-muted); font-size: 0.75rem; font-style: italic; padding: 6px 0; grid-column: 1 / -1;">(Belum ada varian produk yang ditambahkan)</div>';
+    } else {
+      dropEntries.forEach(([pId, qty]) => {
+        const p = recipes.find(x => x.id === pId) || { id: pId, nama: pId, shortName: pId, badgeColor: '#38BDF8' };
+        dropsBoxesHtml +=
+          '<div class="b1-drop-item" style="border-left-color: ' + (p.badgeColor || '#38BDF8') + ';">' +
+            '<div class="b1-drop-head">' +
+              '<span class="b1-drop-name" style="color: ' + (p.badgeColor || '#38BDF8') + ';" title="' + p.nama + '">' + (p.shortName || p.nama) + '</span>' +
+              (isDropEditingAllowed ? '<button type="button" class="b1-drop-del" onclick="window.removeBuku1DropProduct(' + idx + ', \'' + p.id + '\')" title="Hapus varian drop ini">&times;</button>' : '') +
+            '</div>' +
+            (isDropEditingAllowed
+              ? '<input type="number" inputmode="numeric" min="0" class="dark-input b1-drop-input" value="' + qty + '" onchange="window.updateBuku1DropQty(' + idx + ', \'' + p.id + '\', this.value)">'
+              : '<div class="b1-drop-val-static">' + qty + ' <span style="font-size: 0.68rem; font-weight: normal; color: #94A3B8;">pcs</span></div>'
+            ) +
+          '</div>';
+      });
+    }
 
     const availableToAdd = recipes.filter(p => drops[p.id] === undefined);
     let addDropSelectorHtml = '';
     if (isDropEditingAllowed && availableToAdd.length > 0) {
       addDropSelectorHtml =
-        '<div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">' +
-          '<select class="form-control-slate" style="padding: 4px 8px; font-size: 0.78rem; flex: 1;" id="selAddDrop_' + idx + '">' +
-            '<option value="">+ Tambah Varian Drop ke Mitra Ini...</option>' +
-            availableToAdd.map(p => '<option value="' + p.id + '">' + p.nama + ' (' + (p.shortName || p.nama) + ')</option>').join('') +
+        '<div class="b1-add-product-wrap">' +
+          '<select class="b1-add-select" onchange="if(this.value){ window.addBuku1DropProduct(' + idx + ', this.value); this.value=\'\'; }">' +
+            '<option value="">+ Tambah Varian Produk ke Mitra Ini...</option>' +
+            availableToAdd.map(p => '<option value="' + p.id + '">+ ' + p.nama + ' (' + (p.shortName || p.nama) + ')</option>').join('') +
           '</select>' +
-          '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap;" onclick="const sel = document.getElementById(\'selAddDrop_' + idx + '\'); if (sel && sel.value) window.addBuku1DropProduct(' + idx + ', sel.value);">+ Tambah</button>' +
         '</div>';
     }
+
+    const unitRate = r.hargaSetor !== undefined ? r.hargaSetor : (r.nama.includes('Ragil') ? 1000 : 800);
+    const rateBadgeHtml = isReturSetorEditingAllowed
+      ? '<span class="b1-rate-badge">Tarif: <input type="number" inputmode="numeric" class="dark-input" style="width: 54px; padding: 2px 4px; text-align: center; color: #FBBF24; font-weight: 800; font-family: var(--font-mono); font-size: 0.72rem; border-radius: 4px;" value="' + unitRate + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)" title="Ubah tarif setor per pcs">/pcs</span>'
+      : '<span class="b1-rate-badge">Tarif: <strong>Rp ' + unitRate.toLocaleString('id-ID') + '</strong>/pcs</span>';
+
+    const section2Html = 
+      '<div class="b1-card-section">' +
+        '<div class="b1-section-header">' +
+          '<div class="b1-section-title">2. PENARIKAN SORE &amp; HASIL LAKU</div>' +
+          rateBadgeHtml +
+        '</div>' +
+        '<div class="b1-metrics-grid">' +
+          '<div class="b1-metric-box bonus">' +
+            '<span class="b1-metric-label">Bonus (+)</span>' +
+            (isReturSetorEditingAllowed
+              ? '<input type="number" inputmode="numeric" min="0" class="dark-input b1-metric-input" value="' + r.bonus + '" onchange="window.updateBuku1RowBonus(' + idx + ', this.value)">'
+              : '<strong style="color: #818CF8; font-family: var(--font-mono); font-size: 0.95rem; padding: 4px 0;">+' + r.bonus + '</strong>') +
+          '</div>' +
+          '<div class="b1-metric-box retur">' +
+            '<span class="b1-metric-label">Retur (-)</span>' +
+            (isReturSetorEditingAllowed
+              ? '<input type="number" inputmode="numeric" min="0" class="dark-input b1-metric-input" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">'
+              : '<strong style="color: #FB7185; font-family: var(--font-mono); font-size: 0.95rem; padding: 4px 0;">' + r.retur + '</strong>') +
+          '</div>' +
+          '<div class="b1-metric-box laku">' +
+            '<span class="b1-metric-label">Laku Terjual</span>' +
+            '<strong class="b1-metric-val">' + r.laku + ' <span style="font-size: 0.68rem; font-weight: normal;">pcs</span></strong>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    const subSetorCalc = r.laku + ' laku × Rp ' + unitRate.toLocaleString('id-ID');
+    const section3Html = 
+      '<div class="b1-setor-hero">' +
+        '<div class="b1-setor-info">' +
+          '<span class="b1-setor-title">SETORAN KAS MASUK</span>' +
+          '<span class="b1-setor-sub">' + subSetorCalc + '</span>' +
+        '</div>' +
+        '<div class="b1-setor-input-wrap">' +
+          '<span class="b1-setor-prefix">Rp</span>' +
+          (isReturSetorEditingAllowed
+            ? '<input type="number" inputmode="numeric" class="dark-input b1-setor-input" value="' + (r.setor || 0) + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">'
+            : '<strong class="b1-setor-val-static">' + (r.setor || 0).toLocaleString('id-ID') + '</strong>') +
+        '</div>' +
+      '</div>';
+
+    const actionsHtml = 
+      '<div class="b1-card-actions">' +
+        '<button type="button" class="b1-action-btn primary" onclick="window.openDetailNotaModal(' + idx + ')">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+          '<span>Buka Slip Setoran</span>' +
+        '</button>' +
+        '<button type="button" class="b1-action-btn secondary" onclick="window.openDetailNotaModal(' + idx + ', true)">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>' +
+          '<span>Cetak</span>' +
+        '</button>' +
+      '</div>';
 
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku1\', ' + idx + ')">' +
@@ -4567,59 +4631,25 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
         '</div>' +
       '</div>' +
       '<div class="record-card-body">' +
-        '<div class="record-field-block">' +
-          '<div class="record-field-label">1. RENCANA DROP PAGI: ' + (!isDropEditingAllowed ? '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-size: 0.68rem; margin-left: 6px;">Terkunci Pagi</span>' : '') + '</div>' +
-          '<div class="record-drops-grid">' +
-            dropsBoxesHtml +
-            '<div class="card-total-box">' +
-              '<span>Total Kirim</span>' +
-              '<strong>' + r.kirim + ' pcs</strong>' +
+        '<div class="b1-card-section">' +
+          '<div class="b1-section-header">' +
+            '<div class="b1-section-title">' +
+              '<span>1. DROP PAGI (SUBUH)</span>' +
+              (!isDropEditingAllowed ? '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-size: 0.65rem;">Terkunci</span>' : '') +
             '</div>' +
+            '<div class="b1-total-badge">' +
+              '<span class="b1-total-label">Total Drop:</span>' +
+              '<strong class="b1-total-val">' + r.kirim + ' pcs</strong>' +
+            '</div>' +
+          '</div>' +
+          '<div class="b1-drops-row">' +
+            dropsBoxesHtml +
           '</div>' +
           addDropSelectorHtml +
         '</div>' +
-        '<div class="record-field-block">' +
-          '<div class="record-field-label">2. HASIL PENJUALAN SORE:</div>' +
-          '<div class="record-grid-2">' +
-            '<div class="card-input-box">' +
-              '<span>Bonus Pemilik (+)</span>' +
-              (isReturSetorEditingAllowed
-                ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowBonus(' + idx + ', this.value)">'
-                : '<strong style="color: #818CF8; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">+' + r.bonus + '</strong>') +
-            '</div>' +
-            '<div class="card-input-box">' +
-              '<span>Sisa Retur (-)</span>' +
-              (isReturSetorEditingAllowed
-                ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB7185;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">'
-                : '<strong style="color: #FB7185; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">' + r.retur + '</strong>') +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="record-field-block">' +
-          '<div class="record-field-label">3. KEUANGAN &amp; SETORAN MITRA:</div>' +
-          '<div class="record-grid-3">' +
-            '<div class="card-total-box">' +
-              '<span>Laku Bersih</span>' +
-              '<strong style="color: #38BDF8;">' + r.laku + ' pcs</strong>' +
-            '</div>' +
-            '<div class="card-input-box">' +
-              '<span>Tarif Setor / Pcs</span>' +
-              (isReturSetorEditingAllowed
-                ? '<input type="number" inputmode="numeric" class="dark-input" style="color: #FBBF24;" value="' + (r.hargaSetor || 800) + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)">'
-                : '<strong style="color: #FBBF24; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">Rp ' + (r.hargaSetor || 800) + '</strong>') +
-            '</div>' +
-            '<div class="card-total-box">' +
-              '<span>Total Setoran</span>' +
-              (isReturSetorEditingAllowed
-                ? '<input type="number" inputmode="numeric" class="dark-input" style="color: #34D399; font-weight: 800; text-align: center;" value="' + (r.setor || 0) + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">'
-                : '<strong style="color: #34D399;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</strong>') +
-            '</div>' +
-          '</div>' +
-        '</div>' +
-        '<div class="record-actions-wrap">' +
-          '<button type="button" class="btn-slip-action" onclick="window.openDetailNotaModal(' + idx + ')">Buka Slip Setoran</button>' +
-          '<button type="button" class="btn-slip-action print" onclick="window.openDetailNotaModal(' + idx + ', true)">Cetak</button>' +
-        '</div>' +
+        section2Html +
+        section3Html +
+        actionsHtml +
       '</div>';
 
     container.appendChild(card);
@@ -5886,8 +5916,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.7.0';
-const APP_BUILD_TIME = '27/10/2026 11:20 WIB';
+const APP_VERSION = 'v6.7.1';
+const APP_BUILD_TIME = '27/10/2026 12:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
