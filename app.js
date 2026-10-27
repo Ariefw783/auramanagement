@@ -5031,29 +5031,31 @@ function renderKuitansiView() {
   const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === selectedBuku2Date);
   const dayAccounting = matchedDayCfg ? computeDayAccounting(matchedDayCfg.isoDate) : null;
   const dayTotal = currentItems.reduce((acc, cur) => acc + (cur.biaya || 0), 0);
-  const dayPlafon = dayAccounting ? dayAccounting.plafonModal : Math.max(currentDayCfg.modal || 100000, dayTotal);
-  const dayEndapan = dayPlafon - dayTotal;
+  const kasTersedia = dayAccounting ? (dayAccounting.totalKasTersedia || dayAccounting.modalAwal || 100000) : (currentDayCfg.modal || 100000);
+  const sisaKasFisik = kasTersedia - dayTotal;
 
   if (kuitansiCurrentDayLabelEl) kuitansiCurrentDayLabelEl.innerText = selectedBuku2Date;
   if (kuitansiNoEl) kuitansiNoEl.innerText = currentDayCfg.noBkk;
   if (kuitansiTglEl) kuitansiTglEl.innerText = currentDayCfg.namaHari;
-  if (kuitansiPlafonEl) kuitansiPlafonEl.innerText = 'Rp ' + dayPlafon.toLocaleString('id-ID');
-  if (kuitansiRekapModalEl) kuitansiRekapModalEl.innerText = 'Rp ' + dayPlafon.toLocaleString('id-ID');
+  if (kuitansiPlafonEl) kuitansiPlafonEl.innerText = 'Rp ' + kasTersedia.toLocaleString('id-ID');
+  if (kuitansiRekapModalEl) kuitansiRekapModalEl.innerText = 'Rp ' + kasTersedia.toLocaleString('id-ID');
   if (kuitansiRekapBelanjaEl) kuitansiRekapBelanjaEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
   if (kuitansiTableTotalEl) kuitansiTableTotalEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
   if (kuitansiTotalEl) kuitansiTotalEl.innerText = 'Rp ' + dayTotal.toLocaleString('id-ID');
   if (kuitansiRekapEndapanEl) {
-    kuitansiRekapEndapanEl.innerText = dayEndapan < 0
-      ? '-Rp ' + Math.abs(dayEndapan).toLocaleString('id-ID') + ' (Subsidi Kotak)'
-      : 'Rp ' + dayEndapan.toLocaleString('id-ID');
-    kuitansiRekapEndapanEl.style.color = dayEndapan < 0 ? '#FB7185' : '#34D399';
+    kuitansiRekapEndapanEl.innerText = sisaKasFisik < 0
+      ? '-Rp ' + Math.abs(sisaKasFisik).toLocaleString('id-ID') + ' (Defisit Kas)'
+      : 'Rp ' + sisaKasFisik.toLocaleString('id-ID');
+    kuitansiRekapEndapanEl.style.color = sisaKasFisik < 0 ? '#FB7185' : '#34D399';
   }
-  if (kuitansiTerbilangEl) kuitansiTerbilangEl.innerText = '# ' + terbilangRupiah(dayTotal) + ' #';
+  if (kuitansiTerbilangEl) {
+    kuitansiTerbilangEl.innerText = dayTotal > 0 ? ('# ' + terbilangRupiah(dayTotal) + ' #') : '# Nol Rupiah #';
+  }
 
   if (kuitansiBody) {
     kuitansiBody.innerHTML = '';
     if (currentItems.length === 0) {
-      kuitansiBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 28px 14px; color: var(--text-muted); font-style: italic;">Belum ada catatan belanja pada lembar kuitansi ini. Tambahkan item belanjaan Anda melalui form di bawah.</td></tr>';
+      kuitansiBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 0.85rem;"><span style="display: block; font-weight: 700; color: #94A3B8; margin-bottom: 4px;">Belum Ada Catatan Belanja pada Lembar Ini</span>Gunakan form input di atas untuk mencatat nota pembelian bahan hari ini.</td></tr>';
     } else {
       currentItems.forEach((b, localIdx) => {
         const globalIdx = auraData.buku2Belanja.findIndex(item => item === b);
@@ -5703,8 +5705,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.6.0';
-const APP_BUILD_TIME = '26/10/2026 19:15 WIB';
+const APP_VERSION = 'v6.6.1';
+const APP_BUILD_TIME = '27/10/2026 10:05 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 

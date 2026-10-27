@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.6.0</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.6.1</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -694,22 +694,37 @@
             </div>
 
             <!-- METADATA GRID KUITANSI -->
-            <div class="kuitansi-meta-grid">
+            <div class="kuitansi-meta-grid" style="margin-bottom: 14px;">
               <div class="kuitansi-meta-cell meta-tgl">
                 <span class="kuitansi-meta-lbl">HARI & TANGGAL:</span>
                 <strong class="kuitansi-meta-val" id="kuitansiTglDisplay">Senin, 26 Oktober 2026</strong>
               </div>
               <div class="kuitansi-meta-cell meta-sumber">
                 <span class="kuitansi-meta-lbl">SUMBER DANA KAS:</span>
-                <strong class="kuitansi-meta-val" style="color: #818CF8;">AMPLOP 1 (MODAL DAPUR & BAHAN)</strong>
-              </div>
-              <div class="kuitansi-meta-cell meta-plafon">
-                <span class="kuitansi-meta-lbl">PLAFON MODAL HARI INI:</span>
-                <strong class="kuitansi-meta-val" style="color: #34D399;" id="kuitansiPlafonDisplay">Rp 100.000</strong>
+                <strong class="kuitansi-meta-val" style="color: #818CF8;">AMPLOP 1 (MODAL BELANJA DAPUR)</strong>
               </div>
               <div class="kuitansi-meta-cell meta-kepada">
                 <span class="kuitansi-meta-lbl">TUJUAN PENGELUARAN:</span>
                 <strong class="kuitansi-meta-val" style="color: #FBBF24;">Pembelian Bahan Baku & Keperluan Dapur</strong>
+              </div>
+            </div>
+
+            <!-- COMPACT FINANCIAL METRIC STRIP (MODERN SLATE ACCOUNTING) -->
+            <div class="kuitansi-metric-strip">
+              <div class="metric-cell">
+                <span class="metric-lbl">1. Uang Kas Tersedia</span>
+                <strong class="metric-val" id="kuitansiRekapModal" style="color: #38BDF8;">Rp 0</strong>
+                <span class="metric-hint">Saldo kas siap belanja</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-lbl">2. Total Belanja Hari Ini</span>
+                <strong class="metric-val" id="kuitansiRekapBelanja" style="color: #FB7185;">Rp 0</strong>
+                <span class="metric-hint">Akumulasi nota belanja</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-lbl">3. Sisa Saldo Kas Kotak</span>
+                <strong class="metric-val" id="kuitansiRekapEndapan" style="color: #34D399;">Rp 0</strong>
+                <span class="metric-hint">Sisa kas fisik dapur</span>
               </div>
             </div>
 
@@ -735,45 +750,20 @@
                     <td data-label="Total Belanja" style="font-family: var(--font-mono); font-size: 1.05rem; font-weight: 900; color: #FB7185; text-align: right;" id="kuitansiTableTotal">Rp 0</td>
                     <td data-label="" class="no-print"></td>
                   </tr>
+                  <tr class="kuitansi-terbilang-subrow">
+                    <td colspan="6" style="padding: 10px 14px; background: rgba(0, 0, 0, 0.25); border-top: 1px solid rgba(255, 255, 255, 0.08);">
+                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span style="font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Terbilang:</span>
+                        <span id="kuitansiTerbilangDisplay" style="color: #FBBF24; font-family: var(--font-sans); font-size: 0.85rem; font-style: italic; font-weight: 600;"># Nol Rupiah #</span>
+                      </div>
+                    </td>
+                  </tr>
                 </tfoot>
               </table>
             </div>
 
             <!-- TAMPILAN KARTU BELANJA DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
             <div id="kuitansiCardsContainer" class="collapsible-cards-container"></div>
-
-            <!-- TERBILANG KUITANSI BOX -->
-            <div class="kuitansi-terbilang-wrap">
-              <span class="kuitansi-terbilang-tag">TERBILANG:</span>
-              <div class="kuitansi-terbilang-text" id="kuitansiTerbilangDisplay">
-                # Nol Rupiah #
-              </div>
-            </div>
-
-            <!-- REKONSILIASI KAS AMPLOP 1 HARI INI -->
-            <div class="kuitansi-rekap-grid">
-              <div class="kuitansi-rekap-card card-plafon">
-                <div class="kuitansi-rekap-head">
-                  <span class="kuitansi-rekap-lbl">1. PLAFON MODAL (AMPLOP 1)</span>
-                </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapModal">Rp 100.000</strong>
-                <span class="kuitansi-rekap-sub">Alokasi kas harian untuk belanja</span>
-              </div>
-              <div class="kuitansi-rekap-card card-belanja">
-                <div class="kuitansi-rekap-head">
-                  <span class="kuitansi-rekap-lbl">2. TOTAL BELANJA RIIL KELUAR</span>
-                </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapBelanja">Rp 0</strong>
-                <span class="kuitansi-rekap-sub">Total pengeluaran lembar kuitansi ini</span>
-              </div>
-              <div class="kuitansi-rekap-card card-endapan">
-                <div class="kuitansi-rekap-head">
-                  <span class="kuitansi-rekap-lbl">3. SISA KAS MENGENDAP DI KOTAK</span>
-                </div>
-                <strong class="kuitansi-rekap-val" id="kuitansiRekapEndapan">Rp 100.000</strong>
-                <span class="kuitansi-rekap-sub">Sisa kas fisik dapur</span>
-              </div>
-            </div>
 
             <!-- LEMBAR TANDA TANGAN & PENGESAHAN KUITANSI (A5 OFFICIAL) -->
             <div class="kuitansi-signatures-wrap" style="display: flex; justify-content: space-between; margin-top: 24px; padding-top: 14px; border-top: 1px dashed var(--card-border);">
