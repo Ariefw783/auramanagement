@@ -1125,7 +1125,7 @@ body {
 }
 
 /* Responsive Rules */
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   body {
     padding: 0;
   }
@@ -1932,7 +1932,7 @@ body {
   color: var(--text-secondary);
 }
 
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .kuitansi-metric-strip {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -3365,7 +3365,7 @@ body {
   color: #38BDF8;
 }
 
-@media (max-width: 600px) {
+@media screen and (max-width: 600px) {
   .mobile-topbar {
     padding: 8px 10px;
   }
@@ -3384,7 +3384,7 @@ body {
 /* ============================================================== */
 /* RESPONSIVE DATE STEPPER                                        */
 /* ============================================================== */
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   .date-stepper-container {
     display: flex;
     width: 100%;
@@ -3422,7 +3422,7 @@ body {
   display: none;
 }
 
-@media (max-width: 820px) {
+@media screen and (max-width: 820px) {
   .collapsible-cards-container {
     display: block !important;
     width: 100% !important;
@@ -3796,7 +3796,7 @@ body {
 /* ============================================================== */
 /* RESPONSIVE COMPACT SPREADSHEETS (PC VIEW)                      */
 /* ============================================================== */
-@media (min-width: 821px) {
+@media screen and (min-width: 821px) {
   .table-responsive-wrapper {
     display: block !important;
     overflow-x: auto;
@@ -3810,7 +3810,7 @@ body {
 
 
 /* Responsive Card Header (Prevent Truncation of Product Name on Mobile) */
-@media (max-width: 680px) {
+@media screen and (max-width: 680px) {
   .record-card-header {
     display: flex !important;
     flex-direction: column !important;
@@ -3855,7 +3855,7 @@ body {
 /* COMPREHENSIVE MOBILE VIEWPORT OVERHAUL (SMARTPHONES 320PX-640PX) */
 /* ============================================================== */
 
-@media (max-width: 640px) {
+@media screen and (max-width: 640px) {
   /* 1. Global Container & Frame Optimizations */
   .app-frame {
     border-radius: 0 !important;
@@ -4568,7 +4568,7 @@ body {
   gap: 8px;
 }
 
-@media (max-width: 820px) {
+@media screen and (max-width: 820px) {
   .stok-action-btns {
     display: flex !important;
     flex-direction: column !important;
@@ -4799,7 +4799,7 @@ body {
   }
 }
 
-@media (min-width: 821px) {
+@media screen and (min-width: 821px) {
   .dispatch-tabs-bar,
   .takaran-tabs-bar {
     display: none !important;
@@ -5142,5 +5142,361 @@ body {
 .b1-action-btn.secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #FFFFFF;
+}
+
+/* ============================================================== */
+/* MASTER PRINT ENGINE (A4 PORTRAIT, PHYSICAL & PDF PRINT READY)  */
+/* ============================================================== */
+@page {
+  size: A4 portrait;
+  margin: 10mm 10mm 12mm 10mm;
+}
+
+@media print {
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+    overflow: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .app-frame {
+    box-shadow: none !important;
+    border: none !important;
+    background: #FFFFFF !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-workspace {
+    background: #FFFFFF !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  /* Elemen Web / Kontrol yang DILARANG masuk cetakan */
+  .app-sidebar,
+  .topbar-header,
+  .mobile-bottom-nav,
+  .mobile-topbar,
+  .tool-btn,
+  .sidebar-status-box,
+  .no-print,
+  .slate-table th.no-print,
+  .slate-table td.no-print,
+  .btn-del-row,
+  .btn-del-mini,
+  .b1-drop-del,
+  .b1-add-product-wrap,
+  .b1-card-actions,
+  .collapsible-cards-container,
+  .card-view-header-bar,
+  .buku1-save-action-bar,
+  .kuitansi-nav-card,
+  .kuitansi-filter-bar,
+  .date-stepper-container,
+  .date-display-trigger,
+  .master-bahan-toolbar,
+  .search-input-wrap,
+  .stok-toolbar,
+  .app-modal-overlay,
+  #appLoadingOverlay,
+  .cloud-sync-pill,
+  .btn-pwa-install,
+  .btn-pwa-install-mobile,
+  .menu-toggle-btn {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  /* Tampilkan tab aktif untuk dicetak */
+  .app-tab-panel {
+    display: none !important;
+  }
+  .app-tab-panel.active {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  .slate-card {
+    background: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+  }
+
+  .slate-card-header {
+    display: none !important;
+  }
+
+  /* Table Container & Layout: WAJIB TAMPIL DI SEMUA TARGET CETAK / PDF */
+  .table-responsive-wrapper {
+    display: block !important;
+    visibility: visible !important;
+    width: 100% !important;
+    overflow: visible !important;
+    border: none !important;
+    margin: 0 0 14px 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+
+  .slate-table {
+    display: table !important;
+    visibility: visible !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1.5px solid #000000 !important;
+  }
+
+  .slate-table thead {
+    display: table-header-group !important;
+  }
+
+  .slate-table tbody {
+    display: table-row-group !important;
+  }
+
+  .slate-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .slate-table tr {
+    display: table-row !important;
+    background: #FFFFFF !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .slate-table th,
+  .slate-table td {
+    display: table-cell !important;
+    color: #000000 !important;
+    border: 1px solid #333333 !important;
+    font-size: 8.5pt !important;
+    padding: 5px 8px !important;
+    background: transparent !important;
+    text-align: inherit;
+  }
+
+  .slate-table th {
+    background: #F1F5F9 !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .slate-table td[data-label]::before {
+    display: none !important;
+  }
+
+  /* Bersihkan input form agar tampak seperti teks laporan cetak */
+  .slate-table input,
+  .buku1-table input,
+  .kuitansi-table input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    font-size: inherit !important;
+    padding: 0 !important;
+    width: auto !important;
+    text-align: inherit !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: textfield !important;
+  }
+
+  .slate-table input::-webkit-outer-spin-button,
+  .slate-table input::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+  }
+
+  /* Kop Distribusi Buku 1 */
+  .buku1-printable-wrap {
+    overflow: visible !important;
+  }
+
+  .buku1-print-kop {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .buku1-print-kop * {
+    color: #000000 !important;
+  }
+
+  /* Kuitansi Voucher Print Ready */
+  .kuitansi-voucher-box {
+    background: #FFFFFF !important;
+    border: 2px solid #000000 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    padding: 16px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .kuitansi-kop,
+  .kuitansi-meta-grid,
+  .kuitansi-metric-strip,
+  .kuitansi-signatures-wrap {
+    display: flex !important;
+  }
+
+  .kuitansi-meta-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .kuitansi-kop * {
+    color: #000000 !important;
+  }
+
+  .kuitansi-brand-badge {
+    color: #000000 !important;
+    border: 1.5px solid #000000 !important;
+    background: transparent !important;
+  }
+
+  .kuitansi-meta-cell {
+    background: #F8FAFC !important;
+    border: 1px solid #CBD5E1 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .kuitansi-meta-lbl,
+  .kuitansi-meta-val {
+    color: #000000 !important;
+  }
+
+  .kuitansi-metric-strip {
+    border: 1px solid #000000 !important;
+    background: #F8FAFC !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin-bottom: 14px !important;
+  }
+
+  .kuitansi-metric-strip .metric-cell {
+    border-right: 1px solid #CBD5E1 !important;
+    padding: 8px 12px !important;
+  }
+
+  .kuitansi-metric-strip .metric-cell:last-child {
+    border-right: none !important;
+  }
+
+  .kuitansi-metric-strip .metric-lbl,
+  .kuitansi-metric-strip .metric-val,
+  .kuitansi-metric-strip .metric-hint {
+    color: #000000 !important;
+  }
+
+  .kuitansi-total-row td {
+    font-weight: 800 !important;
+    color: #000000 !important;
+    background: #F8FAFC !important;
+  }
+
+  .kuitansi-terbilang-subrow td {
+    background: #F8FAFC !important;
+    color: #000000 !important;
+    border-top: 1px solid #CBD5E1 !important;
+  }
+
+  .kuitansi-terbilang-subrow span {
+    color: #000000 !important;
+  }
+
+  .kuitansi-signatures-wrap {
+    border-top: 1px dashed #000000 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    margin-top: 20px !important;
+    padding-top: 10px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .kuitansi-signatures-wrap * {
+    color: #000000 !important;
+  }
+
+  /* Slip Box Printing */
+  #slipBoxContainer {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .slip-box-card {
+    background: #FFFFFF !important;
+    border: 2px dashed #333333 !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 14px !important;
+  }
+
+  .slip-box-title,
+  .slip-box-body,
+  .slip-box-body strong {
+    color: #000000 !important;
+  }
+
+  .slip-box-footer {
+    background: #F1F5F9 !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #000000 !important;
+  }
+
+  .slip-rate-group,
+  .slip-rate-input {
+    color: #000000 !important;
+  }
 }
 
