@@ -567,6 +567,8 @@ const INITIAL_AURA_DATA = {
   buku1Detail: DEFAULT_BUKU1_HISTORY['2026-10-26'],
   buku1History: DEFAULT_BUKU1_HISTORY,
   buku1SavedDates: {},
+  buku1KirimSavedDates: {},
+  buku1TarikSavedDates: {},
   buku1CustomDays: [],
   masterBahan: INITIAL_MASTER_BAHAN,
   masterResep: DEFAULT_MASTER_RESEP,
@@ -749,6 +751,12 @@ if (!auraData.buku1SavedDates) {
     '2026-10-20': true,
     '2026-10-21': true
   };
+}
+if (!auraData.buku1KirimSavedDates) {
+  auraData.buku1KirimSavedDates = {};
+}
+if (!auraData.buku1TarikSavedDates) {
+  auraData.buku1TarikSavedDates = {};
 }
 if (!auraData.buku2SavedDates) {
   auraData.buku2SavedDates = {
@@ -1041,7 +1049,10 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   };
 
   const effectiveTgl = parseInt(cfg.isoDate.split('-')[2], 10) || cfg.tgl;
-  const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
+  const isDaySaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[cfg.isoDate]);
+  const isSavedDay = isDaySaved;
+  const isKirimSaved = !!(auraData.buku1KirimSavedDates && auraData.buku1KirimSavedDates[cfg.isoDate]) || isDaySaved;
+  const isTarikSaved = !!(auraData.buku1TarikSavedDates && auraData.buku1TarikSavedDates[cfg.isoDate]) || isDaySaved;
   const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[cfg.isoDate]);
 
   // 1. Jika Hari Ini Ditandai Libur Operasional
@@ -1057,6 +1068,8 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
       noBkk: cfg.noBkk,
       isTarget: false,
       isSavedDay: true,
+      isKirimSaved: true,
+      isTarikSaved: true,
       isHoliday: true,
       kirim: 0,
       bonus: 0,
@@ -1065,14 +1078,17 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
       omzet: 0,
       modalAwal,
       belanja: 0,
+      totalKasTersedia: modalAwal,
       sisaEndapanKas: modalAwal,
       alokasiBelanjaHarian: 0,
       tabunganBahanAwet: 0,
+      targetTabunganAwet: 0,
       recoveryModal: 0,
       targetHpp: 0,
       deficitToCover: 0,
       plafonModal: modalAwal,
       gajiBos: 0,
+      status3Amplop: 'LIBUR_OPERASIONAL',
       kasSiapEsok: modalAwal,
       endapanHarian: modalAwal,
       labaBersih: 0
@@ -1082,18 +1098,23 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   // Data konsinyasi resmi yang masuk ke Buku 3 hanya yang sudah disimpan (committed)
   const rows = (auraData.buku1Committed && auraData.buku1Committed[isoDate])
     ? auraData.buku1Committed[isoDate]
-    : (isSavedDay && auraData.buku1History && auraData.buku1History[isoDate])
+    : ((isDaySaved || isKirimSaved || isTarikSaved) && auraData.buku1History && auraData.buku1History[isoDate])
       ? auraData.buku1History[isoDate]
       : [];
 
   let kirim = 0, bonus = 0, retur = 0, laku = 0, omzet = 0;
-  rows.forEach(r => {
-    kirim += (r.kirim || 0);
-    bonus += (r.bonus || 0);
-    retur += (r.retur || 0);
-    laku += (r.laku || 0);
-    omzet += (r.setor || 0);
-  });
+  if (isKirimSaved || isTarikSaved || isDaySaved) {
+    rows.forEach(r => {
+      kirim += (r.kirim || 0);
+      bonus += (r.bonus || 0);
+      // Retur, Laku, & Omzet HANYA dihitung jika penarikan sore sudah selesai (isTarikSaved / isDaySaved)
+      if (isTarikSaved || isDaySaved) {
+        retur += (r.retur || 0);
+        laku += (r.laku || 0);
+        omzet += (r.setor || 0);
+      }
+    });
+  }
 
   // Belanja resmi yang masuk ke Buku 3 hanya yang sudah tersimpan (committed)
   const isSavedBelanja = !!(auraData.buku2SavedDates && auraData.buku2SavedDates[cfg.b2Key]);
@@ -1107,7 +1128,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     .filter(b => b.tgl === cfg.b2Key)
     .reduce((sum, b) => sum + (b.biaya || 0), 0);
 
-  const isTarget = !isSavedDay && cfg.isTarget && belanja === 0 && retur === 0;
+  const isTarget = !isSavedDay && !isKirimSaved && cfg.isTarget && belanja === 0 && retur === 0;
 
   // 1. Modal Awal Kas Dapur (Saldo Kas Fisik yang mengendap di kotak sebelum transaksi hari ini)
   let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
@@ -1138,7 +1159,14 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     tabunganBahanAwet = 0;
     targetTabunganAwet = 0;
     gajiBos = 0;
-    status3Amplop = 'BELANJA_PERDANA';
+    status3Amplop = (cfg.isoDate === '2026-10-25') ? 'BELANJA_PERDANA' : 'MENUNGGU_SETORAN_SORE';
+  } else if (isKirimSaved && !isTarikSaved) {
+    // Tahap Kirim Pagi tersimpan, tapi belum Penarikan Sore
+    alokasiBelanjaHarian = belanja;
+    tabunganBahanAwet = 0;
+    targetTabunganAwet = 0;
+    gajiBos = 0;
+    status3Amplop = 'MENUNGGU_PENARIKAN_SORE';
   } else if (omzet > 0 && belanja > 0) {
     // KEDUANYA SUDAH DIKETAHUI: Belanja malam & Omzet sore sudah selesai
     alokasiBelanjaHarian = belanja;
@@ -1179,6 +1207,8 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   let kasSiapEsok = modalAwal;
   if (status3Amplop === 'BELANJA_PERDANA') {
     kasSiapEsok = Math.max(0, modalAwal - belanja);
+  } else if (status3Amplop === 'MENUNGGU_PENARIKAN_SORE') {
+    kasSiapEsok = Math.max(0, modalAwal - belanja);
   } else if (status3Amplop === 'DEFISIT_KAS') {
     kasSiapEsok = -defisitBelanja;
   } else if (status3Amplop === 'LENGKAP' || status3Amplop === 'TABUNGAN_PARSIAL') {
@@ -1202,7 +1232,9 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     shortLabel: cfg.shortLabel,
     noBkk: cfg.noBkk,
     isTarget: isTarget,
-    isSavedDay: isSavedDay,
+    isSavedDay: isTarikSaved || isDaySaved,
+    isKirimSaved: isKirimSaved,
+    isTarikSaved: isTarikSaved || isDaySaved,
     isHoliday: false,
     kirim,
     bonus,
@@ -1240,7 +1272,7 @@ function getAllDaysAccounting() {
   return sortedDays.map(cfg => {
     const day = computeDayAccounting(cfg.isoDate, rollingEndapan);
     // Hanya hari yang sah (sudah disimpan atau ada transaksi riil) yang mempengaruhi akumulasi keuangan
-    const isCounted = !day.isTarget || day.isSavedDay || (day.omzet > 0 || day.belanja > 0);
+    const isCounted = !day.isTarget || day.isSavedDay || day.isKirimSaved || (day.omzet > 0 || day.belanja > 0);
     if (isCounted) {
       rollingEndapan = day.endapanHarian;
       cumGaji += day.gajiBos;
@@ -1407,12 +1439,16 @@ function syncDateDisplays() {
   }
   const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
   const isSaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+  const isKirim = !!(auraData.buku1KirimSavedDates && auraData.buku1KirimSavedDates[activeDate]) || isSaved;
+  const isTarik = !!(auraData.buku1TarikSavedDates && auraData.buku1TarikSavedDates[activeDate]) || isSaved;
   
   let statusSuffix = '';
   if (activeDate === REAL_TODAY_ISO) {
-    statusSuffix = isSaved ? ' (Hari Ini • Tersimpan)' : ' (Hari Ini)';
-  } else if (isSaved) {
-    statusSuffix = ' (Tersimpan)';
+    statusSuffix = isTarik ? ' (Hari Ini • Selesai)' : (isKirim ? ' (Hari Ini • Terkirim Pagi)' : ' (Hari Ini • Draft)');
+  } else if (isTarik) {
+    statusSuffix = ' (Selesai • Terverifikasi)';
+  } else if (isKirim) {
+    statusSuffix = ' (Terkirim Pagi)';
   } else {
     statusSuffix = ' (Draft)';
   }
@@ -1439,13 +1475,27 @@ function syncDateDisplays() {
   const tagEl = document.getElementById('dateSessionTag');
   if (tagEl) {
     if (activeDate === REAL_TODAY_ISO) {
-      tagEl.innerText = isSaved ? 'Hari Ini • Tersimpan' : 'Hari Ini • Mode Input';
-      tagEl.style.background = isSaved ? 'rgba(52, 211, 153, 0.2)' : 'rgba(56, 189, 248, 0.2)';
-      tagEl.style.color = isSaved ? '#34D399' : '#38BDF8';
-    } else if (isSaved) {
-      tagEl.innerText = 'Data Tersimpan';
+      if (isTarik) {
+        tagEl.innerText = 'Hari Ini • Selesai & Terverifikasi';
+        tagEl.style.background = 'rgba(52, 211, 153, 0.2)';
+        tagEl.style.color = '#34D399';
+      } else if (isKirim) {
+        tagEl.innerText = 'Hari Ini • Menunggu Penarikan Sore';
+        tagEl.style.background = 'rgba(245, 158, 11, 0.2)';
+        tagEl.style.color = '#FBBF24';
+      } else {
+        tagEl.innerText = 'Hari Ini • Input Kirim Pagi';
+        tagEl.style.background = 'rgba(56, 189, 248, 0.2)';
+        tagEl.style.color = '#38BDF8';
+      }
+    } else if (isTarik) {
+      tagEl.innerText = 'Selesai • Terverifikasi';
       tagEl.style.background = 'rgba(52, 211, 153, 0.2)';
       tagEl.style.color = '#34D399';
+    } else if (isKirim) {
+      tagEl.innerText = 'Terkirim Pagi (Menunggu Sore)';
+      tagEl.style.background = 'rgba(245, 158, 11, 0.2)';
+      tagEl.style.color = '#FBBF24';
     } else {
       tagEl.innerText = 'Draft Rencana';
       tagEl.style.background = 'rgba(251, 191, 36, 0.2)';
@@ -1617,9 +1667,17 @@ window.resetBuku1CurrentDay = function() {
       });
       if (!auraData.buku1History) auraData.buku1History = {};
       auraData.buku1History[activeDate] = rows;
+      if (auraData.buku1Committed) delete auraData.buku1Committed[activeDate];
+      if (auraData.buku1KirimSavedDates) delete auraData.buku1KirimSavedDates[activeDate];
+      if (auraData.buku1TarikSavedDates) delete auraData.buku1TarikSavedDates[activeDate];
+      if (auraData.buku1SavedDates) delete auraData.buku1SavedDates[activeDate];
+      if (buku1EditModeDates) delete buku1EditModeDates[activeDate];
       window.syncRecipeFromBuku1(false);
       saveLocal();
       renderAllViews();
+      if (typeof pushToFirestoreCloud === 'function') {
+        pushToFirestoreCloud(true).catch(() => {});
+      }
       window.showSuccessModal("Lembar Direset", "Seluruh data distribusi mitra untuk " + dayName + " telah dikosongkan.");
     }
   );
@@ -1680,42 +1738,97 @@ window.toggleBuku1Holiday = function() {
   }
 };
 
-window.savePenjualanHariIni = async function() {
+window.saveKirimPagi = async function() {
+  if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
+  auraData.buku1KirimSavedDates[activeDate] = true;
+
   if (!auraData.buku1Committed) auraData.buku1Committed = {};
   auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
-  if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
-  auraData.buku1SavedDates[activeDate] = true;
+
   buku1EditModeDates[activeDate] = false;
 
   const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
-  if (cfg) cfg.isTarget = false;
+  const rows = getActiveBuku1Rows();
+  let totalKirim = 0;
+  rows.forEach(r => { totalKirim += (r.kirim || 0); });
 
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   renderAllViews();
 
   const namaHari = cfg ? cfg.namaHari : activeDate;
-  window.showLoadingModal('Menyimpan Hasil Penjualan...', 'Sedang menyimpan data penjualan <strong>' + namaHari + '</strong> ke Cloud Firestore...');
-  setCloudStatusUI('syncing', 'Menyimpan Penjualan...');
+  window.showLoadingModal('Menyimpan Kiriman Pagi...', 'Sedang menyimpan data drop pagi <strong>' + namaHari + '</strong> ke Cloud Firestore...');
+  setCloudStatusUI('syncing', 'Menyimpan Kirim Pagi...');
 
   try {
     await pushToFirestoreCloud(true);
     window.hideLoadingModal();
     if (typeof window.showSuccessModal === 'function') {
       window.showSuccessModal(
-        'Hasil Penjualan Berhasil Disimpan',
-        'Data penjualan mitra untuk hari <strong>' + namaHari + '</strong> telah berhasil disimpan secara resmi.<br><br>' +
-        'Kas belanja pasar, tabungan bahan awet, gaji bos, dan laporan keuangan telah terintegrasi live ke cloud.'
+        'Kiriman Pagi Berhasil Disimpan',
+        'Drop produk konsinyasi untuk hari <strong>' + namaHari + '</strong> (' + totalKirim + ' pcs) telah tersimpan & terkunci.<br><br>' +
+        'Label Box siap dicetak. Sistem kini dalam status <strong>Menunggu Penarikan Sore</strong>.'
+      );
+    }
+  } catch (err) {
+    console.error('Gagal simpan kirim pagi ke cloud:', err);
+    window.hideLoadingModal();
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Tersimpan Lokal', 'Kiriman pagi telah tersimpan di memori perangkat ini.');
+    }
+  }
+};
+
+window.savePenjualanHariIni = async function() {
+  if (!auraData.buku1Committed) auraData.buku1Committed = {};
+  auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
+  if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+  auraData.buku1SavedDates[activeDate] = true;
+  if (!auraData.buku1TarikSavedDates) auraData.buku1TarikSavedDates = {};
+  auraData.buku1TarikSavedDates[activeDate] = true;
+  if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
+  auraData.buku1KirimSavedDates[activeDate] = true;
+  buku1EditModeDates[activeDate] = false;
+
+  const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
+  if (cfg) cfg.isTarget = false;
+
+  const rows = getActiveBuku1Rows();
+  let totalLaku = 0, totalSetor = 0;
+  rows.forEach(r => {
+    totalLaku += (r.laku || 0);
+    totalSetor += (r.setor || 0);
+  });
+
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  renderAllViews();
+
+  const namaHari = cfg ? cfg.namaHari : activeDate;
+  window.showLoadingModal('Menyimpan Penarikan Sore...', 'Sedang menyimpan data penarikan sore <strong>' + namaHari + '</strong> ke Cloud Firestore...');
+  setCloudStatusUI('syncing', 'Menyimpan Penarikan Sore...');
+
+  try {
+    await pushToFirestoreCloud(true);
+    window.hideLoadingModal();
+    if (typeof window.showSuccessModal === 'function') {
+      window.showSuccessModal(
+        'Penarikan Sore Berhasil Disimpan',
+        'Data penarikan sore hari <strong>' + namaHari + '</strong> telah selesai & terverifikasi resmi.<br><br>' +
+        'Total Terjual: <strong>' + totalLaku + ' pcs</strong><br>' +
+        'Total Setoran Kas Masuk: <strong>Rp ' + totalSetor.toLocaleString('id-ID') + '</strong><br><br>' +
+        'Alokasi 3 Amplop Kas Dapur dan Rekapitulasi Arus Kas telah aktif terintegrasi ke cloud.'
       );
     }
   } catch (err) {
     console.error('Gagal simpan penjualan ke cloud:', err);
     window.hideLoadingModal();
     if (typeof window.showAlertModal === 'function') {
-      window.showAlertModal('Tersimpan Lokal', 'Hasil penjualan telah tersimpan di memori perangkat ini.');
+      window.showAlertModal('Tersimpan Lokal', 'Hasil penarikan sore telah tersimpan di memori perangkat ini.');
     }
   }
 };
+window.savePenarikanSore = window.savePenjualanHariIni;
 
 window.tarikGajiJumatSore = async function() {
   const allDays = getAllDaysAccounting();
@@ -4359,6 +4472,34 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
   if (!container) return;
   container.innerHTML = '';
 
+  const isDaySaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+  const isKirimSaved = !!(auraData.buku1KirimSavedDates && auraData.buku1KirimSavedDates[activeDate]) || isDaySaved;
+  const isTarikSaved = !!(auraData.buku1TarikSavedDates && auraData.buku1TarikSavedDates[activeDate]) || isDaySaved;
+  const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[activeDate]);
+  const isEditMode = !!buku1EditModeDates[activeDate];
+
+  const isDropEditingAllowed = !isHoliday && (!isKirimSaved || isEditMode);
+  const isReturSetorEditingAllowed = !isHoliday && (!isTarikSaved || isEditMode);
+
+  let headerActionBtns = '';
+  if (!isHoliday) {
+    if (isEditMode) {
+      headerActionBtns +=
+        '<button type="button" class="btn-card-toggle-all" onclick="window.saveKirimPagi()" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan Kirim Pagi</button>' +
+        '<button type="button" class="btn-card-toggle-all" onclick="window.savePenjualanHariIni()" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.5); font-weight: 800;">Simpan Penarikan Sore</button>';
+    } else if (!isKirimSaved) {
+      headerActionBtns +=
+        '<button type="button" class="btn-card-toggle-all" onclick="window.saveKirimPagi()" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan Kirim Pagi</button>';
+    } else if (!isTarikSaved) {
+      headerActionBtns +=
+        '<button type="button" class="btn-card-toggle-all" onclick="window.savePenjualanHariIni()" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.5); font-weight: 800;">Simpan Penarikan Sore</button>' +
+        '<button type="button" class="btn-card-toggle-all" onclick="window.toggleEditBuku1Day()" style="border-color: rgba(56, 189, 248, 0.5); color: #38BDF8; font-weight: 700;">Edit Drop Pagi</button>';
+    } else {
+      headerActionBtns +=
+        '<button type="button" class="btn-card-toggle-all" onclick="window.toggleEditBuku1Day()" style="border-color: rgba(56, 189, 248, 0.5); color: #38BDF8; font-weight: 700;">Edit Data</button>';
+    }
+  }
+
   const topBar = document.createElement('div');
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
@@ -4367,7 +4508,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.savePenjualanHariIni()" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.5); font-weight: 800;">Simpan Hasil Penjualan</button>' +
+      headerActionBtns +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', true)">Buka Semua</button>' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'buku1\', false)">Sembunyikan</button>' +
     '</div>';
@@ -4389,16 +4530,19 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
     Object.entries(drops).forEach(([pId, qty]) => {
       const p = recipes.find(x => x.id === pId) || { id: pId, nama: pId, shortName: pId, badgeColor: '#38BDF8' };
       dropsBoxesHtml +=
-        '<div class="card-input-box" style="position: relative; border-left: 3px solid ' + (p.badgeColor || '#38BDF8') + '; padding-right: 20px;">' +
-          '<button type="button" class="btn-del-mini" style="position: absolute; right: 2px; top: 2px;" onclick="window.removeBuku1DropProduct(' + idx + ', \'' + p.id + '\')" title="Hapus varian drop ini">&times;</button>' +
+        '<div class="card-input-box" style="position: relative; border-left: 3px solid ' + (p.badgeColor || '#38BDF8') + '; padding-right: ' + (isDropEditingAllowed ? '20px' : '8px') + ';">' +
+          (isDropEditingAllowed ? '<button type="button" class="btn-del-mini" style="position: absolute; right: 2px; top: 2px;" onclick="window.removeBuku1DropProduct(' + idx + ', \'' + p.id + '\')" title="Hapus varian drop ini">&times;</button>' : '') +
           '<span style="color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700;">' + (p.shortName || p.nama) + '</span>' +
-          '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FFFFFF; font-weight: 800;" value="' + qty + '" onchange="window.updateBuku1DropQty(' + idx + ', \'' + p.id + '\', this.value)">' +
+          (isDropEditingAllowed
+            ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FFFFFF; font-weight: 800;" value="' + qty + '" onchange="window.updateBuku1DropQty(' + idx + ', \'' + p.id + '\', this.value)">'
+            : '<strong style="color: #FFFFFF; font-size: 0.95rem; font-family: var(--font-mono); padding: 4px 0; display: block; text-align: center;">' + qty + ' pcs</strong>'
+          ) +
         '</div>';
     });
 
     const availableToAdd = recipes.filter(p => drops[p.id] === undefined);
     let addDropSelectorHtml = '';
-    if (availableToAdd.length > 0) {
+    if (isDropEditingAllowed && availableToAdd.length > 0) {
       addDropSelectorHtml =
         '<div style="display: flex; gap: 6px; align-items: center; margin-top: 8px;">' +
           '<select class="form-control-slate" style="padding: 4px 8px; font-size: 0.78rem; flex: 1;" id="selAddDrop_' + idx + '">' +
@@ -4424,7 +4568,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
       '</div>' +
       '<div class="record-card-body">' +
         '<div class="record-field-block">' +
-          '<div class="record-field-label">1. RENCANA DROP PAGI:</div>' +
+          '<div class="record-field-label">1. RENCANA DROP PAGI: ' + (!isDropEditingAllowed ? '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-size: 0.68rem; margin-left: 6px;">Terkunci Pagi</span>' : '') + '</div>' +
           '<div class="record-drops-grid">' +
             dropsBoxesHtml +
             '<div class="card-total-box">' +
@@ -4439,11 +4583,15 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
           '<div class="record-grid-2">' +
             '<div class="card-input-box">' +
               '<span>Bonus Pemilik (+)</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowBonus(' + idx + ', this.value)">' +
+              (isReturSetorEditingAllowed
+                ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #818CF8;" value="' + r.bonus + '" onchange="window.updateBuku1RowBonus(' + idx + ', this.value)">'
+                : '<strong style="color: #818CF8; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">+' + r.bonus + '</strong>') +
             '</div>' +
             '<div class="card-input-box">' +
               '<span>Sisa Retur (-)</span>' +
-              '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB7185;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">' +
+              (isReturSetorEditingAllowed
+                ? '<input type="number" inputmode="numeric" min="0" class="dark-input" style="color: #FB7185;" value="' + r.retur + '" onchange="window.updateBuku1RowRetur(' + idx + ', this.value)">'
+                : '<strong style="color: #FB7185; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">' + r.retur + '</strong>') +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -4456,11 +4604,15 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
             '</div>' +
             '<div class="card-input-box">' +
               '<span>Tarif Setor / Pcs</span>' +
-              '<input type="number" inputmode="numeric" class="dark-input" style="color: #FBBF24;" value="' + (r.hargaSetor || 800) + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)">' +
+              (isReturSetorEditingAllowed
+                ? '<input type="number" inputmode="numeric" class="dark-input" style="color: #FBBF24;" value="' + (r.hargaSetor || 800) + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)">'
+                : '<strong style="color: #FBBF24; font-family: var(--font-mono); text-align: center; padding: 4px 0; display: block;">Rp ' + (r.hargaSetor || 800) + '</strong>') +
             '</div>' +
             '<div class="card-total-box">' +
               '<span>Total Setoran</span>' +
-              '<strong style="color: #34D399;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</strong>' +
+              (isReturSetorEditingAllowed
+                ? '<input type="number" inputmode="numeric" class="dark-input" style="color: #34D399; font-weight: 800; text-align: center;" value="' + (r.setor || 0) + '" onchange="window.updateBuku1RowSetor(' + idx + ', this.value)">'
+                : '<strong style="color: #34D399;">Rp ' + (r.setor || 0).toLocaleString('id-ID') + '</strong>') +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -4757,10 +4909,16 @@ function renderBuku1View() {
   const rowsBuku1 = getActiveBuku1Rows();
 
   const isDaySaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+  const isKirimSaved = !!(auraData.buku1KirimSavedDates && auraData.buku1KirimSavedDates[activeDate]) || isDaySaved;
+  const isTarikSaved = !!(auraData.buku1TarikSavedDates && auraData.buku1TarikSavedDates[activeDate]) || isDaySaved;
   const isHoliday = !!(auraData.buku1HolidayDates && auraData.buku1HolidayDates[activeDate]);
-  const isEditingAllowed = !isHoliday && (!isDaySaved || !!buku1EditModeDates[activeDate]);
+  const isEditMode = !!buku1EditModeDates[activeDate];
+
+  const isDropEditingAllowed = !isHoliday && (!isKirimSaved || isEditMode);
+  const isReturSetorEditingAllowed = !isHoliday && (!isTarikSaved || isEditMode);
 
   const btnToggleLiburEl = document.getElementById('btnToggleLiburBuku1');
+  const btnSimpanKirimEl = document.getElementById('btnSimpanKirimPagiBuku1');
   const btnSimpanPenjualanEl = document.getElementById('btnSimpanPenjualanBuku1');
 
   if (btnToggleLiburEl) {
@@ -4780,33 +4938,55 @@ function renderBuku1View() {
       statusBadgeEl.innerText = 'Hari Libur Operasional';
       statusBadgeEl.style.background = 'rgba(239, 68, 68, 0.2)';
       statusBadgeEl.style.color = '#EF4444';
-    } else if (isDaySaved && !isEditingAllowed) {
-      statusBadgeEl.innerText = 'Tersimpan';
-      statusBadgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
-      statusBadgeEl.style.color = '#34D399';
-    } else if (isDaySaved && isEditingAllowed) {
+    } else if (isEditMode) {
       statusBadgeEl.innerText = 'Mode Edit Aktif';
       statusBadgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
       statusBadgeEl.style.color = '#FBBF24';
+    } else if (isTarikSaved) {
+      statusBadgeEl.innerText = 'Selesai • Terverifikasi';
+      statusBadgeEl.style.background = 'rgba(16, 185, 129, 0.2)';
+      statusBadgeEl.style.color = '#34D399';
+    } else if (isKirimSaved) {
+      statusBadgeEl.innerText = 'Terkirim Pagi (Menunggu Penarikan Sore)';
+      statusBadgeEl.style.background = 'rgba(245, 158, 11, 0.2)';
+      statusBadgeEl.style.color = '#FBBF24';
     } else {
-      statusBadgeEl.innerText = 'Mode Input (Draft)';
+      statusBadgeEl.innerText = 'Tahap 1: Kirim Pagi';
       statusBadgeEl.style.background = 'rgba(56, 189, 248, 0.2)';
       statusBadgeEl.style.color = '#38BDF8';
     }
   }
 
-  if (btnToggleEditEl) {
-    btnToggleEditEl.innerText = 'Buka Kunci (Edit)';
-    btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
+  if (btnSimpanKirimEl) {
+    btnSimpanKirimEl.style.display = (!isHoliday && (!isKirimSaved || isEditMode)) ? 'inline-flex' : 'none';
   }
+
   if (btnSimpanPenjualanEl) {
-    btnSimpanPenjualanEl.style.display = isEditingAllowed ? 'inline-flex' : 'none';
+    btnSimpanPenjualanEl.style.display = (!isHoliday && isKirimSaved && (!isTarikSaved || isEditMode)) ? 'inline-flex' : 'none';
   }
+
   if (btnToggleEditEl) {
-    btnToggleEditEl.style.display = (isDaySaved && !isEditingAllowed) ? 'inline-flex' : 'none';
+    if (!isHoliday && isTarikSaved && !isEditMode) {
+      btnToggleEditEl.innerText = 'Edit Data (Buka Kunci)';
+      btnToggleEditEl.style.display = 'inline-flex';
+    } else if (!isHoliday && isKirimSaved && !isTarikSaved && !isEditMode) {
+      btnToggleEditEl.innerText = 'Edit Drop Pagi';
+      btnToggleEditEl.style.display = 'inline-flex';
+    } else {
+      btnToggleEditEl.style.display = 'none';
+    }
   }
+
   if (printStatusText) {
-    printStatusText.innerText = isDaySaved ? 'Tersimpan & Terverifikasi' : 'Draft Operasional';
+    if (isHoliday) {
+      printStatusText.innerText = 'Libur Operasional';
+    } else if (isTarikSaved) {
+      printStatusText.innerText = 'Selesai & Terverifikasi';
+    } else if (isKirimSaved) {
+      printStatusText.innerText = 'Terkirim Pagi (Menunggu Penarikan Sore)';
+    } else {
+      printStatusText.innerText = 'Draft Rencana Kirim';
+    }
   }
 
   if (printDateDisplay) {
@@ -4858,7 +5038,7 @@ function renderBuku1View() {
         '</div>';
       }
 
-      if (isEditingAllowed) {
+      if (isReturSetorEditingAllowed) {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
           '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
@@ -4880,7 +5060,7 @@ function renderBuku1View() {
           '<td data-label="Aksi" style="text-align: center;" class="no-print">' +
             '<div style="display: flex; gap: 4px; justify-content: center;">' +
               '<button type="button" class="btn-del-row" style="color: #38BDF8; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Edit Baris">Edit</button>' +
-              '<button type="button" class="btn-del-row" style="color: #34D399; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Bagi Otomatis Target Kirim">Bagi</button>' +
+              (isDropEditingAllowed ? '<button type="button" class="btn-del-row" style="color: #34D399; width: auto; padding: 4px 7px; font-size: 0.72rem; font-weight: 700;" onclick="window.openEditBuku1RowModal(' + idx + ')" title="Bagi Otomatis Target Kirim">Bagi</button>' : '') +
             '</div>' +
           '</td>';
       } else {
@@ -5706,8 +5886,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.6.2';
-const APP_BUILD_TIME = '27/10/2026 10:55 WIB';
+const APP_VERSION = 'v6.7.0';
+const APP_BUILD_TIME = '27/10/2026 11:20 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -5975,6 +6155,10 @@ window.saveAndSyncModule = async function(moduleName) {
     auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(getActiveBuku1Rows()));
     if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
     auraData.buku1SavedDates[activeDate] = true;
+    if (!auraData.buku1TarikSavedDates) auraData.buku1TarikSavedDates = {};
+    auraData.buku1TarikSavedDates[activeDate] = true;
+    if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
+    auraData.buku1KirimSavedDates[activeDate] = true;
     buku1EditModeDates[activeDate] = false;
     const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
     if (cfg) cfg.isTarget = false;

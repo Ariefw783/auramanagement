@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.6.2</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.7.0</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -490,13 +490,14 @@
             <div>
               <div class="slate-card-title">
                 <span>Distribusi & Penjualan Mitra (Format A5)</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Mode Input</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;" id="buku1DayStatusBadge">Tahap 1: Kirim Pagi</span>
               </div>
-              <div class="slate-card-subtitle">Catat rencana kirim pagi & retur sore per titik mitra. Klik 'Simpan Hasil Penjualan' untuk mengunci data harian dan sinkronkan ke cloud.</div>
+              <div class="slate-card-subtitle">Alur 2 Tahap: Simpan Kiriman Pagi (Subuh) lalu Simpan Penarikan Sore & Setoran. Data terkunci bertahap dan live ke cloud.</div>
             </div>
             
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanPenjualanBuku1" onclick="window.savePenjualanHariIni()" title="Simpan hasil penjualan hari ini dan sinkronkan ke cloud" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">Simpan Hasil Penjualan Hari Ini</button>
+              <button type="button" class="tool-btn" id="btnSimpanKirimPagiBuku1" onclick="window.saveKirimPagi()" title="Kunci data pengiriman subuh dan sinkronkan ke cloud" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; border-color: rgba(56, 189, 248, 0.6); font-weight: 800;">Simpan Kiriman Pagi</button>
+              <button type="button" class="tool-btn tool-btn-success" id="btnSimpanPenjualanBuku1" onclick="window.savePenjualanHariIni()" title="Simpan hasil penarikan sore, retur & setoran ke cloud" style="background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">Simpan Penarikan Sore</button>
               <button type="button" class="tool-btn" id="btnToggleEditBuku1" onclick="window.toggleEditBuku1Day()" style="display: none; border-color: rgba(56, 189, 248, 0.6); color: #38BDF8; font-weight: 700;">Edit Data (Buka Kunci)</button>
               <button type="button" class="tool-btn" id="btnToggleLiburBuku1" onclick="window.toggleBuku1Holiday()" style="border-color: rgba(251, 191, 36, 0.5); color: #FBBF24;" title="Tandai hari ini sebagai hari libur operasional">Tandai Hari Ini Libur</button>
               <button type="button" class="tool-btn" onclick="window.printBuku1()">Cetak A5</button>
