@@ -1862,7 +1862,7 @@ window.tarikGajiJumatSore = async function() {
         if (typeof window.showSuccessModal === 'function') {
           window.showSuccessModal(
             'Gaji Berhasil Ditarik',
-            'Selamat! Gaji bersih mingguan sebesar <strong>Rp ' + totalGajiBos.toLocaleString('id-ID') + '</strong> telah berhasil ditarik ke Dompet Bos.<br><br>' +
+            'Selamat! Gaji bersih mingguan sebesar <strong>Rp ' + totalGajiBos.toLocaleString('id-ID') + '</strong> telah berhasil ditarik ke Rekening/Dompet Pemilik.<br><br>' +
             'Target Modal Awal Rp 100.000 telah lunas dipulihkan!'
           );
         }
@@ -2478,16 +2478,16 @@ function renderExecutiveFinancials() {
 
       let badgeStatusHtml = '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 800;">Lengkap Terverifikasi</span>';
       let amplop2Subtext = 'Cadangan sosis, minyak, collins, gas (aman di dapur)';
-      let amplop3Subtext = 'Laba bersih hak bos (Diambil Jumat sore)';
+      let amplop3Subtext = 'Laba bersih hak pemilik (Diambil Jumat sore)';
 
       if (curDay.status3Amplop === 'DEFISIT_KAS') {
         badgeStatusHtml = '<span class="mini-tag" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-weight: 800;">Defisit Kas Belanja</span>';
         amplop2Subtext = 'Kas tidak cukup untuk tabungan awet hari ini';
-        amplop3Subtext = 'Gaji bos Rp 0 (Belanja malam butuh talangan modal)';
+        amplop3Subtext = 'Laba pemilik Rp 0 (Belanja malam butuh talangan modal)';
       } else if (curDay.status3Amplop === 'TABUNGAN_PARSIAL') {
         badgeStatusHtml = '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24; font-weight: 800;">Kas Dapur Diamankan</span>';
         amplop2Subtext = 'Terisi Rp ' + tabunganAwet.toLocaleString('id-ID') + ' dari target Rp ' + targetAwet.toLocaleString('id-ID') + ' (Sisa kas fisik diprioritaskan)';
-        amplop3Subtext = 'Laba bos Rp 0 hari ini (Kas difokuskan amankan belanja & bahan dapur)';
+        amplop3Subtext = 'Laba pemilik Rp 0 hari ini (Kas difokuskan amankan belanja & bahan dapur)';
       }
 
       card3AmpContainer.innerHTML = `
@@ -2634,7 +2634,7 @@ function renderAccountingChart() {
       '<div><span>Total Omzet</span><strong style="color: #38BDF8;">Rp ' + sumOmzet.toLocaleString('id-ID') + '</strong></div>' +
       '<div><span>Total Belanja (HPP)</span><strong style="color: #F87171;">Rp ' + sumBelanja.toLocaleString('id-ID') + '</strong></div>' +
       '<div><span>Total Laba Bersih</span><strong style="color: #34D399;">Rp ' + sumLaba.toLocaleString('id-ID') + '</strong></div>' +
-      '<div><span>Gaji Bos + Endapan</span><strong style="color: #818CF8;">Rp ' + sumGaji.toLocaleString('id-ID') + ' + Rp ' + sumEndapan.toLocaleString('id-ID') + '</strong></div>';
+      '<div><span>Laba Pemilik + Endapan</span><strong style="color: #818CF8;">Rp ' + sumGaji.toLocaleString('id-ID') + ' + Rp ' + sumEndapan.toLocaleString('id-ID') + '</strong></div>';
   }
 
   const maxVal = Math.max(100000, ...chartData.map(d => d.omzet)) * 1.15;
@@ -2653,7 +2653,7 @@ function renderAccountingChart() {
       : '-';
 
     col.innerHTML = 
-      '<div class="accounting-bar-cluster" style="' + (d.isTarget ? 'opacity: 0.72;' : '') + '" title="' + d.label + (d.isTarget ? ' (Target Berjalan)' : '') + ':\n• Omzet Setoran: Rp ' + d.omzet.toLocaleString('id-ID') + '\n• HPP Belanja: Rp ' + d.belanja.toLocaleString('id-ID') + '\n• Laba Bersih: Rp ' + d.laba.toLocaleString('id-ID') + '\n• Gaji Bos (Amplop 2): Rp ' + d.gaji.toLocaleString('id-ID') + '\n• Endapan Kotak: Rp ' + (d.endapan || 0).toLocaleString('id-ID') + '">' +
+      '<div class="accounting-bar-cluster" style="' + (d.isTarget ? 'opacity: 0.72;' : '') + '" title="' + d.label + (d.isTarget ? ' (Target Berjalan)' : '') + ':\n• Omzet Setoran: Rp ' + d.omzet.toLocaleString('id-ID') + '\n• HPP Belanja: Rp ' + d.belanja.toLocaleString('id-ID') + '\n• Laba Bersih: Rp ' + d.laba.toLocaleString('id-ID') + '\n• Laba Pemilik (Amplop 2): Rp ' + d.gaji.toLocaleString('id-ID') + '\n• Endapan Kotak: Rp ' + (d.endapan || 0).toLocaleString('id-ID') + '">' +
         '<div class="accounting-bar-sub omzet" style="height: ' + hOmzet + '%;"></div>' +
         '<div class="accounting-bar-sub belanja" style="height: ' + hBelanja + '%;"></div>' +
         '<div class="accounting-bar-sub laba" style="height: ' + hLaba + '%;"></div>' +
@@ -2920,7 +2920,7 @@ window.openEditMasterBahanModal = function(idx) {
 
   if (!overlay) return;
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-  if (titleEl) titleEl.innerText = 'Edit Katalog Harga Bahan & Toko Langganan';
+  if (titleEl) titleEl.innerText = 'Edit Katalog Bahan Baku & Pemasok';
   const sub = document.getElementById('appModalSubtitle'); if (sub) sub.innerText = 'Perbarui harga beli terbaru jika harga di pasar/toko mengalami perubahan';
 
   const uFisik = item.unitFisik || 'pcs';
@@ -4505,7 +4505,7 @@ function renderBuku1Cards(rows, sumKirim, sumBonus, sumRetur, sumLaku, sumSetor)
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>' +
-      '<span>DAFTAR MITRA (KARTU KONSINYASI)</span>' +
+      '<span>DAFTAR MITRA KONSINYASI</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       headerActionBtns +
@@ -4724,7 +4724,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>REKAP ARUS KAS HARIAN (KARTU)</span>' +
+      '<span>REKAP ARUS KAS HARIAN</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku3\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
@@ -4760,7 +4760,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
         '<div class="record-meta-row"><span class="label">Modal Awal Kotak:</span><span class="val" style="color:#94A3B8;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</span></div>' +
         '<div class="record-meta-row"><span class="label">Belanja Riil Bahan:</span><span class="val" style="color:#FB7185;">-Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
         '<div class="record-meta-row"><span class="label">Sisa Endapan Kas:</span><strong class="val" style="color:' + sisaEndapanColor + ';">' + sisaEndapanFmt + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Amplop 2 (Gaji Bersih Bos):</span><strong class="val" style="color:#818CF8; font-size: 0.95rem;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">Amplop 2 (Laba Pemilik):</span><strong class="val" style="color:#818CF8; font-size: 0.95rem;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
         '<div class="record-meta-row"><span class="label">Kas Dapur Siap Esok:</span><strong class="val" style="color:#34D399;">' + kasSiapFmt + '</strong></div>' +
       '</div>';
     container.appendChild(card);
@@ -4775,7 +4775,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
       '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + totLaku + ' pcs</strong></div>' +
       '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL OMZET KAS:</span><strong>Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
       '<div class="card-stat-pill"><span>Total Belanja:</span><strong style="color:#F87171;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Gaji Bos:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>Total Laba Pemilik:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
       '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>KAS DAPUR SIAP OPERASIONAL:</span><strong style="color:#34D399;">Rp ' + totEndapan.toLocaleString('id-ID') + '</strong></div>' +
     '</div>';
   container.appendChild(summary);
@@ -4790,7 +4790,7 @@ function renderMasterBahanCards(list) {
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>KATALOG HARGA & TOKO LANGGANAN (ACUAN)</span>' +
+      '<span>KATALOG BAHAN BAKU & PEMASOK</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'master\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
@@ -4851,7 +4851,7 @@ function renderStokCards(list) {
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>STOK FISIK DAPUR & JADWAL BELANJA (KARTU)</span>' +
+      '<span>INVENTARIS STOK DAPUR</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
@@ -5356,7 +5356,7 @@ function renderBuku3View() {
         '<td data-label="Modal Awal" style="font-family: var(--font-mono); color: #94A3B8; text-align: right;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</td>' +
         '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #FB7185; text-align: right;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
         '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); font-weight: 800; color: ' + sisaEndapanColor + '; text-align: right;" title="Saldo kas di kotak dapur setelah belanja">' + sisaEndapanFormatted + '</td>' +
-        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8; text-align: right;" title="Laba bersih murni dompet bos">' + (k.gaji > 0 ? 'Rp ' + k.gaji.toLocaleString('id-ID') : 'Rp 0') + '</td>' +
+        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8; text-align: right;" title="Laba bersih murni hak pemilik">' + (k.gaji > 0 ? 'Rp ' + k.gaji.toLocaleString('id-ID') : 'Rp 0') + '</td>' +
         '<td data-label="Kas Siap Esok" style="font-family: var(--font-mono); font-weight: 900; color: #34D399; text-align: right;" title="Saldo kas kotak dapur kembali utuh untuk modal besok">' + kasSiapFormatted + '</td>';
       b3Body.appendChild(tr);
     });
@@ -5903,8 +5903,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.7.2';
-const APP_BUILD_TIME = '27/10/2026 12:45 WIB';
+const APP_VERSION = 'v6.8.0';
+const APP_BUILD_TIME = '27/10/2026 13:10 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -6193,11 +6193,11 @@ window.saveAndSyncModule = async function(moduleName) {
   renderAllViews();
 
   const moduleLabels = {
-    buku1: 'Distribusi Titip Jual (Buku 1)',
-    kuitansi: 'Kuitansi Belanja Dapur (Buku 2)',
-    buku3: 'Arus Kas & Laba Bersih (Buku 3)',
-    stok: 'Stok Fisik Dapur & Belanja Malam',
-    master: 'Katalog Harga & Toko Langganan'
+    buku1: 'Distribusi Konsinyasi Mitra',
+    kuitansi: 'Pengeluaran Kas & Belanja Bahan',
+    buku3: 'Arus Kas & Alokasi Laba (3 Amplop)',
+    stok: 'Inventaris Stok Dapur',
+    master: 'Katalog Bahan Baku & Pemasok'
   };
 
   const label = moduleLabels[moduleName] || 'Data Operasional';
