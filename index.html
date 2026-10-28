@@ -209,7 +209,7 @@
                     <line x1="9" y1="11" x2="13" y2="11"></line>
                   </svg>
                 </span>
-                <span class="nav-item-label">Standar Resep & Takaran</span>
+                <span class="nav-item-label">Daftar Menu & Takaran Dapur</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -227,7 +227,7 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.9.1</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.9.2</span>
         </div>
         <p class="status-box-desc">
           Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
@@ -1070,21 +1070,21 @@
       </section>
 
       <!-- ============================================================== -->
-      <!-- TAB 7: STANDAR RESEP & KALKULATOR TAKARAN                     -->
+      <!-- TAB 7: DAFTAR MENU & KALKULATOR TAKARAN DAPUR                  -->
       <!-- ============================================================== -->
       <section id="tab-resep" class="app-tab-panel">
         <div class="slate-card">
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Standar Resep & Kalkulator Takaran</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Kalkulator Produksi</span>
+                <span>Daftar Menu & Kalkulator Takaran Dapur</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Dapur & SOP</span>
               </div>
-              <div class="slate-card-subtitle">Kalkulator takaran bahan baku otomatis berdasarkan target porsi harian dan SOP penggorengan.</div>
+              <div class="slate-card-subtitle">Daftar resep menu jajanan, sakelar menu aktif, dan kalkulator takaran bahan baku otomatis (Tbsp/Tsp/Gram/Fisik).</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.openManageFormulaModal()">Kelola Formula Resep</button>
-              <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddProductModal()">+ Tambah Produk Baru</button>
+              <button type="button" class="tool-btn" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>
+              <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>
             </div>
           </div>
 
@@ -1130,8 +1130,8 @@
               <div class="calc-units-row">
                 <span class="calc-units-label">Mode Satuan:</span>
                 <div class="calc-units-pills">
-                  <button type="button" class="filter-pill active" id="btnUnitModeAll" onclick="window.setTakaranUnitMode('all')">Gram + Sendok</button>
-                  <button type="button" class="filter-pill" id="btnUnitModeSpoon" onclick="window.setTakaranUnitMode('spoon')">Fokus Sendok</button>
+                  <button type="button" class="filter-pill active" id="btnUnitModeAll" onclick="window.setTakaranUnitMode('all')">Tbsp/Tsp + Gram</button>
+                  <button type="button" class="filter-pill" id="btnUnitModeSpoon" onclick="window.setTakaranUnitMode('spoon')">Fokus Tbsp/Tsp</button>
                   <button type="button" class="filter-pill" id="btnUnitModeGram" onclick="window.setTakaranUnitMode('gram')">Fokus Gram</button>
                 </div>
               </div>
@@ -1157,10 +1157,11 @@
           <!-- ZONE 2: SIMETRIS VISUAL RECIPE & SOP CARDS (DYNAMIC) -->
           <div style="margin-top: 24px;">
             <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-              <span>Bagian 2: Standar Operasional Produksi (SOP) & Panduan Visual Produk</span>
-              <div style="display: flex; gap: 8px;">
-                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.openManageFormulaModal()">Edit Gramasi Bahan</button>
-                <button type="button" class="tool-btn tool-btn-success" style="font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Varian Baru</button>
+              <span>Bagian 2: Daftar Menu Jajanan & SOP Penggorengan</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.restoreDefaultRecipes()">Pulihkan Menu Standar</button>
+                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>
+                <button type="button" class="tool-btn tool-btn-success" style="font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>
               </div>
             </div>
 

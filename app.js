@@ -379,7 +379,7 @@ const INITIAL_MASTER_BAHAN = [
   { id: 'mb-15', nama: 'Tepung Terigu Curah', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bungkus (500g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 500, totalGram: 500, harga: 6000, vendor: 'Toko Kelontong Berkah', tglUpdate: '2026-10-24' },
   { id: 'mb-16', nama: 'Tepung Panir Super Krispi', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Kilogram (1 kg)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 10000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-24' },
   { id: 'mb-17', nama: 'Minyak Goreng Sawit Kemasan', kategori: 'Toko / Minimarket', tipeHitung: 'volume', satuan: 'Pouch / Botol (1.000 ml)', unitFisik: 'ml', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 19000, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
-  { id: 'mb-18', nama: 'Gas LPG 3kg Subsidi', kategori: 'Operasional & Gas', tipeHitung: 'fixed', satuan: 'Tabung (3 kg)', unitFisik: 'tabung', qtyPerBeli: 1, gramPerUnit: 1, totalGram: 1, harga: 22000, vendor: 'Pangkalan Gas Resmi', tglUpdate: '2026-10-24' },
+  { id: 'mb-18', nama: 'Gas LPG 3kg Subsidi', kategori: 'Operasional & Gas', tipeHitung: 'fixed', satuan: 'Tabung (3 kg)', unitFisik: 'tabung', qtyPerBeli: 1, gramPerUnit: 3000, totalGram: 3000, harga: 22000, vendor: 'Pangkalan Gas Resmi', tglUpdate: '2026-10-24' },
   { id: 'mb-19', nama: 'Mika Plastik Bening 7C', kategori: 'Kemasan', tipeHitung: 'count', satuan: 'Pak (isi 100 pcs)', unitFisik: 'pcs', qtyPerBeli: 100, gramPerUnit: 0, totalGram: 0, harga: 12500, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
   { id: 'mb-20', nama: 'Kertas Nasi Alas Minyak', kategori: 'Kemasan', tipeHitung: 'count', satuan: 'Pak (isi 250 lbr)', unitFisik: 'lembar', qtyPerBeli: 250, gramPerUnit: 0, totalGram: 0, harga: 14000, vendor: 'Toko Plastik Sentosa', tglUpdate: '2026-10-24' },
   { id: 'mb-21', nama: 'Margarin Serbaguna', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bungkus (200g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 200, totalGram: 200, harga: 7500, vendor: 'Minimarket Terdekat', tglUpdate: '2026-10-24' },
@@ -390,6 +390,124 @@ const INITIAL_MASTER_BAHAN = [
   { id: 'mb-26', nama: 'Saus Tomat Ekstra Sedap', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Bantal / Pouch (1 kg)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 1000, totalGram: 1000, harga: 12000, vendor: 'Toko Bahan Kue Karunia', tglUpdate: '2026-10-25' },
   { id: 'mb-27', nama: 'Lada Bubuk (Ladaku)', kategori: 'Toko / Minimarket', tipeHitung: 'weight', satuan: 'Sachet (4g)', unitFisik: 'gram', qtyPerBeli: 1, gramPerUnit: 4, totalGram: 4, harga: 1000, vendor: 'Warung Kelontong', tglUpdate: '2026-10-26' }
 ];
+
+// ==============================================================
+// STANDAR KONVERSI KULINER PRESISI DAPUR MOM FITRI (USDA & KING ARTHUR BAKING)
+// 1 Tbsp (Tablespoon) = 15 ml | 1 Tsp (Teaspoon) = 5 ml
+// ==============================================================
+const CULINARY_CONVERSION = {
+  // Tepung Terigu Protein Sedang (Segitiga Biru / All-Purpose Flour): 1 cup = 120-125g => 1 Tbsp = 7.8g, 1 Tsp = 2.6g
+  'terigu': { tbsp: 7.8, tsp: 2.6, density: 0.52 },
+  'tepung terigu': { tbsp: 7.8, tsp: 2.6, density: 0.52 },
+  'tepung lem': { tbsp: 7.8, tsp: 2.6, density: 0.52 },
+  // Tepung Panir / Breadcrumbs: 1 Tbsp = 6.0g, 1 Tsp = 2.0g
+  'panir': { tbsp: 6.0, tsp: 2.0, density: 0.40 },
+  'tepung panir': { tbsp: 6.0, tsp: 2.0, density: 0.40 },
+  // Gula Pasir Kristal: 1 Tbsp = 12.5g, 1 Tsp = 4.2g
+  'gula': { tbsp: 12.5, tsp: 4.2, density: 0.85 },
+  'gula pasir': { tbsp: 12.5, tsp: 4.2, density: 0.85 },
+  // Garam Dapur Halus: 1 Tbsp = 18.0g, 1 Tsp = 6.0g
+  'garam': { tbsp: 18.0, tsp: 6.0, density: 1.20 },
+  // Susu Kental Manis (SKM): 1 Tbsp = 20.0g, 1 Tsp = 6.7g
+  'skm': { tbsp: 20.0, tsp: 6.7, density: 1.33 },
+  'susu kental': { tbsp: 20.0, tsp: 6.7, density: 1.33 },
+  'susu kental manis': { tbsp: 20.0, tsp: 6.7, density: 1.33 },
+  // Saus Tiram: 1 Tbsp = 19.0g, 1 Tsp = 6.3g
+  'saus tiram': { tbsp: 19.0, tsp: 6.3, density: 1.26 },
+  // Saus Tomat / Cabai: 1 Tbsp = 16.5g, 1 Tsp = 5.5g
+  'saus tomat': { tbsp: 16.5, tsp: 5.5, density: 1.10 },
+  'saus': { tbsp: 16.5, tsp: 5.5, density: 1.10 },
+  // Minyak Goreng Sawit: 1 Tbsp = 13.8g, 1 Tsp = 4.6g
+  'minyak': { tbsp: 13.8, tsp: 4.6, density: 0.92 },
+  'minyak goreng': { tbsp: 13.8, tsp: 4.6, density: 0.92 },
+  // Kaldu Bubuk (Royco/Masako): 1 Tbsp = 12.0g, 1 Tsp = 4.0g
+  'kaldu': { tbsp: 12.0, tsp: 4.0, density: 0.80 },
+  'bumbu': { tbsp: 12.0, tsp: 4.0, density: 0.80 },
+  // Lada Bubuk / Merica / Vanili: 1 Tbsp = 9.0g, 1 Tsp = 3.0g
+  'lada': { tbsp: 9.0, tsp: 3.0, density: 0.60 },
+  'merica': { tbsp: 9.0, tsp: 3.0, density: 0.60 },
+  'vanili': { tbsp: 9.0, tsp: 3.0, density: 0.60 },
+  // Susu Bubuk Putih: 1 Tbsp = 7.0g, 1 Tsp = 2.3g
+  'susu bubuk': { tbsp: 7.0, tsp: 2.3, density: 0.47 },
+  // Keju Oles (Prochiz Spready): 1 Tbsp = 15.0g, 1 Tsp = 5.0g
+  'keju': { tbsp: 15.0, tsp: 5.0, density: 1.00 },
+  // Cokelat Oles / Collins: 1 Tbsp = 18.0g, 1 Tsp = 6.0g
+  'collins': { tbsp: 18.0, tsp: 6.0, density: 1.20 },
+  'cokelat': { tbsp: 18.0, tsp: 6.0, density: 1.20 }
+};
+
+function getIngredientCulinaryDensity(nameOrKey) {
+  const n = (nameOrKey || '').toLowerCase();
+  for (const k in CULINARY_CONVERSION) {
+    if (n.includes(k)) return CULINARY_CONVERSION[k];
+  }
+  return { tbsp: 12.0, tsp: 4.0, density: 0.80 };
+}
+
+function convertGramsToCulinary(grams, nameOrKey) {
+  const g = Number(grams) || 0;
+  const dens = getIngredientCulinaryDensity(nameOrKey);
+  const tbsp = g / dens.tbsp;
+  const tsp = g / dens.tsp;
+  return {
+    tbspVal: tbsp,
+    tspVal: tsp,
+    tbspFmt: (Math.round(tbsp * 10) / 10).toFixed(1) + ' Tbsp',
+    tspFmt: (Math.round(tsp * 10) / 10).toFixed(1) + ' Tsp',
+    exactGrams: g
+  };
+}
+
+function convertCulinaryToGrams(qty, unit, nameOrKey) {
+  const q = Number(qty) || 0;
+  const u = (unit || '').toLowerCase();
+  const dens = getIngredientCulinaryDensity(nameOrKey);
+  if (u === 'tbsp' || u === 'sdm') return q * dens.tbsp;
+  if (u === 'tsp' || u === 'sdt') return q * dens.tsp;
+  if (u === 'kg') return q * 1000;
+  if (u === 'ml') return q * (dens.density || 1.0);
+  return q;
+}
+
+function getIngredientUnitCost(mbKey, qty, unit) {
+  const q = Number(qty) || 0;
+  const u = (unit || 'gram').toLowerCase();
+  const isGramOrMl = (u === 'gram' || u === 'kg' || u === 'tbsp' || u === 'tsp' || u === 'sdm' || u === 'sdt' || u === 'ml');
+  const meta = getMasterItemMeta(mbKey, 10000, 100, isGramOrMl);
+  
+  if (u === 'gram') {
+    return q * meta.gramCost;
+  }
+  if (u === 'kg') {
+    return q * 1000 * meta.gramCost;
+  }
+  if (u === 'tbsp' || u === 'sdm') {
+    const g = convertCulinaryToGrams(q, 'tbsp', mbKey);
+    return g * meta.gramCost;
+  }
+  if (u === 'tsp' || u === 'sdt') {
+    const g = convertCulinaryToGrams(q, 'tsp', mbKey);
+    return g * meta.gramCost;
+  }
+  if (u === 'ml') {
+    const g = convertCulinaryToGrams(q, 'ml', mbKey);
+    return g * meta.gramCost;
+  }
+  // Discrete / Culinary units
+  if (u === 'siung') {
+    return q * 5 * meta.gramCost;
+  }
+  if (u === 'buah') {
+    return q * (meta.gramPerUnit || 120) * meta.gramCost;
+  }
+  if (meta.unitFisik === u && meta.unitCost && meta.unitCost > 0) {
+    return q * meta.unitCost;
+  }
+  if (meta.unitCost && meta.unitCost > 0 && !/bungkus|pack|pak|bantal|pouch|botol|tabung/i.test(meta.satuanLabel || '')) {
+    return q * meta.unitCost;
+  }
+  return q * meta.gramCost * (meta.gramPerUnit || 1);
+}
 
 // Standar Operasional Resep & Bill of Materials (BOM) Dinamis Dapur Mom Fitri
 const DEFAULT_MASTER_RESEP = [
@@ -402,11 +520,12 @@ const DEFAULT_MASTER_RESEP = [
     sopWaktuSuhu: '160°C (Api Sedang • 3.5 - 4.0 Menit)',
     hargaSetorDefault: 800,
     imgSrc: './Panduan_Visual_Lumpia_Ubi_Ungu_Keju.jpg',
-    badgeTag: 'Gogumapia Mini • 12g (1 Sdt Munjung)',
-    catatanSOP: 'Ubi ungu kupas dikukus empuk (bukan direbus), dilumatkan garpu selagi hangat bersama Gula Pasir & SKM Putih hingga lumer seperti pasta. Kunci takaran 1 sdt munjung (~12g ubi) + semprotan 1g Keju Oles Prochiz Spready dari plastik segitiga. Lipat model bantal amplop mini.',
+    badgeTag: 'Gogumapia Mini • 12g (~1 Tbsp Peres / 2.5 Tsp)',
+    catatanSOP: 'Ubi ungu kupas dikukus empuk (bukan direbus), dilumatkan garpu selagi hangat bersama Gula Pasir & SKM Putih hingga lumer seperti pasta. Kunci takaran 12g ubi (~1 Tbsp peres / 2.5 Tsp) + semprotan 1g Keju Oles Prochiz Spready dari plastik segitiga. Lipat model bantal amplop mini.',
     videoRef: { author: '@mamabinti313 (Kedai313)', url: 'https://vt.tiktok.com/ZSgamAF29/' },
     defaultPcs: 66,
     isCustom: false,
+    isActive: true,
     komposisi: [
       { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar', qtyPerPcs: 1, unit: 'lembar', isGram: false, tipe: 'kulit' },
       { bahanKey: 'Ubi Ungu', nama: 'Ubi Ungu Kukus Lumat', qtyPerPcs: 13.2, unit: 'gram', isGram: true, tipe: 'isian' },
@@ -428,11 +547,12 @@ const DEFAULT_MASTER_RESEP = [
     sopWaktuSuhu: '160°C (Api Sedang • 3.5 - 4.0 Menit)',
     hargaSetorDefault: 800,
     imgSrc: './Panduan_Visual_Lumpia_Sayur_Sosis.jpg',
-    badgeTag: 'Lipat Segitiga • 10g Tumis Asat',
-    catatanSOP: 'Tumis bawang putih cincang, masukkan wortel dadu kecil, jagung manis pipil, sosis dadu mikro, daun bawang, saus tiram & bumbu. Tuang kocokan telur di tahap paling akhir hingga mengikat kering. Gunakan rasio 10g isian/pcs. Rekatkan dengan lem tepung kental.',
+    badgeTag: 'Lipat Segitiga • 10g Tumis Asat (~1 Tbsp)',
+    catatanSOP: 'Tumis bawang putih cincang, masukkan wortel dadu kecil, jagung manis pipil, sosis dadu mikro, daun bawang, saus tiram & bumbu. Tuang kocokan telur di tahap paling akhir hingga mengikat kering. Gunakan rasio 10g isian/pcs (≈ 1 Tbsp peres). Rekatkan dengan lem tepung kental.',
     videoRef: { author: '@anaayu16 (AnaAyu)', url: 'https://vt.tiktok.com/ZSgamKvdL/' },
     defaultPcs: 32,
     isCustom: false,
+    isActive: true,
     komposisi: [
       { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar', qtyPerPcs: 1, unit: 'lembar', isGram: false, tipe: 'kulit' },
       { bahanKey: 'Wortel', nama: 'Wortel Dadu Kecil', qtyPerPcs: 5.0, unit: 'gram', isGram: true, tipe: 'isian' },
@@ -461,6 +581,7 @@ const DEFAULT_MASTER_RESEP = [
     videoRef: { author: '@triretnanijcgl (Toko Jacko)', url: 'https://vt.tiktok.com/ZSgaawpCk/' },
     defaultPcs: 32,
     isCustom: false,
+    isActive: true,
     komposisi: [
       { bahanKey: 'Roti Tawar', nama: 'Roti Tawar Kupas (0.5 lbr/pcs)', qtyPerPcs: 0.5, unit: 'lembar', isGram: false, tipe: 'kulit' },
       { bahanKey: 'Collins', nama: 'Collins Choco Crunchy (Bibir Luar)', qtyPerPcs: 2.5, unit: 'gram', isGram: true, tipe: 'isian' },
@@ -484,6 +605,7 @@ const DEFAULT_MASTER_RESEP = [
     videoRef: { author: '@teh_thea96 (Teh_thea)', url: 'https://vt.tiktok.com/ZSgxXYNLp/' },
     defaultPcs: 32,
     isCustom: false,
+    isActive: true,
     komposisi: [
       { bahanKey: 'Sosis', nama: 'Sosis Ekonomis (1 btg = 4 pcs)', qtyPerPcs: 0.25, unit: 'batang', isGram: false, tipe: 'isian' },
       { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar (0.5 lbr/pcs)', qtyPerPcs: 0.5, unit: 'lembar', isGram: false, tipe: 'kulit' },
@@ -801,7 +923,7 @@ if (!auraData.buku2Belanja) {
 if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.masterResep.length === 0) {
   auraData.masterResep = JSON.parse(JSON.stringify(DEFAULT_MASTER_RESEP));
 } else {
-  // Kalibrasi otomatis jika formula standar (Ubi, Sayur, Roti) di LocalStorage mengandung anomali takaran (> Rp 1.500)
+  // Kalibrasi otomatis jika formula standar (Ubi, Sayur, Roti, Sosis) di LocalStorage mengandung anomali takaran (> Rp 1.500)
   ['prod_ubi', 'prod_sayur', 'prod_roti', 'prod_sosis'].forEach(stdId => {
     const cur = auraData.masterResep.find(r => r.id === stdId);
     const def = DEFAULT_MASTER_RESEP.find(d => d.id === stdId);
@@ -812,8 +934,17 @@ if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.ma
     const hasOldGramUnits = cur && cur.komposisi && cur.komposisi.some(k => (k.bahanKey === 'Telur' || k.bahanKey === 'Sosis') && k.isGram);
     if (cur && def && (!cur.isUserModified || getProductUnitHPP(cur) > 1500 || hasOldGramUnits)) {
       const idx = auraData.masterResep.findIndex(r => r.id === stdId);
+      const wasActive = cur.isActive;
       auraData.masterResep[idx] = JSON.parse(JSON.stringify(def));
+      if (typeof wasActive !== 'undefined') {
+        auraData.masterResep[idx].isActive = wasActive;
+      }
     }
+  });
+}
+if (Array.isArray(auraData.masterResep)) {
+  auraData.masterResep.forEach(r => {
+    if (typeof r.isActive === 'undefined') r.isActive = true;
   });
 }
 try {
@@ -1046,13 +1177,7 @@ function getProductUnitHPP(prod) {
       totalHpp += (k.fixedCost || 0);
       return;
     }
-    const meta = getMasterItemMeta(k.bahanKey, 10000, 100, k.isGram);
-    let itemCost = 0;
-    if (k.isGram) {
-      itemCost = (k.qtyPerPcs || 0) * meta.gramCost;
-    } else {
-      itemCost = (k.qtyPerPcs || 0) * meta.unitCost;
-    }
+    let itemCost = getIngredientUnitCost(k.bahanKey || k.nama, k.qtyPerPcs, k.unit);
     if ((!itemCost || isNaN(itemCost) || itemCost <= 0) && k.fallbackCost) {
       itemCost = k.fallbackCost;
     }
@@ -3714,14 +3839,19 @@ function getMasterItemMeta(keyword, fallbackHarga, fallbackQty, isGramOrMl) {
   let unitFisik = found && found.unitFisik ? found.unitFisik : 'pcs';
 
   if (found) {
-    if (isGramOrMl && found.totalGram > 0) {
+    const s = String(found.satuan || '').toLowerCase();
+    const hasKgOrLiter = /\b(kg|kilogram|liter|ltr)\b/.test(s);
+    const isGas = found.nama.toLowerCase().includes('gas') || s.includes('3 kg');
+
+    if (isGas) {
+      qty = 3000;
+      gramPerUnit = 3000;
+    } else if (isGramOrMl && found.totalGram > 1) {
       qty = found.totalGram;
     } else if (!isGramOrMl && found.qtyPerBeli > 0) {
       qty = found.qtyPerBeli;
     } else if (found.satuan) {
-      const s = String(found.satuan).toLowerCase();
       const numMatch = s.match(/(\d+(?:[.,]\d+)?)/);
-      const hasKgOrLiter = /\b(kg|kilogram|liter|ltr)\b/.test(s);
 
       if (numMatch) {
         const parsed = parseFloat(numMatch[1].replace(',', '.'));
@@ -3738,14 +3868,16 @@ function getMasterItemMeta(keyword, fallbackHarga, fallbackQty, isGramOrMl) {
     }
   }
 
+  const effectiveTotalGram = (found && found.nama && found.nama.toLowerCase().includes('gas')) ? 3000 : ((found && found.totalGram > 1) ? found.totalGram : (isGramOrMl ? qty : qty * gramPerUnit));
+
   return {
     harga: harga,
     qty: qty > 0 ? qty : fallbackQty,
     gramPerUnit: gramPerUnit,
-    totalGram: found && found.totalGram ? found.totalGram : (isGramOrMl ? qty : qty * gramPerUnit),
+    totalGram: effectiveTotalGram,
     unitFisik: unitFisik,
     unitCost: harga / (qty > 0 ? qty : fallbackQty),
-    gramCost: harga / Math.max(1, (found && found.totalGram) ? found.totalGram : (isGramOrMl ? qty : qty * gramPerUnit)),
+    gramCost: harga / Math.max(1, effectiveTotalGram),
     satuanLabel: found ? found.satuan : ''
   };
 }
@@ -3780,9 +3912,9 @@ function fmtTakaranVal(gramText, spoonText, fisikText) {
     return spoonText + (gramText ? ' (' + gramText + ')' : '');
   }
   if (currentTakaranUnitMode === 'gram' && gramText) {
-    return gramText + (fisikText ? ' (' + fisikText + ')' : '');
+    return gramText + (spoonText ? ' (' + spoonText + ')' : '');
   }
-  return gramText + (fisikText ? ' • ' + fisikText : '');
+  return (spoonText ? spoonText + ' • ' : '') + gramText + (fisikText ? ' (' + fisikText + ')' : '');
 }
 
 function formatMarginLine(marginVal) {
@@ -3808,33 +3940,49 @@ function getStokGramByKey(keyword) {
 }
 
 window.calculateTakaran = function() {
-  const ubiInput = document.getElementById('calcUbiPcs');
-  const sayurInput = document.getElementById('calcSayurPcs');
-  const rotiInput = document.getElementById('calcRotiPcs');
-  if (!ubiInput || !sayurInput || !rotiInput) return;
-
-  const ubiPcs = parseInt(ubiInput.value, 10) || 0;
-  const sayurPcs = parseInt(sayurInput.value, 10) || 0;
-  const rotiPcs = parseInt(rotiInput.value, 10) || 0;
-  let totalPcs = ubiPcs + sayurPcs + rotiPcs;
-
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
     : DEFAULT_MASTER_RESEP;
+
   const ubiProd = recipes.find(r => r.id === 'prod_ubi') || recipes[0];
   const sayurProd = recipes.find(r => r.id === 'prod_sayur') || recipes[1];
   const rotiProd = recipes.find(r => r.id === 'prod_roti') || recipes[2];
-  const customProducts = recipes.filter(r => r.isCustom || !['prod_ubi', 'prod_sayur', 'prod_roti'].includes(r.id));
+
+  const ubiInput = document.getElementById('calcUbiPcs');
+  const sayurInput = document.getElementById('calcSayurPcs');
+  const rotiInput = document.getElementById('calcRotiPcs');
+
+  // Toggle visibility input menu standar berdasarkan status aktif
+  if (ubiInput && ubiInput.parentElement) {
+    ubiInput.parentElement.style.display = (ubiProd.isActive !== false) ? 'block' : 'none';
+  }
+  if (sayurInput && sayurInput.parentElement) {
+    sayurInput.parentElement.style.display = (sayurProd.isActive !== false) ? 'block' : 'none';
+  }
+  if (rotiInput && rotiInput.parentElement) {
+    rotiInput.parentElement.style.display = (rotiProd.isActive !== false) ? 'block' : 'none';
+  }
+
+  const ubiPcs = (ubiProd && ubiProd.isActive !== false && ubiInput) ? (parseInt(ubiInput.value, 10) || 0) : 0;
+  const sayurPcs = (sayurProd && sayurProd.isActive !== false && sayurInput) ? (parseInt(sayurInput.value, 10) || 0) : 0;
+  const rotiPcs = (rotiProd && rotiProd.isActive !== false && rotiInput) ? (parseInt(rotiInput.value, 10) || 0) : 0;
+  let totalPcs = ubiPcs + sayurPcs + rotiPcs;
+
+  // Menu aktif lainnya (termasuk Sosis Crispy atau menu kustom yang ditambahkan)
+  const otherActiveProducts = recipes.filter(r => !['prod_ubi', 'prod_sayur', 'prod_roti'].includes(r.id) && r.isActive !== false);
 
   const customInputsContainer = document.getElementById('calcCustomInputsContainer');
   if (customInputsContainer) {
-    if (customProducts.length === 0) {
+    if (otherActiveProducts.length === 0) {
       customInputsContainer.innerHTML = '';
       customInputsContainer.style.display = 'none';
     } else {
       customInputsContainer.style.display = 'grid';
-      if (customInputsContainer.children.length !== customProducts.length) {
-        customInputsContainer.innerHTML = customProducts.map((cp, idx) => {
+      const expectedIds = otherActiveProducts.map(p => p.id).join(',');
+      const currentRendered = customInputsContainer.getAttribute('data-rendered-ids');
+      if (currentRendered !== expectedIds) {
+        customInputsContainer.setAttribute('data-rendered-ids', expectedIds);
+        customInputsContainer.innerHTML = otherActiveProducts.map((cp, idx) => {
           return '<div>' +
             '<label class="form-label" style="color: ' + (cp.badgeColor || '#38BDF8') + ';">' + (idx + 4) + '. ' + cp.nama + ' (Pcs)</label>' +
             '<input type="number" id="calcPcs_' + cp.id + '" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: ' + (cp.badgeColor || '#38BDF8') + ';" value="' + (cp.defaultPcs || 20) + '" min="0" oninput="window.calculateTakaran()">' +
@@ -3844,9 +3992,11 @@ window.calculateTakaran = function() {
     }
   }
 
-  customProducts.forEach(cp => {
+  const customPcsMap = {};
+  otherActiveProducts.forEach(cp => {
     const cpInput = document.getElementById('calcPcs_' + cp.id);
     const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
+    customPcsMap[cp.id] = cpPcs;
     totalPcs += cpPcs;
   });
 
@@ -3856,7 +4006,6 @@ window.calculateTakaran = function() {
   const container = document.getElementById('takaranResultContainer');
   if (!container) return;
 
-  // Baca kapasitas satuan, konversi gram, & harga langsung dari Master Bahan
   const metaKulit = getMasterItemMeta('Kulit Lumpia', 10000, 36, false);
   const metaUbi = getMasterItemMeta('Ubi Ungu', 11000, 1000, true);
   const metaWortel = getMasterItemMeta('Wortel', 7000, 500, true);
@@ -3871,210 +4020,236 @@ window.calculateTakaran = function() {
   const metaTerigu = getMasterItemMeta('Terigu', 6000, 500, true);
   const metaBawangPutih = getMasterItemMeta('Bawang Putih', 8000, 250, true);
 
-  // 1. Takaran Gogumapia Mini Ubi Ungu Keju (Dinamis dari masterResep)
-  const ubiPerPcs = getRecipeIngredientQty(ubiProd, 'Ubi', 13.2);
-  const kejuPerPcs = getRecipeIngredientQty(ubiProd, 'Keju', 1.0);
-  const skmPerPcs = getRecipeIngredientQty(ubiProd, 'Susu Kental Manis', 0.45);
-  const gulaPerPcs = getRecipeIngredientQty(ubiProd, 'Gula Pasir', 0.6);
-  const susuBubukPerPcs = getRecipeIngredientQty(ubiProd, 'Susu Bubuk', 0.3);
+  // Helper render takaran baris dengan konversi kuliner akurat
+  function buildTakaranLine(k, pcs) {
+    const unitLower = (k.unit || '').toLowerCase();
+    const qty = Number(k.qtyPerPcs) || 0;
+    const tot = qty * pcs;
+    let mainVal = '';
+    let subNote = '';
 
-  const ubiGram = Math.round(ubiPcs * ubiPerPcs);
-  const ubiKg = (ubiGram / 1000).toFixed(2);
-  const ubiBuah = (ubiGram / Math.max(1, metaUbi.gramPerUnit || 200)).toFixed(1);
-  const gulaGram = Math.round(ubiPcs * gulaPerPcs);
-  const gulaTbsp = (gulaGram / 10).toFixed(1);
-  const gulaTsp = (gulaGram / 3.3).toFixed(1);
-  const skmGram = Math.round(ubiPcs * skmPerPcs);
-  const skmTbsp = (skmGram / 15).toFixed(1);
-  const skmTsp = (skmGram / 5).toFixed(1);
-  const susuBubukGram = Math.round(ubiPcs * susuBubukPerPcs);
-  const susuBubukTbsp = (susuBubukGram / 10).toFixed(1);
-  const kejuGram = Math.round(ubiPcs * kejuPerPcs);
-  const ubiKulitBks = Math.ceil(ubiPcs / (metaKulit.qty || 36));
-
-  // 2. Takaran Lumpia Segitiga Sayur Telur Sosis (Dinamis dari masterResep)
-  const wortelPerPcs = getRecipeIngredientQty(sayurProd, 'Wortel', 5.0);
-  const jagungPerPcs = getRecipeIngredientQty(sayurProd, 'Jagung', 3.5);
-  const sosisPerPcs = getRecipeIngredientQty(sayurProd, 'Sosis', 2.75);
-  const telurPerPcs = getRecipeIngredientQty(sayurProd, 'Telur', 2.2);
-  const bwgPutihPerPcs = getRecipeIngredientQty(sayurProd, 'Bawang Putih', 0.4);
-  const sausTiramPerPcs = getRecipeIngredientQty(sayurProd, 'Saus Tiram', 0.75);
-
-  const wortelGram = Math.round(sayurPcs * wortelPerPcs);
-  const wortelBuah = (wortelGram / Math.max(1, metaWortel.gramPerUnit || 125)).toFixed(1);
-  const jagungGram = Math.round(sayurPcs * jagungPerPcs);
-  const jagungTongkol = (jagungGram / Math.max(1, metaJagung.gramPerUnit || 130)).toFixed(1);
-  const sosisGram = Math.round(sayurPcs * sosisPerPcs);
-  const sosisBatangBulat = Math.max(1, Math.ceil(sayurPcs / 8));
-  
-  // LOGIKA SATUAN BULAT TELUR: Dapur tidak memecahkan 1.3 butir telur!
-  const telurGram = Math.round(sayurPcs * telurPerPcs);
-  const butirTelurUtuh = sayurPcs > 0 ? Math.max(1, Math.ceil(telurGram / (metaTelur.gramPerUnit || 55))) : 0;
-  
-  const bwgPutihGram = Math.round(sayurPcs * bwgPutihPerPcs);
-  const bwgPutihSiung = Math.max(1, Math.round(bwgPutihGram / Math.max(1, metaBawangPutih.gramPerUnit || 5)));
-  const sausTiramGram = Math.round(sayurPcs * sausTiramPerPcs);
-  const sausTiramTbsp = (sausTiramGram / 15).toFixed(1);
-  const sayurKulitBks = Math.ceil(sayurPcs / (metaKulit.qty || 36));
-
-  // 3. Takaran Roti Goreng Kantong Collins (Dinamis dari masterResep)
-  const rotiPerPcs = getRecipeIngredientQty(rotiProd, 'Roti Tawar', 0.5);
-  const collinsPerPcs = getRecipeIngredientQty(rotiProd, 'Collins', 2.5);
-  const panirPerPcs = getRecipeIngredientQty(rotiProd, 'Panir', 4.0);
-  const teriguPerPcs = getRecipeIngredientQty(rotiProd, 'Terigu', 2.5);
-
-  // LOGIKA SATUAN LEMBAR & BUNGKUS BULAT ROTI
-  const rotiLembar = Math.ceil(rotiPcs * rotiPerPcs);
-  const rotiIsiPerBks = metaRoti.qty || 14;
-  const rotiBks = Math.ceil(rotiLembar / rotiIsiPerBks);
-  const rotiSisaLbr = (rotiBks * rotiIsiPerBks) - rotiLembar;
-  const rotiBagianGoreng = Math.ceil(rotiPcs / 2);
-  const collinsGram = Math.round(rotiPcs * collinsPerPcs);
-  const panirGram = Math.round(rotiPcs * panirPerPcs);
-  const teriguCelupGram = Math.round(rotiPcs * teriguPerPcs);
-  const teriguCelupTbsp = Math.max(1, Math.round((rotiLembar / 9) * 10));
-  const garamCelupTsp = ((rotiLembar / 9) * 0.5).toFixed(1);
-
-  // 4. Total Kemasan Kulit & Minyak
-  const totalKulit = ubiPcs + sayurPcs;
-  const kulitIsiPerBks = metaKulit.qty || 36;
-  const kulitBks = Math.ceil(totalKulit / kulitIsiPerBks);
-  const kulitSisaLbr = (kulitBks * kulitIsiPerBks) - totalKulit;
-
-  // Custom Products Boxes
-  let customBoxesHtml = '';
-  customProducts.forEach((cp, cIdx) => {
-    const cpInput = document.getElementById('calcPcs_' + cp.id);
-    const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
-    const cpHpp = getProductUnitHPP(cp);
-    let itemsLi = '';
-    (cp.komposisi || []).forEach(k => {
-      const isDiscrete = /lembar|butir|batang|buah|ikat|bungkus/i.test(k.unit);
-      const tot = ((k.qtyPerPcs || 0) * cpPcs);
-      let mainVal = '';
-      let subNote = '';
-      if (isDiscrete) {
-        const roundedTot = Math.ceil(tot);
-        mainVal = roundedTot + ' ' + (k.unit || 'unit');
-        subNote = '(' + k.qtyPerPcs + ' ' + k.unit + ' / pcs)';
+    if (unitLower === 'tbsp' || unitLower === 'sdm') {
+      const tbspTot = tot;
+      const gramTot = Math.round(convertCulinaryToGrams(tbspTot, 'tbsp', k.bahanKey || k.nama));
+      const tspTot = (tbspTot * 3).toFixed(1);
+      const tbspStr = (Math.round(tbspTot * 10) / 10).toFixed(1) + ' Tbsp';
+      if (currentTakaranUnitMode === 'spoon') {
+        mainVal = tbspStr;
+        subNote = '≈ ' + gramTot + 'g (' + tspTot + ' Tsp) • @ ' + qty + ' Tbsp/pcs';
+      } else if (currentTakaranUnitMode === 'gram') {
+        mainVal = gramTot + 'g';
+        subNote = '≈ ' + tbspStr + ' (' + tspTot + ' Tsp) • @ ' + qty + ' Tbsp/pcs';
       } else {
-        const gramTot = Math.round(tot);
+        mainVal = tbspStr + ' (≈ ' + gramTot + 'g)';
+        subNote = 'Kapasitas 15 ml/Tbsp • ' + tspTot + ' Tsp • @ ' + qty + ' Tbsp/pcs';
+      }
+    } else if (unitLower === 'tsp' || unitLower === 'sdt') {
+      const tspTot = tot;
+      const gramTot = Math.round(convertCulinaryToGrams(tspTot, 'tsp', k.bahanKey || k.nama));
+      const tbspTot = (tspTot / 3).toFixed(1);
+      const tspStr = (Math.round(tspTot * 10) / 10).toFixed(1) + ' Tsp';
+      if (currentTakaranUnitMode === 'spoon') {
+        mainVal = tspStr;
+        subNote = '≈ ' + gramTot + 'g (' + tbspTot + ' Tbsp) • @ ' + qty + ' Tsp/pcs';
+      } else if (currentTakaranUnitMode === 'gram') {
+        mainVal = gramTot + 'g';
+        subNote = '≈ ' + tspStr + ' • @ ' + qty + ' Tsp/pcs';
+      } else {
+        mainVal = tspStr + ' (≈ ' + gramTot + 'g)';
+        subNote = 'Kapasitas 5 ml/Tsp • @ ' + qty + ' Tsp/pcs';
+      }
+    } else if (unitLower === 'kg') {
+      const kgTot = tot;
+      const gramTot = Math.round(kgTot * 1000);
+      mainVal = kgTot.toFixed(2) + ' kg (' + gramTot + 'g)';
+      subNote = '@ ' + qty + ' kg / pcs';
+    } else if (unitLower === 'gram' || k.isGram) {
+      const gramTot = Math.round(tot);
+      const cul = convertGramsToCulinary(gramTot, k.bahanKey || k.nama);
+      const isSpoonFriendly = gramTot <= 90 && /gula|skm|susu|garam|kaldu|bumbu|lada|vanili|saus|terigu/i.test(k.bahanKey || k.nama);
+
+      if (isSpoonFriendly) {
+        if (currentTakaranUnitMode === 'spoon') {
+          mainVal = cul.tbspFmt + ' (' + cul.tspFmt + ')';
+          subNote = '≈ ' + gramTot + 'g timbangan • @ ' + qty + 'g/pcs';
+        } else if (currentTakaranUnitMode === 'gram') {
+          mainVal = gramTot + 'g';
+          subNote = '≈ ' + cul.tbspFmt + ' (' + cul.tspFmt + ') • @ ' + qty + 'g/pcs';
+        } else {
+          mainVal = cul.tbspFmt + ' (≈ ' + gramTot + 'g)';
+          subNote = cul.tspFmt + ' takar sendok • @ ' + qty + 'g/pcs';
+        }
+      } else {
         const kgStr = gramTot >= 1000 ? ' (' + (gramTot / 1000).toFixed(2) + ' kg)' : '';
         mainVal = gramTot + 'g' + kgStr;
-        const isLiquid = /keju|selai|saus|minyak|susu|madu/i.test(k.bahanKey);
-        const tbsp = isLiquid ? (gramTot / 15).toFixed(1) : (gramTot / 10).toFixed(1);
-        const tsp = isLiquid ? (gramTot / 5).toFixed(1) : (gramTot / 3.3).toFixed(1);
-        subNote = (gramTot < 50 ? tbsp + ' sdm (' + tsp + ' sdt) • ' : '') + k.qtyPerPcs + 'g / pcs';
+        const fruitEstimate = (gramTot >= 100 && /ubi|wortel/i.test(k.bahanKey || k.nama))
+          ? '≈ ' + (gramTot / (k.nama.includes('Wortel') ? 125 : 200)).toFixed(1) + ' buah sedang • '
+          : '';
+        subNote = fruitEstimate + '@ ' + qty + 'g / pcs';
       }
-      itemsLi += renderTakaranItemRow(k.nama, mainVal, subNote);
-    });
+    } else if (unitLower === 'lembar') {
+      const lbrTot = Math.ceil(tot);
+      const isKulit = /kulit/i.test(k.bahanKey || k.nama);
+      const isRoti = /roti/i.test(k.bahanKey || k.nama);
+      if (isKulit) {
+        const bks = Math.ceil(lbrTot / 36);
+        const sisa = (bks * 36) - lbrTot;
+        mainVal = lbrTot + ' lembar';
+        subNote = bks + ' bks isi 36 lbr (sisa ' + sisa + ' lbr) • @ ' + qty + ' lbr/pcs';
+      } else if (isRoti) {
+        const bks = Math.ceil(lbrTot / 14);
+        const sisa = (bks * 14) - lbrTot;
+        mainVal = lbrTot + ' lembar';
+        subNote = bks + ' bks isi 14 lbr (sisa ' + sisa + ' lbr) • @ ' + qty + ' lbr/pcs';
+      } else {
+        mainVal = lbrTot + ' lembar';
+        subNote = '@ ' + qty + ' lbr / pcs';
+      }
+    } else if (unitLower === 'batang') {
+      const btgTot = Math.ceil(tot);
+      mainVal = btgTot + ' batang utuh';
+      subNote = 'Potong rapi sesuai SOP untuk ' + pcs + ' pcs • @ ' + qty + ' btg/pcs';
+    } else if (unitLower === 'butir') {
+      const btrTot = Math.ceil(tot);
+      mainVal = btrTot + ' butir utuh';
+      subNote = 'Kocok lepas sebagai perekat / pengikat isian • @ ' + qty + ' butir/pcs';
+    } else if (unitLower === 'ml') {
+      mainVal = Math.round(tot) + ' ml';
+      subNote = '@ ' + qty + ' ml / pcs';
+    } else {
+      mainVal = Math.ceil(tot) + ' ' + (k.unit || 'unit');
+      subNote = '@ ' + qty + ' ' + (k.unit || 'unit') + ' / pcs';
+    }
 
-    customBoxesHtml +=
-      '<div class="takaran-box ' + (window.currentTakaranTab === (4 + cIdx) ? 'active-mobile' : '') + '">' +
+    return renderTakaranItemRow(k.nama, mainVal, subNote);
+  }
+
+  // Hitung total Kulit Lumpia gabungan dari semua produk aktif
+  let totalKulitLembar = 0;
+  recipes.filter(r => r.isActive !== false).forEach(r => {
+    const pcs = (r.id === 'prod_ubi') ? ubiPcs : (r.id === 'prod_sayur') ? sayurPcs : (r.id === 'prod_roti') ? rotiPcs : (customPcsMap[r.id] || 0);
+    (r.komposisi || []).forEach(k => {
+      if (/kulit/i.test(k.bahanKey || k.nama) && (k.unit === 'lembar' || !k.unit)) {
+        totalKulitLembar += ((k.qtyPerPcs || 0) * pcs);
+      }
+    });
+  });
+  const totalKulitBulat = Math.ceil(totalKulitLembar);
+  const kulitBks = Math.ceil(totalKulitBulat / (metaKulit.qty || 36));
+  const kulitSisaLbr = (kulitBks * (metaKulit.qty || 36)) - totalKulitBulat;
+
+  let boxesHtml = '';
+  let activeTabIdx = 0;
+  const tabItems = [];
+
+  // 1. Box Ubi
+  if (ubiProd && ubiProd.isActive !== false) {
+    const currentTab = activeTabIdx;
+    tabItems.push({ name: 'Ubi (' + ubiPcs + ')', idx: currentTab });
+    const ubiItemsLi = (ubiProd.komposisi || []).map(k => buildTakaranLine(k, ubiPcs)).join('');
+    boxesHtml +=
+      '<div class="takaran-box ' + (window.currentTakaranTab === currentTab ? 'active-mobile' : '') + '">' +
         '<div class="takaran-box-header">' +
-          '<div class="takaran-box-title" style="color: ' + (cp.badgeColor || '#38BDF8') + ';">' + (cIdx + 4) + '. ' + cp.nama + ' (' + cpPcs + ' pcs)</div>' +
+          '<div class="takaran-box-title" style="color: #818CF8;">1. ' + ubiProd.nama + ' (' + ubiPcs + ' pcs)</div>' +
+          '<span class="mini-tag" style="background: rgba(129, 140, 248, 0.2); color: #818CF8;">' + (ubiProd.badgeTag || 'Lipat Bantal') + '</span>' +
+        '</div>' +
+        '<ul class="takaran-list">' +
+          ubiItemsLi +
+        '</ul>' +
+      '</div>';
+    activeTabIdx++;
+  }
+
+  // 2. Box Sayur
+  if (sayurProd && sayurProd.isActive !== false) {
+    const currentTab = activeTabIdx;
+    tabItems.push({ name: 'Sayur (' + sayurPcs + ')', idx: currentTab });
+    const sayurItemsLi = (sayurProd.komposisi || []).map(k => buildTakaranLine(k, sayurPcs)).join('');
+    boxesHtml +=
+      '<div class="takaran-box ' + (window.currentTakaranTab === currentTab ? 'active-mobile' : '') + '">' +
+        '<div class="takaran-box-header">' +
+          '<div class="takaran-box-title" style="color: #34D399;">2. ' + sayurProd.nama + ' (' + sayurPcs + ' pcs)</div>' +
+          '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">' + (sayurProd.badgeTag || 'Lipat Segitiga') + '</span>' +
+        '</div>' +
+        '<ul class="takaran-list">' +
+          sayurItemsLi +
+        '</ul>' +
+      '</div>';
+    activeTabIdx++;
+  }
+
+  // 3. Box Roti
+  if (rotiProd && rotiProd.isActive !== false) {
+    const currentTab = activeTabIdx;
+    tabItems.push({ name: 'Roti (' + rotiPcs + ')', idx: currentTab });
+    const rotiItemsLi = (rotiProd.komposisi || []).map(k => buildTakaranLine(k, rotiPcs)).join('');
+    boxesHtml +=
+      '<div class="takaran-box ' + (window.currentTakaranTab === currentTab ? 'active-mobile' : '') + '">' +
+        '<div class="takaran-box-header">' +
+          '<div class="takaran-box-title" style="color: #FBBF24;">3. ' + rotiProd.nama + ' (' + rotiPcs + ' pcs)</div>' +
+          '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">1 Lembar = 2 Kantong</span>' +
+        '</div>' +
+        '<ul class="takaran-list">' +
+          rotiItemsLi +
+        '</ul>' +
+      '</div>';
+    activeTabIdx++;
+  }
+
+  // Box Kulit Lumpia & Minyak Bersama
+  if (totalKulitBulat > 0) {
+    const currentTab = activeTabIdx;
+    tabItems.push({ name: 'Kulit & Minyak (' + totalKulitBulat + ' lbr)', idx: currentTab });
+    boxesHtml +=
+      '<div class="takaran-box ' + (window.currentTakaranTab === currentTab ? 'active-mobile' : '') + '">' +
+        '<div class="takaran-box-header">' +
+          '<div class="takaran-box-title" style="color: #38BDF8;">Total Kulit Lumpia &amp; Minyak Bersama</div>' +
+          '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8;">' + totalKulitBulat + ' Lbr Total (' + kulitBks + ' Bks)</span>' +
+        '</div>' +
+        '<ul class="takaran-list">' +
+          renderTakaranItemRow('Total Kulit Lumpia Gabungan', totalKulitBulat + ' lembar', kulitBks + ' bungkus (isi ' + (metaKulit.qty || 36) + ' lbr • sisa ' + kulitSisaLbr + ' lbr cadangan)') +
+          renderTakaranItemRow('Tepung Lem Perekat', Math.round(totalKulitBulat * 0.3) + 'g terigu (≈ 1.5 Tbsp)', 'Larutkan kental dengan air hangat untuk rekatkan lipatan') +
+          renderTakaranItemRow('Minyak Goreng Standar', '1 pouch (1 liter)', 'Gunakan api sedang stabil 160°C • tiriskan posisi miring') +
+        '</ul>' +
+      '</div>';
+    activeTabIdx++;
+  }
+
+  // Box varian aktif lainnya (misal: Sosis Selimut Panir)
+  otherActiveProducts.forEach(cp => {
+    const currentTab = activeTabIdx;
+    const cpPcs = customPcsMap[cp.id] || 0;
+    const cpHpp = getProductUnitHPP(cp);
+    tabItems.push({ name: cp.nama + ' (' + cpPcs + ')', idx: currentTab });
+    const cpItemsLi = (cp.komposisi || []).map(k => buildTakaranLine(k, cpPcs)).join('');
+    boxesHtml +=
+      '<div class="takaran-box ' + (window.currentTakaranTab === currentTab ? 'active-mobile' : '') + '">' +
+        '<div class="takaran-box-header">' +
+          '<div class="takaran-box-title" style="color: ' + (cp.badgeColor || '#38BDF8') + ';">' + cp.nama + ' (' + cpPcs + ' pcs)</div>' +
           '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: ' + (cp.badgeColor || '#38BDF8') + ';">HPP Rp ' + cpHpp.toLocaleString('id-ID') + '/pcs</span>' +
         '</div>' +
         '<ul class="takaran-list">' +
-          itemsLi +
+          cpItemsLi +
         '</ul>' +
       '</div>';
+    activeTabIdx++;
   });
 
-  // Render tab buttons for mobile
+  // Render tab selector mobile
   const tabsBar = document.getElementById('takaranTabsBar');
   if (tabsBar) {
-    const tabItems = [
-      { name: 'Ubi (' + ubiPcs + ')', idx: 0 },
-      { name: 'Sayur (' + sayurPcs + ')', idx: 1 },
-      { name: 'Roti (' + rotiPcs + ')', idx: 2 },
-      { name: 'Kulit & Minyak', idx: 3 }
-    ];
-    customProducts.forEach((cp, i) => {
-      const cpInput = document.getElementById('calcPcs_' + cp.id);
-      const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
-      tabItems.push({ name: cp.nama + ' (' + cpPcs + ')', idx: 4 + i });
-    });
-
     tabsBar.innerHTML = tabItems.map(t => 
       '<button type="button" class="takaran-tab-btn ' + (window.currentTakaranTab === t.idx ? 'active' : '') + '" onclick="window.switchTakaranTab(' + t.idx + ')">' + t.name + '</button>'
     ).join('');
   }
 
-  container.innerHTML = 
-    '<div class="takaran-box ' + (window.currentTakaranTab === 0 ? 'active-mobile' : '') + '">' +
-      '<div class="takaran-box-header">' +
-        '<div class="takaran-box-title" style="color: #818CF8;">1. ' + ubiProd.nama + ' (' + ubiPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(129, 140, 248, 0.2); color: #818CF8;">' + ubiPerPcs + 'g / pcs • Lipat Bantal</span>' +
-      '</div>' +
-      '<ul class="takaran-list">' +
-        renderTakaranItemRow('Ubi Ungu Kukus Empuk', ubiGram + 'g (' + ubiKg + ' kg)', '≈ ' + ubiBuah + ' buah sedang • timbang kukus matang') +
-        renderTakaranItemRow('Takaran Isian per Pcs', ubiPerPcs + 'g ubi', '1 sdt munjung / 1 sdm peres • lipat bantal mini') +
-        renderTakaranItemRow('Gula Pasir Kristal', gulaGram + 'g', gulaTbsp + ' sdm (' + gulaTsp + ' sdt)') +
-        renderTakaranItemRow('SKM Putih', skmGram + 'g', skmTbsp + ' sdm (' + skmTsp + ' sdt)') +
-        renderTakaranItemRow('Susu Bubuk Putih (Opsional)', susuBubukGram + 'g', susuBubukTbsp + ' sdm') +
-        renderTakaranItemRow('Keju Oles Prochiz Spready', kejuGram + 'g', kejuPerPcs + 'g/pcs • semprot plastik segitiga') +
-        renderTakaranItemRow('Kulit Lumpia Segar', ubiPcs + ' lembar', ubiKulitBks + ' bungkus (isi 36 lbr • sisa ' + ((ubiKulitBks * 36) - ubiPcs) + ' lbr)') +
-      '</ul>' +
-    '</div>' +
-
-    '<div class="takaran-box ' + (window.currentTakaranTab === 1 ? 'active-mobile' : '') + '">' +
-      '<div class="takaran-box-header">' +
-        '<div class="takaran-box-title" style="color: #34D399;">2. ' + sayurProd.nama + ' (' + sayurPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399;">' + (wortelPerPcs + jagungPerPcs + sosisPerPcs).toFixed(1) + 'g / pcs • Lipat Segitiga</span>' +
-      '</div>' +
-      '<ul class="takaran-list">' +
-        renderTakaranItemRow('Wortel Dadu Kecil', wortelGram + 'g (' + (wortelGram / 1000).toFixed(2) + ' kg)', '≈ ' + wortelBuah + ' buah sedang • potong dadu kecil') +
-        renderTakaranItemRow('Jagung Manis Pipil', jagungGram + 'g', '≈ ' + jagungTongkol + ' tongkol pipil manis') +
-        renderTakaranItemRow('Sosis Dadu Mikro', sosisBatangBulat + ' batang utuh', 'Potong dadu kecil untuk ' + sayurPcs + ' pcs lumpia') +
-        renderTakaranItemRow('Telur Ayam (Pengikat)', butirTelurUtuh + ' butir utuh', 'Kocok lepas, tuang saat isian sayur hampir asat') +
-        renderTakaranItemRow('Bawang Putih Cincang', bwgPutihSiung + ' siung cincang', 'Tumis wangi di awal bersama bumbu') +
-        renderTakaranItemRow('Saus Tiram & Bumbu', sausTiramGram + 'g', sausTiramTbsp + ' sdm saus tiram + kaldu garam') +
-        renderTakaranItemRow('Kulit Lumpia Segar', sayurPcs + ' lembar', sayurKulitBks + ' bungkus (isi 36 lbr • sisa ' + ((sayurKulitBks * 36) - sayurPcs) + ' lbr)') +
-      '</ul>' +
-    '</div>' +
-
-    '<div class="takaran-box ' + (window.currentTakaranTab === 2 ? 'active-mobile' : '') + '">' +
-      '<div class="takaran-box-header">' +
-        '<div class="takaran-box-title" style="color: #FBBF24;">3. ' + rotiProd.nama + ' (' + rotiPcs + ' pcs)</div>' +
-        '<span class="mini-tag" style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">1 Lembar = 2 Kantong</span>' +
-      '</div>' +
-      '<ul class="takaran-list">' +
-        renderTakaranItemRow('Roti Tawar Utuh', rotiLembar + ' lembar', rotiBks + ' bungkus (isi ' + rotiIsiPerBks + ' lbr • sisa ' + rotiSisaLbr + ' lbr) • ' + rotiPcs + ' pcs gorengan') +
-        renderTakaranItemRow('Potong 2 Tumpuk Goreng', rotiBagianGoreng + ' blok tumpuk', '1 lembar dipotong 2, ditumpuk sebelum dicelup') +
-        renderTakaranItemRow('Adonan Terigu Celup Cepat', teriguCelupGram + 'g terigu', teriguCelupTbsp + ' sdm terigu encer + ' + garamCelupTsp + ' sdt garam') +
-        renderTakaranItemRow('Tepung Panir Super Krispi', panirGram + 'g', '~' + panirPerPcs + 'g / pcs baluran panir merata') +
-        renderTakaranItemRow('Collins Choco Crunchy', collinsGram + 'g', '~' + collinsPerPcs + 'g / kantong • semprot selagi hangat') +
-      '</ul>' +
-    '</div>' +
-
-    '<div class="takaran-box ' + (window.currentTakaranTab === 3 ? 'active-mobile' : '') + '">' +
-      '<div class="takaran-box-header">' +
-        '<div class="takaran-box-title" style="color: #38BDF8;">4. Kulit Lumpia & Minyak Goreng Bersama</div>' +
-        '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8;">' + totalKulit + ' Lbr Total (' + kulitBks + ' Bks)</span>' +
-      '</div>' +
-      '<ul class="takaran-list">' +
-        renderTakaranItemRow('Total Kulit Lumpia (Ubi + Sayur)', totalKulit + ' lembar', kulitBks + ' bungkus (isi ' + kulitIsiPerBks + ' lbr • sisa ' + kulitSisaLbr + ' lbr cadangan)') +
-        renderTakaranItemRow('Tepung Lem Perekat', Math.round(totalKulit * 0.3) + 'g terigu', 'Larutkan kental dengan air untuk rekatkan lipatan') +
-        renderTakaranItemRow('Minyak Goreng Standar', '1 pouch (1 liter)', 'Gunakan api sedang stabil 160°C • tiriskan miring') +
-      '</ul>' +
-    '</div>' +
-    customBoxesHtml;
+  container.innerHTML = boxesHtml;
 
   // Real-Time Unit HPP & Omzet Audit Bar
-  const hppBox = document.getElementById('takaranHppSummaryBox');
+  const hppBox = document.getElementById('takaranHppSummaryBox') || document.getElementById('hppAuditContainer');
   if (hppBox) {
-    const hppUbiUnit = getProductUnitHPP(ubiProd);
-    const hppSayurUnit = getProductUnitHPP(sayurProd);
-    const hppRotiUnit = getProductUnitHPP(rotiProd);
-
-    let totalHPPProduksi = (ubiPcs * hppUbiUnit) + (sayurPcs * hppSayurUnit) + (rotiPcs * hppRotiUnit);
-    customProducts.forEach(cp => {
-      const cpInput = document.getElementById('calcPcs_' + cp.id);
-      const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
-      totalHPPProduksi += (cpPcs * getProductUnitHPP(cp));
-    });
-
+    let totalHPPProduksi = 0;
+    let estOmzetSetor = 0;
     const activeRows = getActiveBuku1Rows();
     let sumSetor = 0, sumLaku = 0;
     activeRows.forEach(r => {
@@ -4083,67 +4258,42 @@ window.calculateTakaran = function() {
     });
     const weightedAvgTarif = sumLaku > 0 ? Math.round(sumSetor / sumLaku) : 800;
 
-    let estOmzetSetor = 0;
-    estOmzetSetor += (ubiPcs * (ubiProd.hargaSetorDefault || weightedAvgTarif));
-    estOmzetSetor += (sayurPcs * (sayurProd.hargaSetorDefault || weightedAvgTarif));
-    estOmzetSetor += (rotiPcs * (rotiProd.hargaSetorDefault || weightedAvgTarif));
-    customProducts.forEach(cp => {
-      const cpInput = document.getElementById('calcPcs_' + cp.id);
-      const cpPcs = cpInput ? (parseInt(cpInput.value, 10) || 0) : (cp.defaultPcs || 20);
-      estOmzetSetor += (cpPcs * (cp.hargaSetorDefault || weightedAvgTarif));
+    let hppCardGrids = '';
+    recipes.filter(r => r.isActive !== false).forEach(r => {
+      const pcs = (r.id === 'prod_ubi') ? ubiPcs : (r.id === 'prod_sayur') ? sayurPcs : (r.id === 'prod_roti') ? rotiPcs : (customPcsMap[r.id] || 0);
+      const hpp = getProductUnitHPP(r);
+      const targetHarga = r.hargaSetorDefault || weightedAvgTarif;
+      totalHPPProduksi += (pcs * hpp);
+      estOmzetSetor += (pcs * targetHarga);
+
+      hppCardGrids +=
+        '<div style="background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' +
+          '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">HPP ' + r.nama + '</span>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1rem; color: ' + (r.badgeColor || '#38BDF8') + ';">Rp ' + hpp.toLocaleString('id-ID') + ' / pcs</strong>' +
+          formatMarginLine(targetHarga - hpp) +
+        '</div>';
     });
 
     const estLabaBersih = estOmzetSetor - totalHPPProduksi;
 
-    const checks = [
-      { label: 'Kulit Lumpia', needG: totalKulit * 7, availG: getStokGramByKey('Kulit Lumpia'), needTxt: totalKulit + ' lbr (' + kulitBks + ' bks)' },
-      { label: 'Ubi Ungu', needG: ubiGram, availG: getStokGramByKey('Ubi Ungu'), needTxt: ubiGram + 'g' },
-      { label: 'Wortel', needG: wortelGram, availG: getStokGramByKey('Wortel'), needTxt: wortelGram + 'g' },
-      { label: 'Jagung', needG: jagungGram, availG: getStokGramByKey('Jagung'), needTxt: jagungGram + 'g' },
-      { label: 'Telur Ayam', needG: butirTelurUtuh * 55, availG: getStokGramByKey('Telur'), needTxt: butirTelurUtuh + ' butir utuh' },
-      { label: 'Roti Tawar', needG: rotiLembar * 35, availG: getStokGramByKey('Roti Tawar'), needTxt: rotiLembar + ' lbr (' + rotiBks + ' bks)' },
-      { label: 'Collins Choco', needG: collinsGram, availG: getStokGramByKey('Collins'), needTxt: collinsGram + 'g' },
-      { label: 'Tepung Panir', needG: panirGram, availG: getStokGramByKey('Panir'), needTxt: panirGram + 'g' }
-    ];
-    const kurangList = checks.filter(c => c.needG > 0 && c.availG < c.needG);
-    const stokSyncHtml = kurangList.length === 0
-      ? '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.74rem; color: #34D399;"><strong>Integrasi Stok Dapur:</strong> Seluruh sisa stok fisik/gram di dapur mencukupi untuk target produksi ' + totalPcs + ' pcs ini.</div>'
-      : '<div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 0.74rem; color: #FBBF24;"><strong>Peringatan Integrasi Stok Dapur (Kurang ' + kurangList.length + ' Bahan):</strong> ' +
-        kurangList.map(k => k.label + ' (Butuh ' + k.needTxt + ' -> <span style="color:#FB7185;font-weight:700;">Kurang stok fisik</span>)').join(' • ') +
-        '</div>';
-
     hppBox.innerHTML =
       '<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--card-border); border-left: 3px solid #10B981; border-radius: var(--radius-md); padding: 14px 16px;">' +
         '<div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06);">' +
-          '<strong style="font-size: 0.85rem; color: var(--text-primary);">Audit HPP, Omzet &amp; Integrasi Stok Dapur Real-Time (Formula Dinamis)</strong>' +
+          '<strong style="font-size: 0.85rem; color: var(--text-primary);">Audit HPP, Omzet &amp; Integrasi Menu Aktif Real-Time</strong>' +
           '<span style="font-size: 0.75rem; color: var(--text-secondary);">Rata-rata Setor Mitra: <strong style="color: #38BDF8; font-family: var(--font-mono);">Rp ' + weightedAvgTarif.toLocaleString('id-ID') + ' / pcs</strong></span>' +
         '</div>' +
-        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">' +
-          '<div style="background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' +
-            '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">HPP ' + ubiProd.nama + '</span>' +
-            '<strong style="font-family: var(--font-mono); font-size: 1rem; color: #818CF8;">Rp ' + hppUbiUnit.toLocaleString('id-ID') + ' / pcs</strong>' +
-            formatMarginLine(weightedAvgTarif - hppUbiUnit) +
-          '</div>' +
-          '<div style="background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' +
-            '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">HPP ' + sayurProd.nama + '</span>' +
-            '<strong style="font-family: var(--font-mono); font-size: 1rem; color: #34D399;">Rp ' + hppSayurUnit.toLocaleString('id-ID') + ' / pcs</strong>' +
-            formatMarginLine(weightedAvgTarif - hppSayurUnit) +
-          '</div>' +
-          '<div style="background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' +
-            '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">HPP ' + rotiProd.nama + '</span>' +
-            '<strong style="font-family: var(--font-mono); font-size: 1rem; color: #FBBF24;">Rp ' + hppRotiUnit.toLocaleString('id-ID') + ' / pcs</strong>' +
-            formatMarginLine(weightedAvgTarif - hppRotiUnit) +
-          '</div>' +
+        '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">' +
+          hppCardGrids +
           '<div style="background: rgba(16, 185, 129, 0.08); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.25);">' +
             '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">Total HPP ' + totalPcs + ' Pcs vs Omzet (Rp ' + estOmzetSetor.toLocaleString('id-ID') + ')</span>' +
             '<strong style="font-family: var(--font-mono); font-size: 1rem; color: #F8FAFC;">Modal Rp ' + totalHPPProduksi.toLocaleString('id-ID') + '</strong>' +
             '<span style="font-size: 0.72rem; color: ' + (estLabaBersih >= 0 ? '#34D399' : '#FB7185') + '; font-weight: 700; display: block; margin-top: 2px;">Est. Profit Bersih: ' + (estLabaBersih >= 0 ? '+Rp ' : '-Rp ') + Math.abs(estLabaBersih).toLocaleString('id-ID') + '</span>' +
           '</div>' +
         '</div>' +
-        stokSyncHtml +
       '</div>';
   }
 };
+
 window.applyRecipePreset = function(ubi, sayur, roti) {
   const ubiInput = document.getElementById('calcUbiPcs');
   const sayurInput = document.getElementById('calcSayurPcs');
@@ -4155,12 +4305,9 @@ window.applyRecipePreset = function(ubi, sayur, roti) {
 };
 
 // ==============================================================
-// STAGE 5B: SISTEM FORMULA RESEP DINAMIS (EDIT TAKARAN & TAMBAH PRODUK BARU)
+// STAGE 5B: SISTEM DAFTAR MENU & FORMULA TAKARAN PRESISI
 // ==============================================================
 
-// ==============================================================
-// FITUR SALIN RESEP PRODUK KE CLIPBOARD (FORMAT WHATSAPP READY)
-// ==============================================================
 window.copyRecipeToClipboard = function(prodId) {
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
@@ -4182,6 +4329,12 @@ window.copyRecipeToClipboard = function(prodId) {
     let valStr = '';
     if (isDiscrete) {
       valStr = Math.ceil(tot) + ' ' + (k.unit || 'unit');
+    } else if (k.unit === 'tbsp' || k.unit === 'sdm') {
+      const g = Math.round(convertCulinaryToGrams(tot, 'tbsp', k.bahanKey || k.nama));
+      valStr = (Math.round(tot * 10) / 10).toFixed(1) + ' Tbsp (≈ ' + g + 'g)';
+    } else if (k.unit === 'tsp' || k.unit === 'sdt') {
+      const g = Math.round(convertCulinaryToGrams(tot, 'tsp', k.bahanKey || k.nama));
+      valStr = (Math.round(tot * 10) / 10).toFixed(1) + ' Tsp (≈ ' + g + 'g)';
     } else {
       const gramTot = Math.round(tot);
       valStr = gramTot >= 1000 ? (gramTot / 1000).toFixed(2) + ' kg (' + gramTot + 'g)' : gramTot + 'g';
@@ -4191,7 +4344,7 @@ window.copyRecipeToClipboard = function(prodId) {
 
   const text = 
     '*SOP RESEP PRODUKSI — DAPUR MOM FITRI*\n' +
-    'Produk: *' + p.nama + '*\n' +
+    'Menu: *' + p.nama + '* (' + (p.isActive !== false ? 'AKTIF' : 'NONAKTIF') + ')\n' +
     'Model Lipatan / Bentuk: ' + (p.lipatModel || '-') + '\n' +
     'Estimasi HPP Pokok: Rp ' + hpp.toLocaleString('id-ID') + ' / pcs\n' +
     'Target Harga Setor Mitra: Rp ' + (p.hargaSetorDefault || 800).toLocaleString('id-ID') + ' / pcs\n' +
@@ -4230,7 +4383,8 @@ function renderRecipeVisualGrid() {
   container.innerHTML = '';
   recipes.forEach((p, idx) => {
     const card = document.createElement('div');
-    card.className = 'recipe-visual-card';
+    const isActive = (p.isActive !== false);
+    card.className = 'recipe-visual-card' + (isActive ? '' : ' inactive');
 
     const hpp = getProductUnitHPP(p);
     const hargaSetor = p.hargaSetorDefault || 800;
@@ -4243,15 +4397,15 @@ function renderRecipeVisualGrid() {
       ? '<li><strong>Referensi Video:</strong> <a href="' + p.videoRef.url + '" target="_blank" rel="noopener" style="color: ' + (p.badgeColor || '#38BDF8') + '; text-decoration: underline;">TikTok ' + p.videoRef.author + '</a></li>'
       : '';
 
-    // Rincian komposisi ringkas
+    // Rincian komposisi ringkas dengan Tbsp / Tsp / unit
     const bahanSummary = (p.komposisi || []).map(k => {
-      const unitLabel = k.unit || (k.isGram ? 'g' : 'unit');
-      return '<span>' + k.nama + ': <strong>' + k.qtyPerPcs + ' ' + unitLabel + '</strong></span>';
+      const u = k.unit || (k.isGram ? 'g' : 'unit');
+      return '<span>' + k.nama + ': <strong>' + k.qtyPerPcs + ' ' + u + '</strong></span>';
     }).join(' • ');
 
-    const deleteBtnHtml = p.isCustom
-      ? '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; padding: 4px 8px; font-size: 0.72rem;" onclick="window.deleteCustomProduct(\'' + p.id + '\')">Hapus Produk</button>'
-      : '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #94A3B8;" onclick="window.resetFormulaToDefault(\'' + p.id + '\')">Reset Kalibrasi</button>';
+    const statusPill = isActive
+      ? '<button type="button" class="tool-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #34D399; font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk menonaktifkan menu ini dari kalkulator subuh"><span style="width: 6px; height: 6px; border-radius: 50%; background: #34D399;"></span> AKTIF</button>'
+      : '<button type="button" class="tool-btn" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); color: #94A3B8; font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk mengaktifkan menu ini di kalkulator subuh"><span style="width: 6px; height: 6px; border-radius: 50%; background: #64748B;"></span> NONAKTIF</button>';
 
     card.innerHTML =
       '<div class="recipe-visual-img-wrap">' +
@@ -4260,19 +4414,24 @@ function renderRecipeVisualGrid() {
       '</div>' +
       '<div class="recipe-visual-body">' +
         '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">' +
-          '<h4 style="color: ' + (p.badgeColor || '#38BDF8') + '; margin-bottom: 4px;">' + (idx + 1) + '. ' + p.nama + '</h4>' +
+          '<div>' +
+            '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">' +
+              '<h4 style="color: ' + (p.badgeColor || '#38BDF8') + '; margin: 0;">' + (idx + 1) + '. ' + p.nama + '</h4>' +
+              statusPill +
+            '</div>' +
+          '</div>' +
           '<span class="mini-tag" style="background: rgba(255,255,255,0.06); color: ' + marginColor + '; font-weight: 800; font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 6px;">HPP Rp ' + hpp.toLocaleString('id-ID') + ' (' + marginSign + 'Rp ' + margin.toLocaleString('id-ID') + ')</span>' +
         '</div>' +
-        '<ul class="sop-detail-list">' +
+        '<ul class="sop-detail-list" style="margin-top: 10px;">' +
           '<li><strong>Teknik &amp; SOP Penggorengan:</strong> ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '</li>' +
-          '<li><strong>Standar Gramasi &amp; Metode:</strong> ' + (p.catatanSOP || '-') + '</li>' +
+          '<li><strong>Standar Takaran &amp; Metode:</strong> ' + (p.catatanSOP || '-') + '</li>' +
           '<li><strong>Rincian Formula Takaran / Pcs:</strong> <div style="font-size: 0.73rem; color: #94A3B8; margin-top: 3px; line-height: 1.4;">' + bahanSummary + '</div></li>' +
           videoHtml +
         '</ul>' +
-        '<div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; gap: 6px;">' +
+        '<div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">' +
           '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">Salin Resep</button>' +
-          '<button type="button" class="tool-btn tool-btn-success" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Formula Takaran</button>' +
-          deleteBtnHtml +
+          '<button type="button" class="tool-btn tool-btn-success" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Takaran Bahan</button>' +
+          '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; padding: 4px 8px; font-size: 0.72rem;" onclick="window.deleteProduct(\'' + p.id + '\')">Hapus Menu</button>' +
         '</div>' +
       '</div>';
 
@@ -4280,7 +4439,61 @@ function renderRecipeVisualGrid() {
   });
 }
 
+window.toggleProductActiveStatus = function(prodId) {
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+  const prod = recipes.find(r => r.id === prodId);
+  if (!prod) return;
+  prod.isActive = !(prod.isActive !== false);
+  saveLocal();
+  pushToFirestoreCloud(true);
+  renderAllViews();
+  const statusTxt = prod.isActive ? 'diaktifkan (tampil di kalkulator subuh)' : 'dinonaktifkan (disembunyikan dari kalkulator subuh)';
+  window.showToast?.('Menu ' + prod.nama + ' ' + statusTxt);
+};
+
+window.deleteProduct = function(prodId) {
+  const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+  const prod = recipes.find(r => r.id === prodId);
+  if (!prod) return;
+
+  window.showConfirmModal(
+    "Hapus Menu Produk",
+    'Apakah Anda yakin ingin menghapus menu "' + prod.nama + '" dari daftar menu Dapur Mom Fitri?',
+    () => {
+      auraData.masterResep = recipes.filter(r => r.id !== prodId);
+      saveLocal();
+      pushToFirestoreCloud(true);
+      window.closeAppModal();
+      renderAllViews();
+      window.showSuccessModal("Menu Dihapus", 'Menu "' + prod.nama + '" berhasil dihapus.');
+    }
+  );
+};
+
+window.deleteCustomProduct = function(prodId) {
+  window.deleteProduct(prodId);
+};
+
+window.restoreDefaultRecipes = function() {
+  window.showConfirmModal(
+    "Pulihkan Menu Standar",
+    "Kembalikan seluruh daftar menu standar (Ubi, Sayur, Roti, Sosis) ke takaran kalibrasi awal?",
+    () => {
+      auraData.masterResep = JSON.parse(JSON.stringify(DEFAULT_MASTER_RESEP));
+      saveLocal();
+      pushToFirestoreCloud(true);
+      renderAllViews();
+      window.showSuccessModal("Menu Dipulihkan", "Seluruh menu standar berhasil dipulihkan.");
+    }
+  );
+};
+
 window.formulaModalBatchSize = 50;
+window.formulaModalActiveStatus = true;
 
 window.setFormulaBatchSize = function(size, fromInput) {
   const val = Math.max(1, parseInt(size, 10) || 50);
@@ -4343,6 +4556,38 @@ window.onFormulaBatchQtyChange = function(batchInput) {
   window.recalcFormulaModalLine();
 };
 
+window.toggleFormulaModalProductStatus = function() {
+  window.formulaModalActiveStatus = !window.formulaModalActiveStatus;
+  const btn = document.getElementById('fProdStatusBtn');
+  if (btn) {
+    if (window.formulaModalActiveStatus) {
+      btn.style.background = 'rgba(16, 185, 129, 0.2)';
+      btn.style.borderColor = '#10B981';
+      btn.style.color = '#34D399';
+      btn.innerHTML = '<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34D399; margin-right: 4px;"></span> AKTIF (Tampil di Subuh)';
+    } else {
+      btn.style.background = 'rgba(148, 163, 184, 0.1)';
+      btn.style.borderColor = '#64748B';
+      btn.style.color = '#94A3B8';
+      btn.innerHTML = '<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #64748B; margin-right: 4px;"></span> NONAKTIF (Disembunyikan)';
+    }
+  }
+};
+
+const RECIPE_UNIT_OPTIONS = [
+  { val: 'gram', label: 'Gram (g)' },
+  { val: 'kg', label: 'Kilogram (kg)' },
+  { val: 'tbsp', label: 'Tbsp (15 ml)' },
+  { val: 'tsp', label: 'Tsp (5 ml)' },
+  { val: 'lembar', label: 'Lembar (Kulit/Roti)' },
+  { val: 'batang', label: 'Batang (Sosis)' },
+  { val: 'butir', label: 'Butir (Telur)' },
+  { val: 'ml', label: 'Mililiter (ml)' },
+  { val: 'buah', label: 'Buah' },
+  { val: 'siung', label: 'Siung' },
+  { val: 'bungkus', label: 'Bungkus' }
+];
+
 window.openManageFormulaModal = function(selectedProdId) {
   const overlay = document.getElementById('appModalOverlay');
   const dialog = document.getElementById('appModalDialog');
@@ -4352,7 +4597,7 @@ window.openManageFormulaModal = function(selectedProdId) {
   const footer = document.getElementById('appModalFooter');
 
   if (!overlay || !dialog) return;
-  dialog.style.maxWidth = '820px';
+  dialog.style.maxWidth = '840px';
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
   if (titleEl) titleEl.innerText = 'Kelola Formula Resep & Standar Gramasi Presisi';
 
@@ -4363,11 +4608,13 @@ window.openManageFormulaModal = function(selectedProdId) {
   let activeId = selectedProdId || recipes[0].id;
   const prod = recipes.find(r => r.id === activeId) || recipes[0];
   const batchSize = window.formulaModalBatchSize || 50;
+  window.formulaModalActiveStatus = (prod.isActive !== false);
 
   const tabsHtml = recipes.map(r => {
     const isActive = r.id === prod.id;
+    const isProdActive = (r.isActive !== false);
     return '<button type="button" class="filter-pill ' + (isActive ? 'active' : '') + '" style="font-weight: 700; font-size: 0.78rem;" onclick="window.openManageFormulaModal(\'' + r.id + '\')">' +
-      r.nama +
+      r.nama + (!isProdActive ? ' (Nonaktif)' : '') +
     '</button>';
   }).join('');
 
@@ -4375,11 +4622,9 @@ window.openManageFormulaModal = function(selectedProdId) {
 
   let rowsHtml = '';
   (prod.komposisi || []).forEach((k, idx) => {
-    const isGram = (k.unit === 'gram' || k.isGram);
-    const meta = getMasterItemMeta(k.bahanKey, 10000, 100, isGram);
     const perPcsQty = Number(k.qtyPerPcs) || 0;
     const batchQty = Math.round(perPcsQty * batchSize * 100) / 100;
-    const lineCostPcs = isGram ? Math.round(perPcsQty * meta.gramCost) : Math.round(perPcsQty * meta.unitCost);
+    const lineCostPcs = getIngredientUnitCost(k.bahanKey || k.nama, perPcsQty, k.unit);
     const lineCostBatch = Math.round(lineCostPcs * batchSize);
 
     rowsHtml += 
@@ -4401,14 +4646,14 @@ window.openManageFormulaModal = function(selectedProdId) {
         '</td>' +
         '<td>' +
           '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
-            ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi', 'sdm', 'sdt'].map(u => {
-              const sel = (k.unit === u || (isGram && u === 'gram')) ? 'selected' : '';
-              return '<option value="' + u + '" ' + sel + '>' + u + '</option>';
+            RECIPE_UNIT_OPTIONS.map(opt => {
+              const sel = (k.unit === opt.val || (k.isGram && opt.val === 'gram')) ? 'selected' : '';
+              return '<option value="' + opt.val + '" ' + sel + '>' + opt.label + '</option>';
             }).join('') +
           '</select>' +
         '</td>' +
         '<td style="text-align: right; font-family: var(--font-mono); font-size: 0.78rem;" class="f-line-cost">' +
-          '<span style="color: #38BDF8; font-weight: 700;">Rp ' + lineCostPcs.toLocaleString('id-ID') + '</span>' +
+          '<span style="color: #38BDF8; font-weight: 700;">Rp ' + Math.round(lineCostPcs).toLocaleString('id-ID') + '</span>' +
           '<span style="font-size: 0.68rem; color: var(--text-muted); display: block;">Rp ' + lineCostBatch.toLocaleString('id-ID') + ' / bsk</span>' +
         '</td>' +
         '<td style="text-align: center;">' +
@@ -4427,12 +4672,22 @@ window.openManageFormulaModal = function(selectedProdId) {
   body.innerHTML =
     '<div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--card-border);">' +
       tabsHtml +
-      '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Varian Baru</button>' +
+      '<button type="button" class="tool-btn" style="padding: 4px 10px; font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Menu Baru</button>' +
+    '</div>' +
+
+    '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(30, 41, 59, 0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); flex-wrap: wrap; gap: 8px;">' +
+      '<div>' +
+        '<span style="font-size: 0.78rem; font-weight: 700; color: #FFFFFF;">Status Menu Produksi:</span>' +
+        '<span style="font-size: 0.74rem; color: #94A3B8; margin-left: 6px;">Menu aktif otomatis tampil di kalkulator takaran subuh &amp; audit HPP</span>' +
+      '</div>' +
+      '<button type="button" class="tool-btn" id="fProdStatusBtn" style="' + (window.formulaModalActiveStatus ? 'background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #34D399;' : 'background: rgba(148, 163, 184, 0.1); border-color: #64748B; color: #94A3B8;') + ' font-weight: 800; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px;" onclick="window.toggleFormulaModalProductStatus()">' +
+        (window.formulaModalActiveStatus ? '<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34D399; margin-right: 4px;"></span> AKTIF (Tampil di Subuh)' : '<span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #64748B; margin-right: 4px;"></span> NONAKTIF (Disembunyikan)') +
+      '</button>' +
     '</div>' +
 
     '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px;">' +
       '<div>' +
-        '<label class="form-label">Nama Produk</label>' +
+        '<label class="form-label">Nama Menu Produk</label>' +
         '<input type="text" id="fProdNama" class="form-control-slate" value="' + prod.nama + '" required>' +
       '</div>' +
       '<div>' +
@@ -4477,7 +4732,7 @@ window.openManageFormulaModal = function(selectedProdId) {
             '<th>Bahan Baku (Dari Master)</th>' +
             '<th style="width: 90px; text-align: center;">Takaran / Pcs</th>' +
             '<th style="width: 100px; text-align: center;" id="fBatchColHeader">1 Batch (' + batchSize + ' pcs)</th>' +
-            '<th style="width: 85px;">Satuan</th>' +
+            '<th style="width: 95px;">Satuan</th>' +
             '<th style="width: 110px; text-align: right;">Est. Biaya</th>' +
             '<th style="width: 36px; text-align: center;">Aksi</th>' +
           '</tr>' +
@@ -4511,14 +4766,14 @@ window.openManageFormulaModal = function(selectedProdId) {
 
   const resetBtnHtml = (!prod.isCustom)
     ? '<button type="button" class="tool-btn" style="background: #334155; color: #CBD5E1; font-size: 0.75rem;" onclick="window.resetFormulaToDefault(\'' + prod.id + '\')">Reset Kalibrasi Standar</button>'
-    : '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; font-size: 0.75rem;" onclick="window.deleteCustomProduct(\'' + prod.id + '\')">Hapus Varian Ini</button>';
+    : '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; font-size: 0.75rem;" onclick="window.deleteProduct(\'' + prod.id + '\')">Hapus Menu Ini</button>';
 
   footer.innerHTML =
     '<div style="display: flex; gap: 8px; width: 100%; justify-content: space-between; align-items: center; flex-wrap: wrap;">' +
       resetBtnHtml +
       '<div style="display: flex; gap: 8px; margin-left: auto;">' +
         '<button type="button" class="tool-btn" onclick="window.closeAppModal()">Batal</button>' +
-        '<button type="button" class="tool-btn tool-btn-success" style="font-weight: 800;" onclick="window.saveFormulaChanges(\'' + prod.id + '\')">Simpan Perubahan Formula</button>' +
+        '<button type="button" class="tool-btn tool-btn-success" style="font-weight: 800;" onclick="window.saveFormulaChanges(\'' + prod.id + '\')">Simpan Perubahan Takaran</button>' +
       '</div>' +
     '</div>';
 
@@ -4541,9 +4796,8 @@ window.recalcFormulaModalLine = function() {
     if (selMb && inputQty && selUnit) {
       const mbKey = selMb.value;
       const qty = parseFloat(inputQty.value) || 0;
-      const isGram = selUnit.value === 'gram';
-      const meta = getMasterItemMeta(mbKey, 10000, 100, isGram);
-      const lineCostPcs = isGram ? (qty * meta.gramCost) : (qty * meta.unitCost);
+      const unit = selUnit.value;
+      const lineCostPcs = getIngredientUnitCost(mbKey, qty, unit);
       const lineCostBatch = Math.round(lineCostPcs * batchSize);
 
       if (costCell) {
@@ -4600,7 +4854,7 @@ window.addFormulaIngredientLine = function() {
     '</td>' +
     '<td>' +
       '<select class="form-control-slate f-item-unit" style="padding: 4px 6px; font-size: 0.78rem; width: 100%;" onchange="window.recalcFormulaModalLine()">' +
-        ['gram', 'lembar', 'buah', 'batang', 'butir', 'ikat', 'porsi', 'sdm', 'sdt'].map(u => '<option value="' + u + '">' + u + '</option>').join('') +
+        RECIPE_UNIT_OPTIONS.map(opt => '<option value="' + opt.val + '">' + opt.label + '</option>').join('') +
       '</select>' +
     '</td>' +
     '<td style="text-align: right; font-family: var(--font-mono); font-size: 0.78rem;" class="f-line-cost">' +
@@ -4628,6 +4882,7 @@ window.saveFormulaChanges = function(prodId) {
   if (namaInput && namaInput.value.trim()) prod.nama = namaInput.value.trim();
   if (hargaSetorInput) prod.hargaSetorDefault = parseInt(hargaSetorInput.value, 10) || 800;
   if (lipatInput) prod.lipatModel = lipatInput.value.trim();
+  prod.isActive = window.formulaModalActiveStatus;
 
   const tableBody = document.getElementById('formulaTableBody');
   if (tableBody) {
@@ -4648,7 +4903,7 @@ window.saveFormulaChanges = function(prodId) {
           qtyPerPcs: qty,
           unit: unit,
           isGram: isGram,
-          tipe: isGram ? 'isian' : 'kulit'
+          tipe: isGram ? 'isian' : (unit === 'lembar' ? 'kulit' : 'bumbu')
         });
       }
     });
@@ -4660,8 +4915,8 @@ window.saveFormulaChanges = function(prodId) {
   window.closeAppModal();
   renderAllViews();
   window.showSuccessModal(
-    "Formula Resep Disimpan",
-    'Formula takaran untuk "' + prod.nama + '" berhasil diperbarui! Seluruh kalkulator subuh dan audit HPP otomatis disesuaikan.'
+    "Takaran Menu Disimpan",
+    'Formula takaran untuk "' + prod.nama + '" berhasil diperbarui! Seluruh kalkulator subuh dan audit HPP otomatis disinkronkan.'
   );
 };
 
@@ -4686,6 +4941,7 @@ window.resetFormulaToDefault = function(prodId) {
     }
   );
 };
+
 window.openAddProductModal = function() {
   const overlay = document.getElementById('appModalOverlay');
   const dialog = document.getElementById('appModalDialog');
@@ -4697,12 +4953,12 @@ window.openAddProductModal = function() {
   if (!overlay || !dialog) return;
   dialog.style.maxWidth = '680px';
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
-  if (titleEl) titleEl.innerText = 'Tambah Resep & Varian Produk Baru';
+  if (titleEl) titleEl.innerText = 'Tambah Resep & Menu Baru';
 
   body.innerHTML =
     '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 14px;">' +
       '<div>' +
-        '<label class="form-label">Nama Produk Baru</label>' +
+        '<label class="form-label">Nama Menu Baru</label>' +
         '<input type="text" id="newProdNama" class="form-control-slate" placeholder="Contoh: Pastel Sayur Telur Mini" required>' +
       '</div>' +
       '<div>' +
@@ -4733,13 +4989,13 @@ window.openAddProductModal = function() {
       '</div>' +
     '</div>' +
     '<div style="margin-bottom: 10px; font-size: 0.8rem; color: var(--text-secondary);">' +
-      'Setelah produk dibuat, Anda dapat langsung menambahkan dan mengatur gramasi bahan baku penyusunnya di tabel formula resep.' +
+      'Setelah menu dibuat, Anda dapat langsung mengatur takaran bahan bakunya (Tbsp, Tsp, Gram, Lembar, Batang, dll) di tabel formula.' +
     '</div>';
 
   footer.innerHTML =
     '<div style="display: flex; gap: 8px; width: 100%; justify-content: flex-end;">' +
       '<button type="button" class="tool-btn" onclick="window.closeAppModal()">Batal</button>' +
-      '<button type="button" class="tool-btn tool-btn-success" style="font-weight: 800;" onclick="window.saveNewProduct()">Simpan & Buat Formula</button>' +
+      '<button type="button" class="tool-btn tool-btn-success" style="font-weight: 800;" onclick="window.saveNewProduct()">Simpan &amp; Atur Takaran</button>' +
     '</div>';
 
   overlay.style.display = 'flex';
@@ -4776,6 +5032,7 @@ window.saveNewProduct = function() {
     catatanSOP: lipat,
     defaultPcs: defaultPcs,
     isCustom: true,
+    isActive: true,
     komposisi: [
       { bahanKey: kulitItem.nama, nama: kulitItem.nama, qtyPerPcs: 1, unit: kulitItem.unitFisik || 'lembar', isGram: false, tipe: 'kulit' },
       { bahanKey: minyakItem.nama, nama: minyakItem.nama, qtyPerPcs: 2.0, unit: 'gram', isGram: true, tipe: 'goreng' }
@@ -4790,40 +5047,12 @@ window.saveNewProduct = function() {
   window.closeAppModal();
   renderAllViews();
   window.showSuccessModal(
-    "Produk Berhasil Ditambahkan",
-    'Varian "' + nama + '" berhasil didaftarkan! Sekarang silakan sesuaikan komposisi bahan bakunya.',
+    "Menu Berhasil Ditambahkan",
+    'Menu "' + nama + '" berhasil didaftarkan! Sekarang silakan atur takaran bahan bakunya.',
     () => {
       window.openManageFormulaModal(newId);
     }
   );
-};
-
-window.deleteCustomProduct = function(prodId) {
-  const prod = (auraData.masterResep || []).find(r => r.id === prodId);
-  if (!prod) return;
-
-  window.showConfirmModal(
-    "Hapus Varian Produk",
-    'Apakah Anda yakin ingin menghapus varian "' + prod.nama + '" dari sistem resep Dapur Mom Fitri?',
-    () => {
-      auraData.masterResep = auraData.masterResep.filter(r => r.id !== prodId);
-      saveLocal();
-      pushToFirestoreCloud(true);
-      window.closeAppModal();
-      renderAllViews();
-      window.showSuccessModal("Terhapus", 'Varian "' + prod.nama + '" berhasil dihapus dari resep.');
-    }
-  );
-};
-
-window.applyRecipePreset = function(ubi, sayur, roti) {
-  const ubiInput = document.getElementById('calcUbiPcs');
-  const sayurInput = document.getElementById('calcSayurPcs');
-  const rotiInput = document.getElementById('calcRotiPcs');
-  if (ubiInput) ubiInput.value = ubi;
-  if (sayurInput) sayurInput.value = sayur;
-  if (rotiInput) rotiInput.value = roti;
-  window.calculateTakaran();
 };
 
 // ==============================================================
@@ -6376,43 +6605,86 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnTakaran = document.getElementById('btnCopyTakaran');
   if (btnTakaran) {
     btnTakaran.addEventListener('click', () => {
-      const ubi = document.getElementById('calcUbiPcs')?.value || '66';
-      const sayur = document.getElementById('calcSayurPcs')?.value || '32';
-      const roti = document.getElementById('calcRotiPcs')?.value || '38';
-      const total = parseInt(ubi, 10) + parseInt(sayur, 10) + parseInt(roti, 10);
+      const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+        ? auraData.masterResep
+        : DEFAULT_MASTER_RESEP;
+      const activeRecipes = recipes.filter(r => r.isActive !== false);
 
-      const ubiGram = Math.round(ubi * 13.2);
-      const ubiKg = (ubiGram / 1000).toFixed(2);
-      const wortel = Math.round(sayur * 5.0);
-      const jagung = Math.round(sayur * 3.5);
-      const sosis = Math.ceil(sayur * 0.125);
-      const rotiLbr = Math.ceil(roti / 2);
-      const rotiBagian = Math.ceil(roti / 2);
-      const kulitBks = Math.ceil((parseInt(ubi, 10) + parseInt(sayur, 10)) / 36);
+      let totalPcs = 0;
+      let summaryPcsParts = [];
+      const linesByProd = [];
+      let totalKulit = 0;
+
+      activeRecipes.forEach((r, idx) => {
+        let pcs = 0;
+        if (r.id === 'prod_ubi') {
+          pcs = parseInt(document.getElementById('calcUbiPcs')?.value, 10) || 0;
+        } else if (r.id === 'prod_sayur') {
+          pcs = parseInt(document.getElementById('calcSayurPcs')?.value, 10) || 0;
+        } else if (r.id === 'prod_roti') {
+          pcs = parseInt(document.getElementById('calcRotiPcs')?.value, 10) || 0;
+        } else {
+          pcs = parseInt(document.getElementById('calcPcs_' + r.id)?.value, 10) || (r.defaultPcs || 20);
+        }
+        totalPcs += pcs;
+        summaryPcsParts.push((r.shortName || r.nama) + ': ' + pcs);
+
+        let itemsText = [];
+        (r.komposisi || []).forEach(k => {
+          const unitLower = (k.unit || '').toLowerCase();
+          const tot = (k.qtyPerPcs || 0) * pcs;
+          if (unitLower === 'tbsp' || unitLower === 'sdm') {
+            const g = Math.round(convertCulinaryToGrams(tot, 'tbsp', k.bahanKey || k.nama));
+            itemsText.push('   • ' + k.nama + ': ' + (Math.round(tot * 10) / 10).toFixed(1) + ' Tbsp (≈ ' + g + 'g • ' + (tot * 3).toFixed(1) + ' Tsp)');
+          } else if (unitLower === 'tsp' || unitLower === 'sdt') {
+            const g = Math.round(convertCulinaryToGrams(tot, 'tsp', k.bahanKey || k.nama));
+            itemsText.push('   • ' + k.nama + ': ' + (Math.round(tot * 10) / 10).toFixed(1) + ' Tsp (≈ ' + g + 'g)');
+          } else if (unitLower === 'gram' || k.isGram) {
+            const g = Math.round(tot);
+            const cul = convertGramsToCulinary(g, k.bahanKey || k.nama);
+            if (g <= 90 && /gula|skm|susu|garam|kaldu|bumbu|lada|vanili|saus|terigu/i.test(k.bahanKey || k.nama)) {
+              itemsText.push('   • ' + k.nama + ': ' + cul.tbspFmt + ' (≈ ' + g + 'g • ' + cul.tspFmt + ')');
+            } else {
+              const kgStr = g >= 1000 ? ' (' + (g / 1000).toFixed(2) + ' kg)' : '';
+              itemsText.push('   • ' + k.nama + ': ' + g + 'g' + kgStr);
+            }
+          } else if (unitLower === 'lembar') {
+            const lbr = Math.ceil(tot);
+            if (/kulit/i.test(k.bahanKey || k.nama)) {
+              totalKulit += lbr;
+              itemsText.push('   • ' + k.nama + ': ' + lbr + ' lembar');
+            } else if (/roti/i.test(k.bahanKey || k.nama)) {
+              const bks = Math.ceil(lbr / 14);
+              itemsText.push('   • ' + k.nama + ': ' + lbr + ' lembar (' + bks + ' bks isi 14 lbr)');
+            } else {
+              itemsText.push('   • ' + k.nama + ': ' + lbr + ' lembar');
+            }
+          } else if (unitLower === 'batang') {
+            itemsText.push('   • ' + k.nama + ': ' + Math.ceil(tot) + ' batang utuh');
+          } else if (unitLower === 'butir') {
+            itemsText.push('   • ' + k.nama + ': ' + Math.ceil(tot) + ' butir utuh');
+          } else {
+            itemsText.push('   • ' + k.nama + ': ' + Math.ceil(tot) + ' ' + (k.unit || 'unit'));
+          }
+        });
+
+        linesByProd.push((idx + 1) + '. ' + r.nama.toUpperCase() + ' (' + pcs + ' pcs):\n' + itemsText.join('\n'));
+      });
+
+      const kulitBks = Math.ceil(totalKulit / 36);
+      let kulitMinyakSection = '';
+      if (totalKulit > 0) {
+        kulitMinyakSection = '\n\n' + (activeRecipes.length + 1) + '. TOTAL KULIT LUMPIA & PENGGORENGAN:\n' +
+          '   • Kulit Lumpia: ' + totalKulit + ' lembar (' + kulitBks + ' bungkus isi 36 lbr • sisa ' + ((kulitBks * 36) - totalKulit) + ' lbr)\n' +
+          '   • Minyak Goreng: 1.5 - 2L di wajan (Api Sedang 160°C, 3.5 - 4 Menit)\n' +
+          '   • Tepung Lem Perekat: ' + Math.round(totalKulit * 0.3) + 'g terigu (≈ 1.5 Tbsp) larutkan kental';
+      }
 
       const msg = "CHECKLIST TAKARAN OPERASIONAL DAPUR MOM FITRI (SUBUH):\n" +
-                  "Target Produksi: " + total + " PCS (Ubi: " + ubi + ", Sayur: " + sayur + ", Roti: " + roti + ")\n\n" +
-                  "1. GOGUMAPIA UBI UNGU KEJU (" + ubi + " pcs - 12g / 1 tbsp peres / 2.5 tsp):\n" +
-                  "   • Ubi Ungu Kukus Empuk: " + ubiKg + " kg (" + ubiGram + "g / ≈ " + (ubiGram / 200).toFixed(1) + " buah / " + Math.round(ubiGram / 15) + " tbsp)\n" +
-                  "   • Gula Pasir: " + Math.round(ubi * 0.6) + "g (" + (ubi * 0.04).toFixed(1) + " tbsp / " + (ubi * 0.12).toFixed(1) + " tsp)\n" +
-                  "   • SKM Putih: " + Math.round(ubi * 0.45) + "g (" + (ubi * 0.03).toFixed(1) + " tbsp / " + (ubi * 0.09).toFixed(1) + " tsp)\n" +
-                  "   • Keju Oles Prochiz: " + Math.round(ubi * 1.0) + "g (" + (ubi / 15).toFixed(1) + " tbsp / " + (ubi / 5).toFixed(1) + " tsp • @ 1/4 tsp per pcs)\n" +
-                  "   • Lipat Bantal Persegi Panjang Mini, rekatkan ujung dengan lem tepung\n\n" +
-                  "2. LUMPIA SEGITIGA SAYUR SOSIS (" + sayur + " pcs - 10g / 1 tbsp peres / 2 tsp):\n" +
-                  "   • Wortel Potong Dadu Kecil: " + wortel + "g (≈ " + (wortel / 125).toFixed(1) + " buah • " + Math.round(wortel / 10) + " tbsp / " + Math.round(wortel / 3.3) + " tsp)\n" +
-                  "   • Jagung Pipil: " + jagung + "g (≈ " + (jagung / 100).toFixed(1) + " tongkol • " + Math.round(jagung / 10) + " tbsp)\n" +
-                  "   • Sosis Dadu Mikro (1 btg = 8 pcs): " + sosis + " batang (" + (sosis * 22) + "g • " + Math.round((sosis * 22) / 10) + " tbsp)\n" +
-                  "   • Telur Kocok (Tuang Akhir): " + Math.ceil(sayur * 0.04) + " butir (" + (Math.ceil(sayur * 0.04) * 55) + "g)\n" +
-                  "   • Bumbu: " + (sayur * 0.05).toFixed(1) + " tbsp (" + (sayur * 0.15).toFixed(1) + " tsp) Saus Tiram + 1 tsp Kaldu + 1 tsp Garam + 1 tsp Gula\n" +
-                  "   • Lipat Bentuk Segitiga (Samosa), rekatkan ujung dengan kuas tepung\n\n" +
-                  "3. ROTI GORENG KANTONG COLLINS (" + roti + " pcs - 1 Lembar = 2 Pcs Kantong):\n" +
-                  "   • Roti Tawar: " + rotiLbr + " lembar (" + (rotiLbr * 35) + "g • potong 2 & tumpuk kering -> " + rotiBagian + " blok goreng -> belah 2 jadi " + roti + " kantong)\n" +
-                  "   • Adonan Terigu Celup Cepat: " + Math.max(1, Math.round((rotiLbr / 9) * 10)) + " tbsp (" + (Math.max(1, Math.round((rotiLbr / 9) * 10)) * 3) + " tsp) terigu + 1/2 tsp garam + air (serapan ~" + Math.round(roti * 2.5) + "g)\n" +
-                  "   • Tepung Panir: " + Math.round(roti * 4.0) + "g (" + Math.round((roti * 4.0) / 8) + " tbsp / " + Math.round((roti * 4.0) / 2.7) + " tsp)\n" +
-                  "   • Collins Choco Crunchy (Trik bibir luar): " + Math.round(roti * 2.5) + "g (" + ((roti * 2.5) / 15).toFixed(1) + " tbsp / " + ((roti * 2.5) / 5).toFixed(1) + " tsp • @ 1/2 tsp per pcs)\n\n" +
-                  "4. KULIT & PENGGORENGAN:\n" +
-                  "   • Kulit Lumpia: " + (parseInt(ubi, 10) + parseInt(sayur, 10)) + " lembar (" + kulitBks + " bungkus)\n" +
-                  "   • Minyak: 1.5 - 2L di wajan (Api Sedang 160°C, 3.5 - 4 Menit)";
+                  "Target Produksi: " + totalPcs + " PCS (" + summaryPcsParts.join(', ') + ")\n" +
+                  "Standar Takar: 1 Tbsp = 15 ml | 1 Tsp = 5 ml\n\n" +
+                  linesByProd.join('\n\n') +
+                  kulitMinyakSection;
 
       navigator.clipboard.writeText(msg).then(() => {
         window.showSuccessModal("Checklist Subuh Tersalin", "Panduan takaran subuh presisi berhasil disalin ke clipboard!\n\n" + msg);
@@ -6433,8 +6705,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.9.1';
-const APP_BUILD_TIME = '27/10/2026 16:05 WIB';
+const APP_VERSION = 'v6.9.2';
+const APP_BUILD_TIME = '28/10/2026 14:15 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 

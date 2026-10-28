@@ -2801,6 +2801,12 @@ body {
   border-color: #38BDF8;
 }
 
+.recipe-visual-card.inactive {
+  opacity: 0.65;
+  filter: grayscale(0.25);
+  border-color: rgba(148, 163, 184, 0.25);
+}
+
 .recipe-visual-img-wrap {
   position: relative;
   width: 100%;
