@@ -911,11 +911,7 @@ auraData.buku1CustomDays.forEach(customIso => {
   }
 });
 if (!auraData.buku1History) {
-  auraData.buku1History = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY));
-} else {
-  if (!auraData.buku1History['2026-10-26']) {
-    auraData.buku1History['2026-10-26'] = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY['2026-10-26']));
-  }
+  auraData.buku1History = {};
 }
 if (!auraData.buku2Belanja) {
   auraData.buku2Belanja = [];
@@ -6613,6 +6609,7 @@ function renderLaporanHarianView() {
   if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
   if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
   if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
+  const totRencanaKirim = grandTotal;
 
   // Update Ringkasan Kartu Adonan Subuh
   const cUbi = document.getElementById('cardRencanaUbi');
