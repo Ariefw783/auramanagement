@@ -52,13 +52,38 @@
         <!-- Sidebar Navigation Groups -->
         <nav class="sidebar-menu">
 
+          <!-- GROUP 0: OPERASIONAL UTAMA -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Operasional Harian</span>
+            </div>
+
+            <button type="button" class="nav-item-btn active" data-tab="tab-laporan-harian" onclick="window.switchTab('tab-laporan-harian')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </span>
+                <span class="nav-item-label" style="font-weight: 800; color: #38BDF8;">Laporan Harian (1 Layar)</span>
+              </div>
+              <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-size: 0.65rem;">Utama</span>
+            </button>
+          </div>
+
+          <div class="menu-divider"></div>
+
           <!-- GROUP 1: RINGKASAN & STATUS -->
           <div class="menu-group">
             <div class="menu-group-header">
               <span>Ringkasan & Status</span>
             </div>
 
-            <button type="button" class="nav-item-btn active" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
+            <button type="button" class="nav-item-btn" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
               <div class="nav-item-left">
                 <span class="nav-item-icon">
                   <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -227,18 +252,19 @@
             <span class="status-indicator"></span>
             <span>Dapur Mom Fitri Core</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v6.9.2</span>
+          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v7.0.0</span>
         </div>
         <p class="status-box-desc">
-          Sistem akuntansi laba-rugi, 2 amplop dinamis, dan manajemen inventaris bahan aktif.
+          Modul Laporan Harian 1 Layar terpadu (Spreadsheet-Style), Sistem 2 Amplop &amp; sinkronisasi Cloud Firestore aktif.
         </p>
         <div class="status-box-tags">
+          <span class="mini-tag">Daily Ops Sheet</span>
           <span class="mini-tag">Zero-Leakage</span>
           <span class="mini-tag">Cloud Firestore</span>
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 27/10/2026 16:05 WIB
+          Update: 29/10/2026 16:30 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -309,9 +335,305 @@
       </header>
 
       <!-- ============================================================== -->
+      <!-- TAB 0: LAPORAN HARIAN SATU LAYAR (DAILY OPS SHEET SPREADSHEET)  -->
+      <!-- ============================================================== -->
+      <section id="tab-laporan-harian" class="app-tab-panel active">
+        <div class="laporan-harian-container">
+
+          <!-- 1. KOP LAPORAN HARIAN (SCREEN & PRINT) -->
+          <div class="laporan-harian-header-card">
+            <div class="laporan-header-top">
+              <div>
+                <div class="laporan-badge-tag">FORMULIR OPERASIONAL HARIAN</div>
+                <h2 class="laporan-main-title">DAPUR MOM FITRI</h2>
+                <div class="laporan-sub-title">Sistem Pencatatan Terpadu Konsinyasi, Belanja Pasar, Rencana Produksi &amp; Arus Kas (Sistem 2 Amplop)</div>
+              </div>
+
+              <!-- Date Selector & Stepper -->
+              <div class="laporan-date-box">
+                <div class="date-stepper-container">
+                  <button type="button" class="date-step-btn" onclick="window.stepDay(-1)" title="Hari Sebelumnya">&#9664;</button>
+                  <label class="date-display-trigger" title="Klik untuk pilih tanggal di kalender">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span class="date-display-text" id="laporanHarianDateText">Senin, 26 Oktober 2026</span>
+                    <input type="date" id="nativeDatePickerLaporanHarian" class="native-hidden-date-input" onchange="window.switchDate(this.value)">
+                  </label>
+                  <button type="button" class="date-step-btn" onclick="window.stepDay(1)" title="Hari Berikutnya">&#9654;</button>
+                  <button type="button" class="date-today-btn" onclick="window.goToToday()" title="Kembali ke Hari Ini">Hari Ini</button>
+                </div>
+                <div class="laporan-status-pill" id="laporanHarianStatusPill">
+                  <span class="status-dot"></span>
+                  <span id="laporanHarianStatusText">Draft Hari Aktif</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top 4 KPI Ringkasan Kartu -->
+            <div class="financial-kpi-grid" style="margin-top: 18px; margin-bottom: 0;">
+              <div class="financial-kpi-card" style="border-left: 4px solid #38BDF8;">
+                <span class="kpi-label">Total Omzet Setoran (Sore)</span>
+                <strong class="kpi-val" id="lhKpiOmzet" style="color: #38BDF8;">Rp 0</strong>
+                <span class="kpi-sub" id="lhKpiOmzetSub">Penarikan laku konsinyasi</span>
+              </div>
+
+              <div class="financial-kpi-card" style="border-left: 4px solid #FB7185;">
+                <span class="kpi-label">Total Pengeluaran Belanja</span>
+                <strong class="kpi-val" id="lhKpiBelanja" style="color: #FB7185;">Rp 0</strong>
+                <span class="kpi-sub" id="lhKpiBelanjaSub">Kebutuhan pasar &amp; operasional</span>
+              </div>
+
+              <div class="financial-kpi-card" style="border-left: 4px solid #FBBF24;">
+                <span class="kpi-label">Kas Modal Belanja Esok (Amplop 1)</span>
+                <strong class="kpi-val" id="lhKpiKasEsok" style="color: #FBBF24;">Rp 0</strong>
+                <span class="kpi-sub" id="lhKpiKasEsokSub">Uang putaran belanja subuh</span>
+              </div>
+
+              <div class="financial-kpi-card" style="border-left: 4px solid #34D399;">
+                <span class="kpi-label">Laba Bersih Harian (Amplop 2)</span>
+                <strong class="kpi-val" id="lhKpiLabaBersih" style="color: #34D399;">Rp 0</strong>
+                <span class="kpi-sub" id="lhKpiLabaBersihSub">Gaji harian / laba pemilik</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. BLOK 1: LAPORAN PENARIKAN & DISTRIBUSI KONSINYASI MITRA (BUKU 1) -->
+          <div class="sheet-section-card">
+            <div class="sheet-section-header">
+              <div class="sheet-section-title-wrap">
+                <span class="sheet-section-number">1</span>
+                <div>
+                  <h3 class="sheet-section-title">Laporan Penarikan &amp; Distribusi Konsinyasi Mitra (Buku 1)</h3>
+                  <p class="sheet-section-desc">Ketik Kirim dan Retur sisa sore per warung. Laku dan setoran terhitung otomatis.</p>
+                </div>
+              </div>
+              <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra</button>
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku1')">Buka Buku 1 Detail</button>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper">
+              <table class="sheet-grid-table" id="laporanHarianMitraTable">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;">No.</th>
+                    <th style="min-width: 170px;">Tempat Penitipan Mitra</th>
+                    <th style="width: 100px; text-align: center;">Kirim (Pcs)</th>
+                    <th style="width: 100px; text-align: center;">Retur (Pcs)</th>
+                    <th style="width: 100px; text-align: center;">Laku</th>
+                    <th style="min-width: 120px; text-align: right;">Margin Toko</th>
+                    <th style="min-width: 130px; text-align: right;">Nominal Setoran</th>
+                    <th style="width: 60px; text-align: center;" class="no-print">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="lhMitraTableBody">
+                  <!-- Rendered dynamically via app.js -->
+                </tbody>
+                <tfoot>
+                  <tr class="sheet-total-row">
+                    <td colspan="2" style="font-weight: 800;">TOTAL SETORAN KONSINYASI</td>
+                    <td style="text-align: center; font-weight: 800;" id="lhMitraTotalKirim">0</td>
+                    <td style="text-align: center; font-weight: 800;" id="lhMitraTotalRetur">0</td>
+                    <td style="text-align: center; font-weight: 800; color: #38BDF8;" id="lhMitraTotalLaku">0</td>
+                    <td style="text-align: right; font-weight: 800; color: #FBBF24;" id="lhMitraTotalMargin">Rp 0</td>
+                    <td style="text-align: right; font-weight: 800; color: #34D399; font-size: 1rem;" id="lhMitraTotalSetoran">Rp 0</td>
+                    <td class="no-print"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. BLOK 2: FORM PENGELUARAN BELANJA BAHAN & OPERASIONAL HARIAN (BUKU 2) -->
+          <div class="sheet-section-card">
+            <div class="sheet-section-header">
+              <div class="sheet-section-title-wrap">
+                <span class="sheet-section-number">2</span>
+                <div>
+                  <h3 class="sheet-section-title">Form Pengeluaran Belanja Bahan &amp; Operasional Harian (Buku 2)</h3>
+                  <p class="sheet-section-desc">Catat pembelian langsung seperti nota pasar: nama barang, satuan beli, toko, dan nominal rupiah.</p>
+                </div>
+              </div>
+              <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn tool-btn-success" onclick="window.addBelanjaRowLaporanHarian()">+ Tambah Baris Belanja</button>
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku2')">Buka Buku 2 Kuitansi</button>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper">
+              <table class="sheet-grid-table" id="laporanHarianBelanjaTable">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;">No.</th>
+                    <th style="min-width: 200px;">Nama Bahan / Kebutuhan Dapur</th>
+                    <th style="min-width: 120px;">Satuan Beli / Qty</th>
+                    <th style="min-width: 140px;">Tempat / Toko</th>
+                    <th style="min-width: 140px; text-align: right;">Nominal Harga (Rp)</th>
+                    <th style="width: 60px; text-align: center;" class="no-print">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="lhBelanjaTableBody">
+                  <!-- Rendered dynamically via app.js -->
+                </tbody>
+                <tfoot>
+                  <tr class="sheet-total-row">
+                    <td colspan="4" style="font-weight: 800;">TOTAL JUMLAH BELANJA HARI INI</td>
+                    <td style="text-align: right; font-weight: 800; color: #FB7185; font-size: 1.05rem;" id="lhBelanjaTotalRp">Rp 0</td>
+                    <td class="no-print"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <!-- Datalist untuk Autocomplete Nama Bahan Baku yang Tersedia -->
+            <datalist id="lhMasterBahanDatalist">
+              <!-- Rendered dynamically via app.js -->
+            </datalist>
+          </div>
+
+          <!-- 4. BLOK 3: RENCANA PRODUKSI & TITIP ESOK HARI (SOP DAPUR) -->
+          <div class="sheet-section-card">
+            <div class="sheet-section-header">
+              <div class="sheet-section-title-wrap">
+                <span class="sheet-section-number">3</span>
+                <div>
+                  <h3 class="sheet-section-title">Rencana Produksi &amp; Titip Esok Harian (SOP Dapur)</h3>
+                  <p class="sheet-section-desc">Atur rencana target goreng dan bonus untuk tiap titik konsinyasi besok subuh.</p>
+                </div>
+              </div>
+              <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-resep')">Lihat Takaran Resep</button>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper">
+              <table class="sheet-grid-table" id="laporanHarianRencanaTable">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;">No.</th>
+                    <th style="min-width: 180px;">Tempat Penitipan</th>
+                    <th style="width: 120px; text-align: center;">Target Titip (Pcs)</th>
+                    <th style="width: 120px; text-align: center;">Bonus Titip (+ Pcs)</th>
+                    <th style="width: 140px; text-align: center;">Total Kirim Esok (Pcs)</th>
+                  </tr>
+                </thead>
+                <tbody id="lhRencanaTableBody">
+                  <!-- Rendered dynamically via app.js -->
+                </tbody>
+                <tfoot>
+                  <tr class="sheet-total-row">
+                    <td colspan="2" style="font-weight: 800;">TOTAL ESTIMASI PRODUKSI ESOK HARI</td>
+                    <td style="text-align: center; font-weight: 800;" id="lhRencanaTotalTarget">0</td>
+                    <td style="text-align: center; font-weight: 800;" id="lhRencanaTotalBonus">0</td>
+                    <td style="text-align: center; font-weight: 800; color: #38BDF8; font-size: 1rem;" id="lhRencanaTotalKirim">0 Pcs</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          <!-- 5. BLOK 4: FORM PEMBAGIAN OMZET HARIAN & ARUS KAS (SISTEM 2 AMPLOP) -->
+          <div class="sheet-section-card">
+            <div class="sheet-section-header">
+              <div class="sheet-section-title-wrap">
+                <span class="sheet-section-number">4</span>
+                <div>
+                  <h3 class="sheet-section-title">Form Pembagian Omzet Harian &amp; Arus Kas (Sistem 2 Amplop)</h3>
+                  <p class="sheet-section-desc">Pemisahan otomatis antara modal belanja esok hari dan gaji bersih pemilik bisnis.</p>
+                </div>
+              </div>
+              <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku3')">Buka Buku 3 Lengkap</button>
+              </div>
+            </div>
+
+            <!-- Arus Kas Strip -->
+            <div class="lh-cashflow-strip">
+              <div class="lh-cf-item">
+                <span class="lh-cf-label">Total Omzet Setoran (+)</span>
+                <span class="lh-cf-val" id="lhCfOmzet" style="color: #38BDF8;">Rp 0</span>
+              </div>
+              <div class="lh-cf-math">-</div>
+              <div class="lh-cf-item">
+                <span class="lh-cf-label">Total Belanja Hari Ini (-)</span>
+                <span class="lh-cf-val" id="lhCfBelanja" style="color: #FB7185;">Rp 0</span>
+              </div>
+              <div class="lh-cf-math">=</div>
+              <div class="lh-cf-item highlight">
+                <span class="lh-cf-label">Sisa Kas Fisik Hari Ini</span>
+                <span class="lh-cf-val" id="lhCfSisaKas" style="color: #FFFFFF;">Rp 0</span>
+              </div>
+            </div>
+
+            <!-- 2 Amplop Boxes Layout -->
+            <div class="lh-amplop-grid">
+              <!-- Amplop 1 -->
+              <div class="lh-amplop-card amplop-belanja">
+                <div class="lh-amplop-badge">AMPLOP 1 : WAJIB DI KOTAK KAS DAPUR</div>
+                <h4 class="lh-amplop-title">Kas Modal Belanja Esok &amp; Cadangan Operasional</h4>
+                <p class="lh-amplop-sub">Uang wajib ditinggalkan di dapur untuk belanja bahan subuh besok hari.</p>
+                <div class="lh-amplop-nominal-box">
+                  <span class="lh-curr-prefix">Rp</span>
+                  <input type="number" id="lhAmplop1Input" class="lh-amplop-input" value="0" min="0" step="500" oninput="window.handleAmplop1Change(this.value)">
+                </div>
+                <div class="lh-amplop-hint" id="lhAmplop1Hint">Disarankan minimal menutup estimasi belanja esok</div>
+              </div>
+
+              <!-- Amplop 2 -->
+              <div class="lh-amplop-card amplop-laba">
+                <div class="lh-amplop-badge">AMPLOP 2 : GAJI BERSIH HARIAN / TAKE HOME PAY</div>
+                <h4 class="lh-amplop-title">Akumulasi Laba Bersih Pemilik (Bisa Ditarik)</h4>
+                <p class="lh-amplop-sub">Hak laba bersih yang aman diambil tanpa mengganggu putaran bahan dapur.</p>
+                <div class="lh-amplop-nominal-box">
+                  <span class="lh-curr-prefix">Rp</span>
+                  <input type="text" id="lhAmplop2Display" class="lh-amplop-input readonly" value="0" readonly>
+                </div>
+                <div class="lh-amplop-hint" id="lhAmplop2Hint">Laba murni bersih operasional hari ini</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6. ACTION TOOLBAR (STICKY/MENCOLOK DI BAWAH) -->
+          <div class="laporan-harian-action-bar no-print">
+            <button type="button" class="tool-btn" style="padding: 10px 16px; font-weight: 700;" onclick="window.printLaporanHarian()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span>Cetak Formulir (A4/PDF)</span>
+            </button>
+
+            <button type="button" class="tool-btn" style="padding: 10px 16px; font-weight: 700;" onclick="window.copyLaporanHarianWhatsApp()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Salin Ringkasan WhatsApp</span>
+            </button>
+
+            <button type="button" class="btn-primary-action" id="btnSimpanLaporanHarian" onclick="window.saveLaporanHarianMaster()" style="padding: 10px 22px; font-size: 0.92rem; font-weight: 800; background: #10B981; border: none; border-radius: 8px; color: #FFFFFF; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Simpan Laporan Hari Ini (1-Klik)</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================== -->
       <!-- TAB 1: EXECUTIVE DASHBOARD (P&L ACCOUNTING & OUTLET RANKING)    -->
       <!-- ============================================================== -->
-      <section id="tab-dashboard" class="app-tab-panel active">
+      <section id="tab-dashboard" class="app-tab-panel">
         
         <!-- ============================================================== -->
         <!-- 1. HERO SECTION: POSISI KEUANGAN BISNIS KESELURUHAN (MENONJOL)  -->

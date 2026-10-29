@@ -1647,21 +1647,25 @@ function syncDateDisplays() {
 
   const labelText = curCfg.namaHari + statusSuffix;
 
-  // Update text label pada ketiga tab
+  // Update text label pada tab
   const dashTextEl = document.getElementById('dashboardDateText');
   const b1TextEl = document.getElementById('buku1DateText');
   const kuitansiTextEl = document.getElementById('kuitansiDateText');
+  const lhDateTextEl = document.getElementById('laporanHarianDateText');
   if (dashTextEl) dashTextEl.innerText = labelText;
   if (b1TextEl) b1TextEl.innerText = labelText;
   if (kuitansiTextEl) kuitansiTextEl.innerText = labelText;
+  if (lhDateTextEl) lhDateTextEl.innerText = curCfg.namaHari;
 
   // Update input datepicker kalender agar kalender otomatis membuka tanggal aktif
   const pickerDash = document.getElementById('nativeDatePickerDashboard');
   const pickerB1 = document.getElementById('nativeDatePickerBuku1');
   const pickerB2 = document.getElementById('nativeDatePickerBuku2');
+  const pickerLh = document.getElementById('nativeDatePickerLaporanHarian');
   if (pickerDash) pickerDash.value = activeDate;
   if (pickerB1) pickerB1.value = activeDate;
   if (pickerB2) pickerB2.value = activeDate;
+  if (pickerLh) pickerLh.value = activeDate;
 
   // Update Status Pill Tag
   const tagEl = document.getElementById('dateSessionTag');
@@ -6325,10 +6329,576 @@ function renderStokView() {
 }
 
 // ==============================================================
+// MODUL LAPORAN HARIAN SATU LAYAR (DAILY OPS SHEET SPREADSHEET ENGINE)
+// Meniru kemudahan & kesederhanaan alur Template Manual Excel
+// ==============================================================
+
+let lhMitraRows = [];
+let lhBelanjaRows = [];
+let lhRencanaRows = [];
+let lhAmplop1Manual = null;
+let lhActiveDateCache = null;
+
+function initLaporanHarianState() {
+  if (lhActiveDateCache === activeDate && lhMitraRows.length > 0) {
+    return; // Pertahankan baris yang sedang diedit jika tanggal tidak berubah
+  }
+  lhActiveDateCache = activeDate;
+  lhAmplop1Manual = null;
+
+  // 1. Inisialisasi Baris Mitra Konsinyasi
+  if (auraData.buku1History && auraData.buku1History[activeDate] && auraData.buku1History[activeDate].length > 0) {
+    lhMitraRows = JSON.parse(JSON.stringify(auraData.buku1History[activeDate]));
+  } else {
+    const baseRows = (typeof getActiveBuku1Rows === 'function') ? getActiveBuku1Rows() : [];
+    if (baseRows && baseRows.length > 0) {
+      lhMitraRows = JSON.parse(JSON.stringify(baseRows));
+    } else {
+      lhMitraRows = [
+        { no: 1, nama: 'Warung Sayur Tara', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
+        { no: 2, nama: 'Koperasi Sekolah', kirim: 20, retur: 0, laku: 20, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 16000 },
+        { no: 3, nama: 'Kantin Bu Martanto', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
+        { no: 4, nama: 'Kantin Bu Rusdi', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
+        { no: 5, nama: 'Kantin Bu Parman', kirim: 17, retur: 0, laku: 17, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 13600 },
+        { no: 6, nama: 'Warung Mbak Ragil', kirim: 8, retur: 0, laku: 8, bonus: 1, hargaSetor: 800, marginMitra: 200, setor: 6400 }
+      ];
+    }
+  }
+
+  // 2. Inisialisasi Baris Belanja Pasar
+  const currentBKey = (OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || {}).b2Key || activeDate;
+  const existingBelanja = (auraData.buku2Belanja || []).filter(b => b.tgl === currentBKey || b.isoDate === activeDate);
+  if (existingBelanja && existingBelanja.length > 0) {
+    lhBelanjaRows = existingBelanja.map((b, idx) => ({
+      no: idx + 1,
+      nama: b.nama || '',
+      qty: b.qty || '',
+      toko: b.toko || b.paraf || 'Pasar Tradisional',
+      biaya: Number(b.biaya) || 0
+    }));
+  } else {
+    // 4 baris awal kosong yang siap diketik langsung seperti buku tulis
+    lhBelanjaRows = [
+      { no: 1, nama: '', qty: '', toko: 'Pasar Tradisional', biaya: 0 },
+      { no: 2, nama: '', qty: '', toko: 'Pasar Tradisional', biaya: 0 },
+      { no: 3, nama: '', qty: '', toko: 'Agen Sembako', biaya: 0 },
+      { no: 4, nama: '', qty: '', toko: 'Toko Plastik', biaya: 0 }
+    ];
+  }
+
+  // 3. Inisialisasi Rencana Produksi Esok
+  lhRencanaRows = lhMitraRows.map((m, idx) => ({
+    no: idx + 1,
+    nama: m.nama || 'Mitra',
+    targetTitip: m.kirim || 20,
+    bonus: m.bonus !== undefined ? m.bonus : 2
+  }));
+}
+
+function renderLaporanHarianView() {
+  initLaporanHarianState();
+
+  const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
+  const isSaved = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+
+  // Update Tanggal & Status Kop
+  const dateTextEl = document.getElementById('laporanHarianDateText');
+  if (dateTextEl) dateTextEl.innerText = curCfg.namaHari;
+
+  const datePickerEl = document.getElementById('nativeDatePickerLaporanHarian');
+  if (datePickerEl) datePickerEl.value = activeDate;
+
+  const statusPillEl = document.getElementById('laporanHarianStatusPill');
+  const statusTextEl = document.getElementById('laporanHarianStatusText');
+  if (statusPillEl && statusTextEl) {
+    if (isSaved) {
+      statusPillEl.className = 'laporan-status-pill saved';
+      statusTextEl.innerText = 'Tersimpan & Sinkron Cloud';
+    } else {
+      statusPillEl.className = 'laporan-status-pill';
+      statusTextEl.innerText = 'Draft Hari Ini (Belum Disimpan)';
+    }
+  }
+
+  // Isi datalist autocomplete Master Bahan
+  const datalistEl = document.getElementById('lhMasterBahanDatalist');
+  if (datalistEl) {
+    const bahanNames = new Set();
+    (auraData.masterBahan || []).forEach(b => { if (b.nama) bahanNames.add(b.nama); });
+    (auraData.stokBahan || []).forEach(s => { if (s.nama) bahanNames.add(s.nama); });
+    datalistEl.innerHTML = Array.from(bahanNames)
+      .map(name => `<option value="${name}">`)
+      .join('');
+  }
+
+  // ----------------------------------------------------------------
+  // RENDER BLOK 1: MITRA KONSINYASI
+  // ----------------------------------------------------------------
+  const mitraTbody = document.getElementById('lhMitraTableBody');
+  let totKirim = 0, totRetur = 0, totLaku = 0, totMargin = 0, totSetoran = 0;
+
+  if (mitraTbody) {
+    mitraTbody.innerHTML = '';
+    lhMitraRows.forEach((row, idx) => {
+      const kirim = Number(row.kirim) || 0;
+      const retur = Number(row.retur) || 0;
+      const laku = Math.max(0, kirim - retur);
+      row.laku = laku;
+
+      const marginRate = Number(row.marginMitra) || 200;
+      const hargaSetorRate = Number(row.hargaSetor) || 800;
+      const margin = laku * marginRate;
+      const setoran = laku * hargaSetorRate;
+      row.setor = setoran;
+
+      totKirim += kirim;
+      totRetur += retur;
+      totLaku += laku;
+      totMargin += margin;
+      totSetoran += setoran;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
+        <td>
+          <input type="text" class="sheet-input" value="${row.nama || ''}" onchange="window.handleLhMitraInputChange(${idx}, 'nama', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
+        </td>
+        <td style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
+          ${laku}
+        </td>
+        <td style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: #FBBF24;">
+          Rp ${margin.toLocaleString('id-ID')}
+        </td>
+        <td style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: #34D399;">
+          Rp ${setoran.toLocaleString('id-ID')}
+        </td>
+        <td style="text-align: center;" class="no-print">
+          <button type="button" class="btn-del-row" onclick="window.deleteMitraFromLaporanHarian(${idx})" title="Hapus mitra dari lembar ini">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </td>
+      `;
+      mitraTbody.appendChild(tr);
+    });
+  }
+
+  const elTotKirim = document.getElementById('lhMitraTotalKirim');
+  const elTotRetur = document.getElementById('lhMitraTotalRetur');
+  const elTotLaku = document.getElementById('lhMitraTotalLaku');
+  const elTotMargin = document.getElementById('lhMitraTotalMargin');
+  const elTotSetoran = document.getElementById('lhMitraTotalSetoran');
+
+  if (elTotKirim) elTotKirim.innerText = totKirim;
+  if (elTotRetur) elTotRetur.innerText = totRetur;
+  if (elTotLaku) elTotLaku.innerText = totLaku;
+  if (elTotMargin) elTotMargin.innerText = 'Rp ' + totMargin.toLocaleString('id-ID');
+  if (elTotSetoran) elTotSetoran.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+
+  // ----------------------------------------------------------------
+  // RENDER BLOK 2: BELANJA BAHAN PASAR
+  // ----------------------------------------------------------------
+  const belanjaTbody = document.getElementById('lhBelanjaTableBody');
+  let totBelanja = 0;
+
+  if (belanjaTbody) {
+    belanjaTbody.innerHTML = '';
+    lhBelanjaRows.forEach((row, idx) => {
+      const biaya = Number(row.biaya) || 0;
+      totBelanja += biaya;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
+        <td>
+          <input type="text" list="lhMasterBahanDatalist" class="sheet-input" placeholder="Misal: Minyak Goreng 2L..." value="${row.nama || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'nama', this.value)">
+        </td>
+        <td>
+          <input type="text" class="sheet-input" placeholder="1 pouch / 2 bks" value="${row.qty || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'qty', this.value)">
+        </td>
+        <td>
+          <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${row.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
+        </td>
+        <td>
+          <input type="number" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
+        </td>
+        <td style="text-align: center;" class="no-print">
+          <button type="button" class="btn-del-row" onclick="window.deleteBelanjaRowLaporanHarian(${idx})" title="Hapus baris belanja ini">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </td>
+      `;
+      belanjaTbody.appendChild(tr);
+    });
+  }
+
+  const elTotBelanja = document.getElementById('lhBelanjaTotalRp');
+  if (elTotBelanja) elTotBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+
+  // ----------------------------------------------------------------
+  // RENDER BLOK 3: RENCANA PRODUKSI ESOK
+  // ----------------------------------------------------------------
+  const rencanaTbody = document.getElementById('lhRencanaTableBody');
+  let totRencanaTarget = 0, totRencanaBonus = 0, totRencanaKirim = 0;
+
+  if (rencanaTbody) {
+    rencanaTbody.innerHTML = '';
+    lhRencanaRows = lhMitraRows.map((m, idx) => {
+      const prev = lhRencanaRows[idx] || {};
+      return {
+        no: idx + 1,
+        nama: m.nama || 'Mitra',
+        targetTitip: prev.targetTitip !== undefined ? prev.targetTitip : (m.kirim || 20),
+        bonus: prev.bonus !== undefined ? prev.bonus : (m.bonus !== undefined ? m.bonus : 2)
+      };
+    });
+
+    lhRencanaRows.forEach((r, idx) => {
+      const target = Number(r.targetTitip) || 0;
+      const bonus = Number(r.bonus) || 0;
+      const totalKirim = target + bonus;
+
+      totRencanaTarget += target;
+      totRencanaBonus += bonus;
+      totRencanaKirim += totalKirim;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
+        <td style="font-weight: 700; color: #FFFFFF;">${r.nama || 'Mitra'}</td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" value="${target}" min="0" oninput="window.handleLhRencanaInputChange(${idx}, 'targetTitip', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" value="${bonus}" min="0" oninput="window.handleLhRencanaInputChange(${idx}, 'bonus', this.value)">
+        </td>
+        <td style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
+          ${totalKirim} Pcs
+        </td>
+      `;
+      rencanaTbody.appendChild(tr);
+    });
+  }
+
+  const elRencanaTarget = document.getElementById('lhRencanaTotalTarget');
+  const elRencanaBonus = document.getElementById('lhRencanaTotalBonus');
+  const elRencanaKirim = document.getElementById('lhRencanaTotalKirim');
+
+  if (elRencanaTarget) elRencanaTarget.innerText = totRencanaTarget;
+  if (elRencanaBonus) elRencanaBonus.innerText = totRencanaBonus;
+  if (elRencanaKirim) elRencanaKirim.innerText = totRencanaKirim + ' Pcs';
+
+  // ----------------------------------------------------------------
+  // RENDER BLOK 4: PEMBAGIAN OMZET & ARUS KAS (SISTEM 2 AMPLOP)
+  // ----------------------------------------------------------------
+  const sisaKasFisik = totSetoran - totBelanja;
+
+  const elCfOmzet = document.getElementById('lhCfOmzet');
+  const elCfBelanja = document.getElementById('lhCfBelanja');
+  const elCfSisaKas = document.getElementById('lhCfSisaKas');
+
+  if (elCfOmzet) elCfOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+  if (elCfBelanja) elCfBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+  if (elCfSisaKas) {
+    elCfSisaKas.innerText = (sisaKasFisik < 0 ? '-Rp ' : 'Rp ') + Math.abs(sisaKasFisik).toLocaleString('id-ID');
+    elCfSisaKas.style.color = sisaKasFisik < 0 ? '#FB7185' : '#FFFFFF';
+  }
+
+  // Hitung Alokasi Amplop 1 (Modal Belanja Esok) & Amplop 2 (Gaji Pemilik)
+  let amplop1Val = 0;
+  if (lhAmplop1Manual !== null) {
+    amplop1Val = Number(lhAmplop1Manual) || 0;
+  } else {
+    const estimasiBelanjaEsok = Math.max(20000, totRencanaKirim * 500);
+    if (sisaKasFisik > 0) {
+      amplop1Val = Math.min(sisaKasFisik, estimasiBelanjaEsok);
+    } else {
+      amplop1Val = 0;
+    }
+  }
+
+  const amplop2Val = Math.max(0, sisaKasFisik - amplop1Val);
+
+  const amplop1Input = document.getElementById('lhAmplop1Input');
+  const amplop2Display = document.getElementById('lhAmplop2Display');
+
+  if (amplop1Input && document.activeElement !== amplop1Input) {
+    amplop1Input.value = amplop1Val;
+  }
+  if (amplop2Display) {
+    amplop2Display.value = amplop2Val.toLocaleString('id-ID');
+  }
+
+  // ----------------------------------------------------------------
+  // UPDATE 4 KARTU KPI UTAMA DI KOP ATAS
+  // ----------------------------------------------------------------
+  const kpiOmzet = document.getElementById('lhKpiOmzet');
+  const kpiBelanja = document.getElementById('lhKpiBelanja');
+  const kpiKasEsok = document.getElementById('lhKpiKasEsok');
+  const kpiLaba = document.getElementById('lhKpiLabaBersih');
+
+  if (kpiOmzet) kpiOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+  if (kpiBelanja) kpiBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+  if (kpiKasEsok) kpiKasEsok.innerText = 'Rp ' + amplop1Val.toLocaleString('id-ID');
+  if (kpiLaba) kpiLaba.innerText = 'Rp ' + amplop2Val.toLocaleString('id-ID');
+}
+
+// Handlers Interaktif
+window.handleLhMitraInputChange = function(idx, field, value) {
+  if (!lhMitraRows[idx]) return;
+  if (field === 'nama') {
+    lhMitraRows[idx].nama = value;
+  } else {
+    lhMitraRows[idx][field] = Number(value) || 0;
+  }
+  renderLaporanHarianView();
+};
+
+window.handleLhBelanjaInputChange = function(idx, field, value) {
+  if (!lhBelanjaRows[idx]) return;
+  if (field === 'biaya') {
+    lhBelanjaRows[idx].biaya = Number(value) || 0;
+  } else {
+    lhBelanjaRows[idx][field] = value;
+  }
+  renderLaporanHarianView();
+};
+
+window.handleLhRencanaInputChange = function(idx, field, value) {
+  if (!lhRencanaRows[idx]) return;
+  lhRencanaRows[idx][field] = Number(value) || 0;
+  renderLaporanHarianView();
+};
+
+window.handleAmplop1Change = function(value) {
+  lhAmplop1Manual = Number(value) || 0;
+  renderLaporanHarianView();
+};
+
+window.addBelanjaRowLaporanHarian = function() {
+  lhBelanjaRows.push({
+    no: lhBelanjaRows.length + 1,
+    nama: '',
+    qty: '',
+    toko: 'Pasar Tradisional',
+    biaya: 0
+  });
+  renderLaporanHarianView();
+};
+
+window.deleteBelanjaRowLaporanHarian = function(idx) {
+  if (lhBelanjaRows.length <= 1) {
+    lhBelanjaRows = [{ no: 1, nama: '', qty: '', toko: 'Pasar Tradisional', biaya: 0 }];
+  } else {
+    lhBelanjaRows.splice(idx, 1);
+  }
+  renderLaporanHarianView();
+};
+
+window.addMitraToLaporanHarian = function() {
+  lhMitraRows.push({
+    no: lhMitraRows.length + 1,
+    nama: 'Mitra Baru',
+    kirim: 20,
+    retur: 0,
+    laku: 20,
+    bonus: 2,
+    hargaSetor: 800,
+    marginMitra: 200,
+    setor: 16000
+  });
+  renderLaporanHarianView();
+};
+
+window.deleteMitraFromLaporanHarian = function(idx) {
+  if (lhMitraRows.length <= 1) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Perhatian', 'Minimal harus ada 1 titik mitra konsinyasi.');
+    }
+    return;
+  }
+  lhMitraRows.splice(idx, 1);
+  renderLaporanHarianView();
+};
+
+window.stepDay = function(delta) {
+  const curIdx = OPERATIONAL_DAYS_CONFIG.findIndex(c => c.isoDate === activeDate);
+  if (curIdx !== -1) {
+    const nextIdx = curIdx + delta;
+    if (nextIdx >= 0 && nextIdx < OPERATIONAL_DAYS_CONFIG.length) {
+      window.switchDate(OPERATIONAL_DAYS_CONFIG[nextIdx].isoDate);
+      return;
+    }
+  }
+  const d = new Date(activeDate);
+  d.setDate(d.getDate() + delta);
+  const newIso = d.toISOString().slice(0, 10);
+  window.switchDate(newIso);
+};
+
+// 1-Klik Simpan Laporan Harian Terpadu
+window.saveLaporanHarianMaster = function() {
+  const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
+  const currentB2Key = curCfg.b2Key;
+
+  // 1. Simpan Konsinyasi (Buku 1)
+  if (!auraData.buku1History) auraData.buku1History = {};
+  auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
+
+  if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+  if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
+  if (!auraData.buku1TarikSavedDates) auraData.buku1TarikSavedDates = {};
+
+  auraData.buku1SavedDates[activeDate] = true;
+  auraData.buku1KirimSavedDates[activeDate] = true;
+  auraData.buku1TarikSavedDates[activeDate] = true;
+
+  // 2. Simpan Pengeluaran Belanja (Buku 2)
+  const cleanBelanja = lhBelanjaRows
+    .filter(r => (r.nama && r.nama.trim().length > 0) || (r.biaya && Number(r.biaya) > 0))
+    .map((r, i) => ({
+      id: 'b2_lh_' + Date.now() + '_' + i,
+      tgl: currentB2Key,
+      isoDate: activeDate,
+      nama: (r.nama || 'Belanja Dapur').trim(),
+      kategori: 'Bahan Baku',
+      qty: r.qty || '1 unit',
+      biaya: Number(r.biaya) || 0,
+      paraf: r.toko || 'Pasar Subuh'
+    }));
+
+  auraData.buku2Belanja = (auraData.buku2Belanja || [])
+    .filter(b => b.tgl !== currentB2Key && b.isoDate !== activeDate)
+    .concat(cleanBelanja);
+
+  if (!auraData.buku2SavedDates) auraData.buku2SavedDates = {};
+  auraData.buku2SavedDates[currentB2Key] = true;
+
+  // 3. Simpan dan Hitung Ulang Arus Kas (Buku 3)
+  if (typeof getAllDaysAccounting === 'function') {
+    const allDays = getAllDaysAccounting();
+    auraData.buku3Kas = allDays.map(d => ({
+      tgl: (d.isoDate ? parseInt(d.isoDate.split('-')[2], 10) : d.tgl) || d.tgl,
+      hari: d.hari,
+      isoDate: d.isoDate,
+      b2Key: d.b2Key,
+      kirim: d.kirim,
+      retur: d.retur,
+      laku: d.laku,
+      setor: d.omzet,
+      modal: d.modalAwal,
+      gaji: d.gajiBos,
+      realBelanja: d.belanja,
+      endapan: d.endapanHarian
+    }));
+  }
+
+  // 4. Persistensi Lokal & Sinkron Cloud
+  saveLocal();
+  if (typeof pushToFirestoreCloud === 'function') {
+    pushToFirestoreCloud(true).catch(() => {});
+  }
+
+  // 5. Re-render seluruh modul
+  renderAllViews();
+
+  // 6. Notifikasi Berhasil
+  if (typeof window.showSuccessModal === 'function') {
+    window.showSuccessModal(
+      'Laporan Harian Berhasil Disimpan',
+      'Seluruh data penarikan konsinyasi, catatan nota belanja pasar, rencana produksi esok, dan pembagian arus kas untuk ' + curCfg.namaHari + ' telah aman tersimpan di memori perangkat dan disinkronkan ke Cloud Firestore.'
+    );
+  }
+};
+
+window.printLaporanHarian = function() {
+  window.print();
+};
+
+window.copyLaporanHarianWhatsApp = function() {
+  const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
+  let totKirim = 0, totRetur = 0, totLaku = 0, totSetoran = 0;
+  let mitraLines = [];
+
+  lhMitraRows.forEach((m, idx) => {
+    const k = Number(m.kirim) || 0;
+    const r = Number(m.retur) || 0;
+    const l = Math.max(0, k - r);
+    const s = l * (Number(m.hargaSetor) || 800);
+    totKirim += k;
+    totRetur += r;
+    totLaku += l;
+    totSetoran += s;
+    mitraLines.push(`${idx + 1}. *${m.nama || 'Mitra'}*: Kirim ${k}, Retur ${r}, Laku ${l} -> Setoran Rp ${s.toLocaleString('id-ID')}`);
+  });
+
+  let totBelanja = 0;
+  let belanjaLines = [];
+  lhBelanjaRows.forEach(b => {
+    const cost = Number(b.biaya) || 0;
+    if ((b.nama && b.nama.trim().length > 0) || cost > 0) {
+      totBelanja += cost;
+      belanjaLines.push(`- ${b.nama || 'Barang'} (${b.qty || '-'} @ ${b.toko || 'Toko'}): Rp ${cost.toLocaleString('id-ID')}`);
+    }
+  });
+
+  const sisaKas = totSetoran - totBelanja;
+  const amplop1 = (document.getElementById('lhAmplop1Input')?.value) || 0;
+  const amplop2 = (document.getElementById('lhAmplop2Display')?.value) || 0;
+
+  let totRencanaKirim = 0;
+  lhRencanaRows.forEach(rc => {
+    totRencanaKirim += (Number(rc.targetTitip) || 0) + (Number(rc.bonus) || 0);
+  });
+
+  const text = 
+`*LAPORAN OPERASIONAL DAPUR MOM FITRI*
+*Hari/Tanggal:* ${curCfg.namaHari}
+----------------------------------------
+*1. PENARIKAN KONSINYASI MITRA:*
+${mitraLines.join('\n')}
+*TOTAL SETORAN KONSINYASI: Rp ${totSetoran.toLocaleString('id-ID')}* (Laku: ${totLaku} pcs)
+
+*2. PENGELUARAN BELANJA PASAR:*
+${belanjaLines.length > 0 ? belanjaLines.join('\n') : '- Belum ada pengeluaran belanja'}
+*TOTAL BELANJA HARIAN: Rp ${totBelanja.toLocaleString('id-ID')}*
+
+*3. PEMBAGIAN ARUS KAS (2 AMPLOP):*
+- Sisa Kas Fisik Hari Ini: Rp ${sisaKas.toLocaleString('id-ID')}
+- Amplop 1 (Kas Modal Belanja Esok): Rp ${Number(amplop1).toLocaleString('id-ID')}
+- Amplop 2 (Gaji Bersih Pemilik / Laba): Rp ${amplop2}
+
+*4. ESTIMASI RENCANA PRODUKSI BESOK:*
+- Total Target Kirim: *${totRencanaKirim} Pcs*
+----------------------------------------
+_Dicatat otomatis via PWA Dapur Mom Fitri_`;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      window.showSuccessModal('Format WhatsApp Disalin', 'Ringkasan laporan harian berhasil disalin ke papan klip (clipboard). Anda dapat langsung menempelkannya (paste) ke grup WhatsApp.');
+    }).catch(() => {
+      window.showAlertModal('Ringkasan Laporan', text);
+    });
+  } else {
+    window.showAlertModal('Ringkasan Laporan', text);
+  }
+};
+
+// ==============================================================
 // MASTER RENDER ENGINE (SINKRONISASI INTEGRAL SELURUH MODUL)
 // ==============================================================
 function renderAllViews() {
   syncDateDisplays();
+
+  // 0. FORMULIR UTAMA: LAPORAN HARIAN SATU LAYAR (DAILY OPS SHEET)
+  if (typeof renderLaporanHarianView === 'function') {
+    renderLaporanHarianView();
+  }
 
   // 1. EXECUTIVE DASHBOARD FINANCIALS, CHARTS & RANKING
   renderExecutiveFinancials();
@@ -6705,8 +7275,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v6.9.2';
-const APP_BUILD_TIME = '28/10/2026 14:15 WIB';
+const APP_VERSION = 'v7.0.0';
+const APP_BUILD_TIME = '29/10/2026 16:30 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
