@@ -4,11 +4,19 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const AURA_DB_KEY = 'dapur_mom_fitri_db_v7_clean';
+const APP_VERSION = 'v7.1.0';
+const APP_BUILD_TIME = '29/10/2026 18:00 WIB';
+const FIRESTORE_DOC_PATH = 'production_data_v8';
+const FIRESTORE_META_PATH = 'meta_sync_v8';
+
+const AURA_DB_KEY = 'dapur_mom_fitri_db_v8_fresh';
 
 // Bersihkan seluruh database lama di browser (Reset total ke akar)
 try {
   const legacyStorageKeys = [
+    'dapur_mom_fitri_db_v7_clean',
+    'dapur_mom_fitri_db_v6_clean',
+    'dapur_mom_fitri_db_v6_reconciled',
     'dapur_mom_fitri_db_v5',
     'dapur_mom_fitri_db_v4',
     'dapur_mom_fitri_db_v3',
@@ -93,8 +101,8 @@ function initFirestoreSync(retryCount = 0) {
     } catch (e) {}
 
     isFirestoreInitialized = true;
-    const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
-    const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
+    const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
+    const metaRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_META_PATH);
 
     // ==============================================================
     // KASIRPRO HANDSHAKE: METADATA TIMESTAMP PING
@@ -226,8 +234,8 @@ function pushToFirestoreCloud(immediate = false) {
       if (auraData) auraData._lastUpdated = now;
       const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
-      const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
-      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
+      const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
+      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_META_PATH);
 
       Promise.all([
         docRef.set({
@@ -285,7 +293,7 @@ window.triggerCloudSync = function() {
   // Tampilkan Pop-up Loading Mengambil Data
   window.showLoadingModal('Memeriksa Cloud Firestore...', 'Sedang mengambil data terbaru langsung dari server Cloud Firestore...');
   setCloudStatusUI('syncing', 'Memeriksa Cloud...');
-  const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+  const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
   
   // Network first: selalu tarik server langsung
   docRef.get({ source: 'server' }).then(async doc => {
@@ -651,43 +659,36 @@ function buildDayMetaFromIso(isoDate, idxNum) {
   };
 }
 
-// Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Siklus Produksi & Jual Mulai Senin 26 Okt 2026)
-const OPERATIONAL_DAYS_CONFIG = [
-  { isoDate: '2026-10-25', b2Key: '25/10', tgl: 25, hari: 'Min', namaHari: 'Minggu, 25 Oktober 2026', shortLabel: 'MIN (25/10)', noBkk: 'BKK-20261025-01', modal: 100000, isTarget: false },
-  { isoDate: '2026-10-26', b2Key: '26/10', tgl: 26, hari: 'Sen', namaHari: 'Senin, 26 Oktober 2026', shortLabel: 'SEN (26/10)', noBkk: 'BKK-20261026-01', modal: 100000, isTarget: false }
-];
+// Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Kalender Penuh 25 Okt - 15 Nov 2026)
+const OPERATIONAL_DAYS_CONFIG = (function() {
+  const dates = [];
+  for (let d = 25; d <= 31; d++) dates.push('2026-10-' + String(d).padStart(2, '0'));
+  for (let d = 1; d <= 15; d++) dates.push('2026-11-' + String(d).padStart(2, '0'));
+  return dates.map((iso, idx) => buildDayMetaFromIso(iso, idx + 1));
+})();
 
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
 const REAL_TODAY_ISO = getRealTodayIso();
-const DEFAULT_CYCLE_START_ISO = '2026-10-26';
-// Siklus produksi & jualan murni dimulai dari Senin 26 Oktober s/d Sabtu 31 Oktober 2026
-const REAL_TODAY_META = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === REAL_TODAY_ISO) || OPERATIONAL_DAYS_CONFIG[0];
+const DEFAULT_CYCLE_START_ISO = '2026-10-29'; // Data baru mulai hari ini (Kamis, 29 Oktober 2026)
+const REAL_TODAY_META = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === REAL_TODAY_ISO) || buildDayMetaFromIso(REAL_TODAY_ISO, 1);
 const REAL_TODAY_B2KEY = REAL_TODAY_META.b2Key;
 
-// Data Multi-Hari Buku 1 Kontrol Konsinyasi Lapangan (Target Bersih Hari Senin 26 Okt 2026)
-const DEFAULT_BUKU1_HISTORY = {
-  '2026-10-26': [
-    { no: 1, nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', ubi: 8, sayur: 5, roti: 7, kirim: 20, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
-    { no: 2, nama: 'Warung Sayur Tara', admin: 'Ibu Tara', ubi: 13, sayur: 5, roti: 7, kirim: 25, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
-    { no: 3, nama: 'Kantin Bu Martanto', admin: 'Bu Martanto', ubi: 13, sayur: 5, roti: 7, kirim: 25, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
-    { no: 4, nama: 'Kantin Bu Rusdi', admin: 'Bu Rusdi', ubi: 13, sayur: 5, roti: 7, kirim: 25, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
-    { no: 5, nama: 'Kantin Bu Parman', admin: 'Bu Parman', ubi: 10, sayur: 7, roti: 0, kirim: 17, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
-    { no: 6, nama: 'Warung Mbak Ragil', admin: 'Mbak Ragil', ubi: 4, sayur: 4, roti: 0, kirim: 8, bonus: 1, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 }
-  ]
-};
+// Data Multi-Hari Buku 1 Kontrol Konsinyasi Lapangan (Mulai Segar Hari Ini 29 Okt 2026)
+const DEFAULT_BUKU1_HISTORY = {};
 
 const INITIAL_AURA_DATA = {
   titik: [
-    { id: 'koperasi', nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', kirim: 20, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
-    { id: 'tara', nama: 'Warung Sayur Tara', admin: 'Ibu Tara', kirim: 25, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
-    { id: 'martanto', nama: 'Kantin Bu Martanto', admin: 'Bu Martanto', kirim: 25, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
-    { id: 'rusdi', nama: 'Kantin Bu Rusdi', admin: 'Bu Rusdi', kirim: 25, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
-    { id: 'parman', nama: 'Kantin Bu Parman', admin: 'Bu Parman', kirim: 17, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
-    { id: 'ragil', nama: 'Warung Mbak Ragil', admin: 'Mbak Ragil', kirim: 8, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false }
+    { id: 'koperasi', nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'tara', nama: 'Warung Sayur Tara', admin: 'Ibu Tara', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'martanto', nama: 'Kantin Bu Martanto', admin: 'Bu Martanto', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'rusdi', nama: 'Kantin Bu Rusdi', admin: 'Bu Rusdi', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'parman', nama: 'Kantin Bu Parman', admin: 'Bu Parman', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'ragil', nama: 'Warung Mbak Ragil', admin: 'Mbak Ragil', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false }
   ],
 
-  buku1Detail: DEFAULT_BUKU1_HISTORY['2026-10-26'],
-  buku1History: DEFAULT_BUKU1_HISTORY,
+  buku1Detail: [],
+  buku1History: {},
+  buku1RencanaHistory: {},
   buku1SavedDates: {},
   buku1KirimSavedDates: {},
   buku1TarikSavedDates: {},
@@ -698,7 +699,7 @@ const INITIAL_AURA_DATA = {
   buku2Belanja: [],
 
   buku3Kas: [
-    { tgl: 26, hari: 'Sen', isoDate: '2026-10-26', b2Key: '26/10', kirim: 120, retur: 0, laku: 0, setor: 0, modal: 100000, gaji: 0, realBelanja: 0, endapan: 100000 }
+    { tgl: 29, hari: 'Kam', isoDate: '2026-10-29', b2Key: '29/10', kirim: 0, retur: 0, laku: 0, setor: 0, modal: 100000, gaji: 0, realBelanja: 0, endapan: 100000 }
   ],
 
   stokBahan: [
@@ -1730,7 +1731,9 @@ window.switchDate = function(dateStr) {
   activeDate = dateStr;
 
   if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === activeDate)) {
-    OPERATIONAL_DAYS_CONFIG.push(buildDayMetaFromIso(activeDate, OPERATIONAL_DAYS_CONFIG.length + 1));
+    const meta = buildDayMetaFromIso(activeDate, OPERATIONAL_DAYS_CONFIG.length + 1);
+    OPERATIONAL_DAYS_CONFIG.push(meta);
+    OPERATIONAL_DAYS_CONFIG.sort((a, b) => a.isoDate.localeCompare(b.isoDate));
   }
 
   const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate);
@@ -3357,10 +3360,17 @@ window.handleDeleteMasterBahan = function(idx) {
 // ==============================================================
 // STAGE 3: BUKU 2 KUITANSI PENGELUARAN KAS & EDIT ACTION
 // ==============================================================
-const KUITANSI_DATE_CONFIG = {
-  '25/10': { namaHari: 'Minggu, 25 Oktober 2026', noBkk: 'BKK-20261025-01', modal: 100000 },
-  '26/10': { namaHari: 'Senin, 26 Oktober 2026', noBkk: 'BKK-20261026-01', modal: 100000 }
-};
+const KUITANSI_DATE_CONFIG = (function() {
+  const cfg = {};
+  OPERATIONAL_DAYS_CONFIG.forEach(c => {
+    cfg[c.b2Key] = {
+      namaHari: c.namaHari,
+      noBkk: c.noBkk,
+      modal: c.modal || 100000
+    };
+  });
+  return cfg;
+})();
 // Kuitansi hanya melayani siklus operasional resmi
 
 function terbilangRupiah(n) {
@@ -6386,13 +6396,21 @@ function initLaporanHarianState() {
     ];
   }
 
-  // 3. Inisialisasi Rencana Produksi Esok
-  lhRencanaRows = lhMitraRows.map((m, idx) => ({
-    no: idx + 1,
-    nama: m.nama || 'Mitra',
-    targetTitip: m.kirim || 20,
-    bonus: m.bonus !== undefined ? m.bonus : 2
-  }));
+  // 3. Inisialisasi Rencana Produksi Esok (Multi-Produk Matrix)
+  if (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[activeDate] && auraData.buku1RencanaHistory[activeDate].length > 0) {
+    lhRencanaRows = JSON.parse(JSON.stringify(auraData.buku1RencanaHistory[activeDate]));
+  } else {
+    // Alokasi default higienis & rapi per titik titipan + Konsumsi Rumah
+    lhRencanaRows = [
+      { no: 1, nama: 'Koperasi Sekolah', ubi: 15, sosis: 5, roti: 5 },
+      { no: 2, nama: 'Warung Sayur Tara', ubi: 15, sosis: 5, roti: 5 },
+      { no: 3, nama: 'Kantin Bu Martanto', ubi: 0, sosis: 0, roti: 0 },
+      { no: 4, nama: 'Kantin Bu Rusdi', ubi: 0, sosis: 0, roti: 0 },
+      { no: 5, nama: 'Kantin Bu Parman', ubi: 0, sosis: 0, roti: 0 },
+      { no: 6, nama: 'Warung Mbak Ragil', ubi: 0, sosis: 0, roti: 0 },
+      { no: 7, nama: 'Bonus & Konsumsi Rumah', ubi: 3, sosis: 3, roti: 3, isSpecial: true }
+    ];
+  }
 }
 
 function renderLaporanHarianView() {
@@ -6541,57 +6559,80 @@ function renderLaporanHarianView() {
   if (elTotBelanja) elTotBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
 
   // ----------------------------------------------------------------
-  // RENDER BLOK 3: RENCANA PRODUKSI ESOK
+  // RENDER BLOK 3: RENCANA PRODUKSI & TITIP ESOK (SOP DAPUR MATRIX)
   // ----------------------------------------------------------------
   const rencanaTbody = document.getElementById('lhRencanaTableBody');
-  let totRencanaTarget = 0, totRencanaBonus = 0, totRencanaKirim = 0;
+  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandTotal = 0;
 
   if (rencanaTbody) {
     rencanaTbody.innerHTML = '';
-    lhRencanaRows = lhMitraRows.map((m, idx) => {
-      const prev = lhRencanaRows[idx] || {};
-      return {
-        no: idx + 1,
-        nama: m.nama || 'Mitra',
-        targetTitip: prev.targetTitip !== undefined ? prev.targetTitip : (m.kirim || 20),
-        bonus: prev.bonus !== undefined ? prev.bonus : (m.bonus !== undefined ? m.bonus : 2)
-      };
-    });
 
     lhRencanaRows.forEach((r, idx) => {
-      const target = Number(r.targetTitip) || 0;
-      const bonus = Number(r.bonus) || 0;
-      const totalKirim = target + bonus;
+      const ubi = Number(r.ubi) || 0;
+      const sosis = Number(r.sosis) || 0;
+      const roti = Number(r.roti) || 0;
+      const totalTitik = ubi + sosis + roti;
 
-      totRencanaTarget += target;
-      totRencanaBonus += bonus;
-      totRencanaKirim += totalKirim;
+      totRencanaUbi += ubi;
+      totRencanaSosis += sosis;
+      totRencanaRoti += roti;
+      grandTotal += totalTitik;
 
       const tr = document.createElement('tr');
+      if (r.isSpecial) {
+        tr.style.background = 'rgba(245, 158, 11, 0.05)';
+      }
       tr.innerHTML = `
         <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
-        <td style="font-weight: 700; color: #FFFFFF;">${r.nama || 'Mitra'}</td>
-        <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" value="${target}" min="0" oninput="window.handleLhRencanaInputChange(${idx}, 'targetTitip', this.value)">
+        <td style="font-weight: 700; color: ${r.isSpecial ? '#F59E0B' : '#FFFFFF'};">
+          <input type="text" class="sheet-input" value="${r.nama || ''}" style="width: 100%; text-align: left; font-weight: 700; color: ${r.isSpecial ? '#FCD34D' : '#F1F5F9'};" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" value="${bonus}" min="0" oninput="window.handleLhRencanaInputChange(${idx}, 'bonus', this.value)">
+          <input type="number" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
+        </td>
+        <td style="text-align: center;">
+          <input type="number" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
         </td>
         <td style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
-          ${totalKirim} Pcs
+          ${totalTitik} Pcs
         </td>
       `;
       rencanaTbody.appendChild(tr);
     });
   }
 
-  const elRencanaTarget = document.getElementById('lhRencanaTotalTarget');
-  const elRencanaBonus = document.getElementById('lhRencanaTotalBonus');
-  const elRencanaKirim = document.getElementById('lhRencanaTotalKirim');
+  const elRencanaUbi = document.getElementById('lhRencanaTotalUbi');
+  const elRencanaSosis = document.getElementById('lhRencanaTotalSosis');
+  const elRencanaRoti = document.getElementById('lhRencanaTotalRoti');
+  const elRencanaGrand = document.getElementById('lhRencanaGrandTotal');
 
-  if (elRencanaTarget) elRencanaTarget.innerText = totRencanaTarget;
-  if (elRencanaBonus) elRencanaBonus.innerText = totRencanaBonus;
-  if (elRencanaKirim) elRencanaKirim.innerText = totRencanaKirim + ' Pcs';
+  if (elRencanaUbi) elRencanaUbi.innerText = totRencanaUbi;
+  if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
+  if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
+  if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
+
+  // Update Ringkasan Kartu Adonan Subuh
+  const cUbi = document.getElementById('cardRencanaUbi');
+  const cUbiSub = document.getElementById('cardRencanaUbiSub');
+  const cSosis = document.getElementById('cardRencanaSosis');
+  const cSosisSub = document.getElementById('cardRencanaSosisSub');
+  const cRoti = document.getElementById('cardRencanaRoti');
+  const cRotiSub = document.getElementById('cardRencanaRotiSub');
+  const cGrand = document.getElementById('cardRencanaGrandTotal');
+
+  if (cUbi) cUbi.innerText = totRencanaUbi + ' Pcs';
+  if (cUbiSub) cUbiSub.innerText = 'Est: ' + (totRencanaUbi * 12).toLocaleString('id-ID') + 'g pasta ubi + ' + totRencanaUbi + ' lbr kulit';
+
+  if (cSosis) cSosis.innerText = totRencanaSosis + ' Pcs';
+  if (cSosisSub) cSosisSub.innerText = 'Est: ' + Math.ceil(totRencanaSosis / 8) + ' btg sosis + panir krispi';
+
+  if (cRoti) cRoti.innerText = totRencanaRoti + ' Pcs';
+  if (cRotiSub) cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti / 2) + ' lbr roti kupas + filling';
+
+  if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
 
   // ----------------------------------------------------------------
   // RENDER BLOK 4: PEMBAGIAN OMZET & ARUS KAS (SISTEM 2 AMPLOP)
@@ -6669,9 +6710,35 @@ window.handleLhBelanjaInputChange = function(idx, field, value) {
   renderLaporanHarianView();
 };
 
-window.handleLhRencanaInputChange = function(idx, field, value) {
+window.handleLhRencanaProdChange = function(idx, field, value) {
   if (!lhRencanaRows[idx]) return;
-  lhRencanaRows[idx][field] = Number(value) || 0;
+  if (field === 'nama') {
+    lhRencanaRows[idx].nama = value;
+  } else {
+    lhRencanaRows[idx][field] = Math.max(0, parseInt(value, 10) || 0);
+  }
+  renderLaporanHarianView();
+};
+
+window.handleLhRencanaInputChange = function(idx, field, value) {
+  window.handleLhRencanaProdChange(idx, field, value);
+};
+
+window.addLhRencanaRow = function() {
+  const nextNo = lhRencanaRows.length + 1;
+  lhRencanaRows.push({
+    no: nextNo,
+    nama: 'Mitra Baru',
+    ubi: 0,
+    sosis: 0,
+    roti: 0
+  });
+  renderLaporanHarianView();
+};
+
+window.removeLhRencanaRow = function(idx) {
+  if (lhRencanaRows.length <= 1) return;
+  lhRencanaRows.splice(idx, 1);
   renderLaporanHarianView();
 };
 
@@ -6727,17 +6794,13 @@ window.deleteMitraFromLaporanHarian = function(idx) {
 };
 
 window.stepDay = function(delta) {
-  const curIdx = OPERATIONAL_DAYS_CONFIG.findIndex(c => c.isoDate === activeDate);
-  if (curIdx !== -1) {
-    const nextIdx = curIdx + delta;
-    if (nextIdx >= 0 && nextIdx < OPERATIONAL_DAYS_CONFIG.length) {
-      window.switchDate(OPERATIONAL_DAYS_CONFIG[nextIdx].isoDate);
-      return;
-    }
-  }
-  const d = new Date(activeDate);
+  const parts = activeDate.split('-').map(Number);
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
   d.setDate(d.getDate() + delta);
-  const newIso = d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const newIso = year + '-' + month + '-' + day;
   window.switchDate(newIso);
 };
 
@@ -6749,6 +6812,10 @@ window.saveLaporanHarianMaster = function() {
   // 1. Simpan Konsinyasi (Buku 1)
   if (!auraData.buku1History) auraData.buku1History = {};
   auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
+
+  // Simpan Rencana Produksi Esok (SOP Dapur Multi-Produk)
+  if (!auraData.buku1RencanaHistory) auraData.buku1RencanaHistory = {};
+  auraData.buku1RencanaHistory[activeDate] = JSON.parse(JSON.stringify(lhRencanaRows));
 
   if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
   if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
@@ -6851,9 +6918,22 @@ window.copyLaporanHarianWhatsApp = function() {
   const amplop1 = (document.getElementById('lhAmplop1Input')?.value) || 0;
   const amplop2 = (document.getElementById('lhAmplop2Display')?.value) || 0;
 
-  let totRencanaKirim = 0;
-  lhRencanaRows.forEach(rc => {
-    totRencanaKirim += (Number(rc.targetTitip) || 0) + (Number(rc.bonus) || 0);
+  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandRencana = 0;
+  let rencanaLines = [];
+  lhRencanaRows.forEach((r, idx) => {
+    const u = Number(r.ubi) || 0;
+    const s = Number(r.sosis) || 0;
+    const rt = Number(r.roti) || 0;
+    const tot = u + s + rt;
+    totRencanaUbi += u;
+    totRencanaSosis += s;
+    totRencanaRoti += rt;
+    grandRencana += tot;
+    if (r.isSpecial) {
+      rencanaLines.push(`- *${r.nama}*: Ubi ${u}, Sosis ${s}, Roti ${rt} = *${tot} Pcs*`);
+    } else {
+      rencanaLines.push(`${idx + 1}. *${r.nama}*: Ubi ${u}, Sosis ${s}, Roti ${rt} = *${tot} Pcs*`);
+    }
   });
 
   const text = 
@@ -6873,8 +6953,14 @@ ${belanjaLines.length > 0 ? belanjaLines.join('\n') : '- Belum ada pengeluaran b
 - Amplop 1 (Kas Modal Belanja Esok): Rp ${Number(amplop1).toLocaleString('id-ID')}
 - Amplop 2 (Gaji Bersih Pemilik / Laba): Rp ${amplop2}
 
-*4. ESTIMASI RENCANA PRODUKSI BESOK:*
-- Total Target Kirim: *${totRencanaKirim} Pcs*
+*4. RENCANA PRODUKSI & TITIP ESOK (SOP DAPUR):*
+${rencanaLines.join('\n')}
+----------------------------------------
+*RINGKASAN TOTAL PRODUKSI SUBUH:*
+- Lumpia Ubi Ungu: *${totRencanaUbi} Pcs* (Est: ${(totRencanaUbi * 12).toLocaleString('id-ID')}g pasta + ${totRencanaUbi} lbr kulit)
+- Stik Sosis Panir: *${totRencanaSosis} Pcs* (Est: ${Math.ceil(totRencanaSosis / 8)} btg sosis + panir)
+- Roti Goreng Collins: *${totRencanaRoti} Pcs* (Est: ${Math.ceil(totRencanaRoti / 2)} lbr roti kupas)
+*TOTAL ADONAN GORENGAN: ${grandRencana} Pcs*
 ----------------------------------------
 _Dicatat otomatis via PWA Dapur Mom Fitri_`;
 
@@ -7275,8 +7361,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v7.0.2';
-const APP_BUILD_TIME = '29/10/2026 16:58 WIB';
+// APP_VERSION hoisted to top
+// APP_BUILD_TIME hoisted to top
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
@@ -7635,14 +7721,14 @@ window.saveAndSyncModule = async function(moduleName) {
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized) {
-      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc('meta_sync');
+      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_META_PATH);
       metaRef.get({ source: 'server' }).then(metaDoc => {
         if (metaDoc.exists) {
           const metaData = metaDoc.data();
           const localUpdated = (auraData && auraData._lastUpdated) || 0;
           if (metaData && metaData.lastUpdated > localUpdated) {
             console.log('[Firestore] KasirPro Handshake (Tab Aktif): Cloud terdeteksi baru, tarik payload...');
-            const docRef = firestoreDb.collection('dapur_mom_fitri').doc('production_data_v7');
+            const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
             docRef.get({ source: 'server' }).then(doc => {
               if (doc.exists) {
                 const cloudDoc = doc.data();

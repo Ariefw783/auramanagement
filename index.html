@@ -169,57 +169,31 @@
         </nav>
       </div>
 
-      <!-- Bottom System Status Box -->
-      <div class="sidebar-status-box">
-        <div class="status-box-header">
-          <div class="status-box-title">
-            <span class="status-indicator"></span>
-            <span>Dapur Mom Fitri Core</span>
+      <!-- Bottom System Status Box (Minimalist & Sleek) -->
+      <div class="sidebar-status-box" style="padding: 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); background: rgba(15, 23, 42, 0.6); border-radius: 10px; margin-top: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
+            <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="cursor: pointer;" onclick="window.showAppUpdateConfirmationModal()" title="Klik untuk info versi & pembaruan">v7.0.2</span>
-        </div>
-        <p class="status-box-desc">
-          Modul Laporan Harian 1 Layar terpadu (Spreadsheet-Style), Sistem 2 Amplop &amp; sinkronisasi Cloud Firestore aktif.
-        </p>
-        <div class="status-box-tags">
-          <span class="mini-tag">Daily Ops Sheet</span>
-          <span class="mini-tag">Zero-Leakage</span>
-          <span class="mini-tag">Cloud Firestore</span>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
-        </div>
-        <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 29/10/2026 16:58 WIB
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.1.0</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
-        <div style="margin-top: 10px;">
-          <div class="cloud-sync-pill connected" id="cloudSyncPillDesktop" onclick="window.triggerCloudSync()" title="Status Sinkronisasi Cloud Firestore (Klik untuk sinkronkan sekarang)">
-            <span class="cloud-sync-dot"></span>
-            <span class="cloud-sync-text">Online</span>
-          </div>
+        <div class="cloud-sync-pill connected" id="cloudSyncPillDesktop" onclick="window.triggerCloudSync()" title="Status Sinkronisasi Cloud Firestore (Klik untuk sinkronkan sekarang)" style="width: 100%; justify-content: center; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px;">
+          <span class="cloud-sync-dot"></span>
+          <span class="cloud-sync-text">Online • Sinkron Cloud</span>
         </div>
         
         <!-- PWA Install Button Sidebar (Tersembunyi Otomatis Jika Terpasang) -->
         <div style="margin-top: 8px;">
-          <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" onclick="window.triggerPwaInstall()" style="display: none;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button type="button" class="btn-pwa-install" id="btnPwaInstallSidebar" onclick="window.triggerPwaInstall()" style="display: none; width: 100%; justify-content: center; padding: 6px 10px; font-size: 0.75rem; border-radius: 6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
             <span>Pasang Aplikasi (PWA)</span>
-          </button>
-        </div>
-
-        <div style="margin-top: 8px; display: flex; gap: 6px;">
-          <button type="button" class="tool-btn" style="padding: 5px 8px; font-size: 0.72rem; flex: 1;" onclick="window.backupData()">Backup</button>
-          <button type="button" class="tool-btn" style="padding: 5px 8px; font-size: 0.72rem; flex: 1;" onclick="document.getElementById('restoreFileInput').click()">Restore</button>
-          <input type="file" id="restoreFileInput" style="display:none;" accept=".json" onchange="window.restoreData(event)">
-        </div>
-
-        <div style="margin-top: 8px;">
-          <button type="button" class="tool-btn" style="padding: 6px 8px; font-size: 0.72rem; color: #FB7185; border-color: rgba(251, 113, 133, 0.4); width: 100%; text-align: center; font-weight: 700; background: rgba(244, 63, 94, 0.08);" onclick="window.resetDatabaseToCleanRoot(true)">
-            <span>Reset Total (Modal Rp 100rb)</span>
           </button>
         </div>
       </div>
@@ -425,23 +399,25 @@
                 <span class="sheet-section-number">3</span>
                 <div>
                   <h3 class="sheet-section-title">Rencana Produksi &amp; Titip Esok Harian (SOP Dapur)</h3>
-                  <p class="sheet-section-desc">Atur rencana target goreng dan bonus untuk tiap titik konsinyasi besok subuh.</p>
+                  <p class="sheet-section-desc">Rincian alokasi per varian produk (Ubi, Sosis, Roti) per titik titipan serta bonus &amp; konsumsi dapur.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
-                <button type="button" class="tool-btn" onclick="window.switchTab('tab-resep')">Lihat Takaran Resep</button>
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-resep')">Lihat SOP Resep</button>
               </div>
             </div>
 
+            <!-- Matriks Rencana Produksi Per Produk -->
             <div class="table-responsive-wrapper">
               <table class="sheet-grid-table" id="laporanHarianRencanaTable">
                 <thead>
                   <tr>
                     <th style="width: 44px; text-align: center;">No.</th>
-                    <th style="min-width: 180px;">Tempat Penitipan</th>
-                    <th style="width: 120px; text-align: center;">Target Titip (Pcs)</th>
-                    <th style="width: 120px; text-align: center;">Bonus Titip (+ Pcs)</th>
-                    <th style="width: 140px; text-align: center;">Total Kirim Esok (Pcs)</th>
+                    <th style="min-width: 170px;">Titik Alokasi / Mitra</th>
+                    <th style="width: 110px; text-align: center; color: #818CF8;">Ubi Ungu (Pcs)</th>
+                    <th style="width: 110px; text-align: center; color: #F59E0B;">Stik Sosis (Pcs)</th>
+                    <th style="width: 110px; text-align: center; color: #FB7185;">Roti Goreng (Pcs)</th>
+                    <th style="width: 120px; text-align: center;">Total Titik</th>
                   </tr>
                 </thead>
                 <tbody id="lhRencanaTableBody">
@@ -449,13 +425,41 @@
                 </tbody>
                 <tfoot>
                   <tr class="sheet-total-row">
-                    <td colspan="2" style="font-weight: 800;">TOTAL ESTIMASI PRODUKSI ESOK HARI</td>
-                    <td style="text-align: center; font-weight: 800;" id="lhRencanaTotalTarget">0</td>
-                    <td style="text-align: center; font-weight: 800;" id="lhRencanaTotalBonus">0</td>
-                    <td style="text-align: center; font-weight: 800; color: #38BDF8; font-size: 1rem;" id="lhRencanaTotalKirim">0 Pcs</td>
+                    <td colspan="2" style="font-weight: 800;">TOTAL ADONAN GORENGAN SUBUH</td>
+                    <td style="text-align: center; font-weight: 800; color: #818CF8; font-size: 1rem;" id="lhRencanaTotalUbi">0</td>
+                    <td style="text-align: center; font-weight: 800; color: #F59E0B; font-size: 1rem;" id="lhRencanaTotalSosis">0</td>
+                    <td style="text-align: center; font-weight: 800; color: #FB7185; font-size: 1rem;" id="lhRencanaTotalRoti">0</td>
+                    <td style="text-align: center; font-weight: 800; color: #38BDF8; font-size: 1.1rem;" id="lhRencanaGrandTotal">0 Pcs</td>
                   </tr>
                 </tfoot>
               </table>
+            </div>
+
+            <!-- Ringkasan Kartu Adonan Subuh -->
+            <div class="rencana-summary-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
+              <div class="rencana-prod-card" style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 12px 14px;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase;">1. Lumpia Ubi Ungu</span>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaUbi">0 Pcs</div>
+                <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaUbiSub">Est: 0g pasta ubi + 0 kulit</div>
+              </div>
+
+              <div class="rencana-prod-card" style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px 14px;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #F59E0B; text-transform: uppercase;">2. Stik Sosis Panir</span>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaSosis">0 Pcs</div>
+                <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaSosisSub">Est: 0 btg sosis + panir</div>
+              </div>
+
+              <div class="rencana-prod-card" style="background: rgba(251, 113, 133, 0.08); border: 1px solid rgba(251, 113, 133, 0.3); border-radius: 8px; padding: 12px 14px;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #FB7185; text-transform: uppercase;">3. Roti Goreng Collins</span>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaRoti">0 Pcs</div>
+                <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaRotiSub">Est: 0 lbr roti kupas</div>
+              </div>
+
+              <div class="rencana-prod-card" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px;">
+                <span style="font-size: 0.72rem; font-weight: 700; color: #38BDF8; text-transform: uppercase;">Total Gorengan Subuh</span>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #38BDF8; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaGrandTotal">0 Pcs</div>
+                <div style="font-size: 0.72rem; color: #94A3B8;">Siap edar &amp; konsumsi dapur</div>
+              </div>
             </div>
           </div>
 
