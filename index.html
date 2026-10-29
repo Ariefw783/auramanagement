@@ -49,10 +49,10 @@
           </button>
         </div>
 
-        <!-- Sidebar Navigation Groups -->
+        <!-- Sidebar Navigation Groups (Streamlined v7.0) -->
         <nav class="sidebar-menu">
 
-          <!-- GROUP 0: OPERASIONAL UTAMA -->
+          <!-- GROUP 1: OPERASIONAL UTAMA HARIAN -->
           <div class="menu-group">
             <div class="menu-group-header">
               <span>Operasional Harian</span>
@@ -77,23 +77,22 @@
 
           <div class="menu-divider"></div>
 
-          <!-- GROUP 1: RINGKASAN & STATUS -->
+          <!-- GROUP 2: REKAP BULANAN & ARUS KAS (SHEET 2 EXCEL) -->
           <div class="menu-group">
             <div class="menu-group-header">
-              <span>Ringkasan & Status</span>
+              <span>Evaluasi &amp; Laba</span>
             </div>
 
-            <button type="button" class="nav-item-btn" data-tab="tab-dashboard" onclick="window.switchTab('tab-dashboard')">
+            <button type="button" class="nav-item-btn" data-tab="tab-buku3" onclick="window.switchTab('tab-buku3')">
               <div class="nav-item-left">
                 <span class="nav-item-icon">
                   <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="7" height="9" rx="1.5"></rect>
-                    <rect x="14" y="3" width="7" height="5" rx="1.5"></rect>
-                    <rect x="14" y="12" width="7" height="9" rx="1.5"></rect>
-                    <rect x="3" y="16" width="7" height="5" rx="1.5"></rect>
+                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                    <circle cx="16" cy="14" r="1.5" fill="currentColor"></circle>
                   </svg>
                 </span>
-                <span class="nav-item-label">Ikhtisar Eksekutif</span>
+                <span class="nav-item-label">Rekap Bulanan &amp; Saldo Kas</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -103,27 +102,53 @@
 
           <div class="menu-divider"></div>
 
-          <!-- GROUP 2: DISTRIBUSI & PENJUALAN MITRA -->
+          <!-- GROUP 3: SOP RESEP & INVENTARIS DAPUR -->
           <div class="menu-group">
             <div class="menu-group-header">
-              <span>Distribusi & Konsinyasi</span>
+              <span>SOP &amp; Inventaris Dapur</span>
             </div>
 
-            <button type="button" class="nav-item-btn" data-tab="tab-buku1" onclick="window.switchTab('tab-buku1')">
+            <button type="button" class="nav-item-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
               <div class="nav-item-left">
                 <span class="nav-item-icon">
                   <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l1-6h16l1 6"></path>
-                    <path d="M4 9v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"></path>
-                    <path d="M9 22V12h6v10"></path>
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    <line x1="9" y1="7" x2="15" y2="7"></line>
+                    <line x1="9" y1="11" x2="13" y2="11"></line>
                   </svg>
                 </span>
-                <span class="nav-item-label">Distribusi Konsinyasi</span>
+                <span class="nav-item-label">Daftar Menu &amp; Takaran Dapur</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
+
+            <button type="button" class="nav-item-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
+              <div class="nav-item-left">
+                <span class="nav-item-icon">
+                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                </span>
+                <span class="nav-item-label">Stok &amp; Katalog Bahan</span>
+              </div>
+              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <div class="menu-divider"></div>
+
+          <!-- GROUP 4: UTILITAS PENDUKUNG -->
+          <div class="menu-group">
+            <div class="menu-group-header">
+              <span>Utilitas Tambahan</span>
+            </div>
 
             <button type="button" class="nav-item-btn" data-tab="tab-slipbox" onclick="window.switchTab('tab-slipbox')">
               <div class="nav-item-left">
@@ -140,104 +165,6 @@
               </svg>
             </button>
           </div>
-
-          <div class="menu-divider"></div>
-
-          <!-- GROUP 3: KEUANGAN & ARUS KAS -->
-          <div class="menu-group">
-            <div class="menu-group-header">
-              <span>Keuangan & Arus Kas</span>
-            </div>
-
-            <button type="button" class="nav-item-btn" data-tab="tab-buku2" onclick="window.switchTab('tab-buku2')">
-              <div class="nav-item-left">
-                <span class="nav-item-icon">
-                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                  </svg>
-                </span>
-                <span class="nav-item-label">Pengeluaran Kas & Belanja</span>
-              </div>
-              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-
-            <button type="button" class="nav-item-btn" data-tab="tab-buku3" onclick="window.switchTab('tab-buku3')">
-              <div class="nav-item-left">
-                <span class="nav-item-icon">
-                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-                    <line x1="2" y1="10" x2="22" y2="10"></line>
-                    <circle cx="16" cy="14" r="1.5" fill="currentColor"></circle>
-                  </svg>
-                </span>
-                <span class="nav-item-label">Arus Kas & 3 Amplop</span>
-              </div>
-              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-          </div>
-
-          <div class="menu-divider"></div>
-
-          <!-- GROUP 4: INVENTARIS & PRODUKSI -->
-          <div class="menu-group">
-            <div class="menu-group-header">
-              <span>Inventaris & Produksi</span>
-            </div>
-
-            <button type="button" class="nav-item-btn" data-tab="tab-master-bahan" onclick="window.switchTab('tab-master-bahan')">
-              <div class="nav-item-left">
-                <span class="nav-item-icon">
-                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                    <line x1="16" y1="13" x2="8" y2="13"></line>
-                    <line x1="16" y1="17" x2="8" y2="17"></line>
-                    <polyline points="10 9 9 9 8 9"></polyline>
-                  </svg>
-                </span>
-                <span class="nav-item-label">Katalog Bahan & Pemasok</span>
-              </div>
-              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-
-            <button type="button" class="nav-item-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
-              <div class="nav-item-left">
-                <span class="nav-item-icon">
-                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-                    <polyline points="2 17 12 22 22 17"></polyline>
-                    <polyline points="2 12 12 17 22 12"></polyline>
-                  </svg>
-                </span>
-                <span class="nav-item-label">Inventaris Stok Dapur</span>
-              </div>
-              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
-
-            <button type="button" class="nav-item-btn" data-tab="tab-resep" onclick="window.switchTab('tab-resep')">
-              <div class="nav-item-left">
-                <span class="nav-item-icon">
-                  <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    <line x1="9" y1="7" x2="15" y2="7"></line>
-                    <line x1="9" y1="11" x2="13" y2="11"></line>
-                  </svg>
-                </span>
-                <span class="nav-item-label">Daftar Menu & Takaran Dapur</span>
-              </div>
-              <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
           </div>
@@ -264,7 +191,7 @@
           <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8;">Network-First</span>
         </div>
         <div style="font-size: 0.68rem; color: #94A3B8; margin-top: 5px; font-family: var(--font-mono);">
-          Update: 29/10/2026 16:30 WIB
+          Update: 29/10/2026 16:52 WIB
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -412,8 +339,7 @@
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
-                <button type="button" class="tool-btn" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra</button>
-                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku1')">Buka Buku 1 Detail</button>
+                <button type="button" class="tool-btn tool-btn-primary" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra Titipan</button>
               </div>
             </div>
 
@@ -461,7 +387,6 @@
               </div>
               <div class="sheet-header-actions no-print">
                 <button type="button" class="tool-btn tool-btn-success" onclick="window.addBelanjaRowLaporanHarian()">+ Tambah Baris Belanja</button>
-                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku2')">Buka Buku 2 Kuitansi</button>
               </div>
             </div>
 
@@ -548,7 +473,7 @@
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
-                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku3')">Buka Buku 3 Lengkap</button>
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-buku3')">Lihat Rekap Bulanan &amp; Kas</button>
               </div>
             </div>
 
@@ -1210,8 +1135,11 @@
               </div>
               <div class="slate-card-subtitle">Basis data harga acuan bahan baku, rasio takaran dapur, dan toko pemasok langganan.</div>
             </div>
-            <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">Simpan Katalog</button>
-            <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="tool-btn" onclick="window.switchTab('tab-stok')" style="background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.5); color: #34D399; font-weight: 700;">Kembali ke Stok Fisik</button>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">Simpan Katalog</button>
+              <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
+            </div>
           </div>
 
           <!-- PANDUAN PENGGUNA: PERAN MENU KATALOG -->
@@ -1278,6 +1206,7 @@
             <div class="stok-action-btns">
               <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">Simpan Stok Dapur</button>
               <div class="stok-copy-group">
+                <button type="button" class="tool-btn" onclick="window.switchTab('tab-master-bahan')" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700;">Katalog &amp; Pemasok</button>
                 <button type="button" class="tool-btn" id="btnCopyCekStok" onclick="window.openCopyStokModal()" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;" title="Salin form cek fisik stok dapur untuk dikirim ke WhatsApp">Salin Form Cek Stok</button>
                 <button type="button" class="tool-btn tool-btn-success" id="btnTransferStokBelanja" onclick="window.transferStokBelanjaToKuitansi()" style="background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.6); color: #34D399; font-weight: 800;" title="Pindahkan seluruh bahan habis / menipis langsung ke Lembar Kuitansi Belanja hari ini">+ Transfer Belanja ke Kuitansi</button>
               </div>
