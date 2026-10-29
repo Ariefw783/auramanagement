@@ -4,16 +4,17 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.1.0';
-const APP_BUILD_TIME = '29/10/2026 18:00 WIB';
-const FIRESTORE_DOC_PATH = 'production_data_v8';
-const FIRESTORE_META_PATH = 'meta_sync_v8';
+const APP_VERSION = 'v7.2.0';
+const APP_BUILD_TIME = '29/10/2026 18:08 WIB';
+const FIRESTORE_DOC_PATH = 'production_data_v9';
+const FIRESTORE_META_PATH = 'meta_sync_v9';
 
-const AURA_DB_KEY = 'dapur_mom_fitri_db_v8_fresh';
+const AURA_DB_KEY = 'dapur_mom_fitri_db_v9_fresh';
 
 // Bersihkan seluruh database lama di browser (Reset total ke akar)
 try {
   const legacyStorageKeys = [
+    'dapur_mom_fitri_db_v8_fresh',
     'dapur_mom_fitri_db_v7_clean',
     'dapur_mom_fitri_db_v6_clean',
     'dapur_mom_fitri_db_v6_reconciled',
@@ -654,7 +655,7 @@ function buildDayMetaFromIso(isoDate, idxNum) {
     namaHari: hFull + ', ' + d + ' ' + bName + ' ' + y,
     shortLabel: hShort.toUpperCase() + ' (' + b2Key + ')',
     noBkk: 'BKK-' + isoDate.replace(/-/g, '') + '-01',
-    modal: 100000,
+    modal: 0,
     isTarget: true
   };
 }
@@ -678,8 +679,8 @@ const DEFAULT_BUKU1_HISTORY = {};
 
 const INITIAL_AURA_DATA = {
   titik: [
-    { id: 'koperasi', nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
     { id: 'tara', nama: 'Warung Sayur Tara', admin: 'Ibu Tara', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
+    { id: 'koperasi', nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
     { id: 'martanto', nama: 'Kantin Bu Martanto', admin: 'Bu Martanto', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
     { id: 'rusdi', nama: 'Kantin Bu Rusdi', admin: 'Bu Rusdi', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
     { id: 'parman', nama: 'Kantin Bu Parman', admin: 'Bu Parman', kirim: 0, retur: 0, laku: 0, setor: 0, status: 'progress', checked: false },
@@ -699,7 +700,7 @@ const INITIAL_AURA_DATA = {
   buku2Belanja: [],
 
   buku3Kas: [
-    { tgl: 29, hari: 'Kam', isoDate: '2026-10-29', b2Key: '29/10', kirim: 0, retur: 0, laku: 0, setor: 0, modal: 100000, gaji: 0, realBelanja: 0, endapan: 100000 }
+    { tgl: 29, hari: 'Kam', isoDate: '2026-10-29', b2Key: '29/10', kirim: 0, retur: 0, laku: 0, setor: 0, modal: 0, gaji: 0, realBelanja: 0, endapan: 0 }
   ],
 
   stokBahan: [
@@ -1154,9 +1155,16 @@ function saveStokDraft() {
 
 // Ambil baris data Buku 1 untuk tanggal aktif
 function getActiveBuku1Rows() {
-  if (!auraData.buku1History) auraData.buku1History = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY));
-  if (!auraData.buku1History[activeDate]) {
-    auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(DEFAULT_BUKU1_HISTORY['2026-10-26'] || auraData.buku1Detail));
+  if (!auraData.buku1History) auraData.buku1History = {};
+  if (!auraData.buku1History[activeDate] || auraData.buku1History[activeDate].length === 0) {
+    auraData.buku1History[activeDate] = [
+      { no: 1, nama: 'Warung Sayur Tara', admin: 'Ibu Tara', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
+      { no: 2, nama: 'Koperasi Sekolah', admin: 'Pengurus Koperasi', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
+      { no: 3, nama: 'Kantin Bu Martanto', admin: 'Bu Martanto', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
+      { no: 4, nama: 'Kantin Bu Rusdi', admin: 'Bu Rusdi', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
+      { no: 5, nama: 'Kantin Bu Parman', admin: 'Bu Parman', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 2, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 },
+      { no: 6, nama: 'Warung Mbak Ragil', admin: 'Mbak Ragil', ubi: 0, sayur: 0, roti: 0, kirim: 0, bonus: 1, retur: 0, laku: 0, setor: 0, hargaSetor: 800, marginMitra: 200 }
+    ];
   }
   return auraData.buku1History[activeDate];
 }
@@ -1216,7 +1224,7 @@ function computeDayTargetHPP(isoDate) {
 
   if (totalPcs === 0) {
     const cfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === isoDate);
-    return cfg ? cfg.modal : 100000;
+    return cfg ? (cfg.modal || 0) : 0;
   }
 
   const { hppUbi, hppSayur, hppRoti } = computeProductHPPUnits();
@@ -1319,16 +1327,16 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 
   const isTarget = !isSavedDay && !isKirimSaved && cfg.isTarget && belanja === 0 && retur === 0;
 
-  // 1. Modal Awal Kas Dapur (Saldo Kas Fisik yang mengendap di kotak sebelum transaksi hari ini)
-  let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
-  if (cfg.isoDate === '2026-10-25') {
-    modalAwal = 100000;
+  // 1. Modal Awal Kas Dapur (Saldo Kas Fisik yang mengendap dari hari sebelumnya)
+  // Tidak ada modal awal luar (modal awal = 0); kas operasional murni bersumber dari hasil penarikan harian
+  let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 0);
+  if (cfg.isoDate === '2026-10-25' || cfg.isoDate === '2026-10-29') {
+    modalAwal = 0;
   }
 
   // 2. Total Kas Fisik yang Benar-Benar Tersedia di Tangan
-  // Hari Minggu: kas tersedia = modal awal Rp 100.000 (belum ada omzet jualan)
-  // Hari Operasional: kas tersedia = sisa uang di kotak (modalAwal) + omzet penarikan sore
-  const totalKasTersedia = (cfg.isoDate === '2026-10-25') ? modalAwal : (modalAwal + omzet);
+  // Kas di tangan murni dari sisa kas kemarin (modalAwal) + omzet penarikan sore hari ini
+  const totalKasTersedia = modalAwal + omzet;
 
   // 3. Sisa Kas Fisik setelah Belanja Bahan Malam Hari Ini
   const sisaKasSetelahBelanja = totalKasTersedia - belanja;
@@ -1450,7 +1458,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 }
 
 function getAllDaysAccounting() {
-  const INITIAL_CAPITAL = 100000;
+  const INITIAL_CAPITAL = 0;
   let rollingEndapan = INITIAL_CAPITAL;
   let cumGaji = 0;
   let cumLaba = 0;
@@ -2058,7 +2066,7 @@ window.tarikGajiJumatSore = async function() {
           window.showSuccessModal(
             'Gaji Berhasil Ditarik',
             'Selamat! Gaji bersih mingguan sebesar <strong>Rp ' + totalGajiBos.toLocaleString('id-ID') + '</strong> telah berhasil ditarik ke Rekening/Dompet Pemilik.<br><br>' +
-            'Target Modal Awal Rp 100.000 telah lunas dipulihkan!'
+            'Gaji bersih operasional berhasil ditarik dari laba penarikan konsinyasi.'
           );
         }
       }
@@ -2659,7 +2667,7 @@ function renderExecutiveFinancials() {
             Belanja Perdana dari Modal Awal
           </div>
           <div style="font-size: 0.8rem; color: #94A3B8; line-height: 1.5;">
-            Modal awal tunai Rp 100.000 digunakan belanja bahan sebesar <strong style="color: #FB7185;">Rp ${curDay.belanja.toLocaleString('id-ID')}</strong>.<br>
+            Belanja bahan operasional sebesar <strong style="color: #FB7185;">Rp ${curDay.belanja.toLocaleString('id-ID')}</strong>.<br>
             Sisa uang kas tunai <strong style="color: #34D399;">Rp ${(curDay.sisaEndapanKas || curDay.kasSiapEsok || 2500).toLocaleString('id-ID')}</strong> langsung menjadi <strong>Saldo Kas Awal Kotak Dapur</strong> untuk memulai produksi hari Senin.
           </div>
         </div>`;
@@ -5469,7 +5477,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
       '<div class="record-card-body">' +
         '<div class="record-meta-row"><span class="label">Konsinyasi:</span><span class="val">Kirim ' + k.kirim + ' • Retur ' + k.retur + ' • <strong>Laku ' + k.laku + ' pcs</strong></span></div>' +
         '<div class="record-meta-row"><span class="label">Total Omzet Kas:</span><strong class="val" style="color:#34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Modal Awal Kotak:</span><span class="val" style="color:#94A3B8;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Kas Awal:</span><span class="val" style="color:#94A3B8;">Rp ' + (k.modalAwal !== undefined ? k.modalAwal : 0).toLocaleString('id-ID') + '</span></div>' +
         '<div class="record-meta-row"><span class="label">Belanja Riil Bahan:</span><span class="val" style="color:#FB7185;">-Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
         '<div class="record-meta-row"><span class="label">Sisa Endapan Kas:</span><strong class="val" style="color:' + sisaEndapanColor + ';">' + sisaEndapanFmt + '</strong></div>' +
         '<div class="record-meta-row"><span class="label">Amplop 2 (Laba Pemilik):</span><strong class="val" style="color:#818CF8; font-size: 0.95rem;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
@@ -6107,7 +6115,7 @@ function renderBuku3View() {
         '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24; text-align: center;">' + k.retur + '</td>' +
         '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + k.laku + '</td>' +
         '<td data-label="Omzet Kas" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Modal Awal" style="font-family: var(--font-mono); color: #94A3B8; text-align: right;">Rp ' + (k.modalAwal || 100000).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Kas Awal" style="font-family: var(--font-mono); color: #94A3B8; text-align: right;">Rp ' + (k.modalAwal !== undefined ? k.modalAwal : 0).toLocaleString('id-ID') + '</td>' +
         '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #FB7185; text-align: right;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
         '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); font-weight: 800; color: ' + sisaEndapanColor + '; text-align: right;" title="Saldo kas di kotak dapur setelah belanja">' + sisaEndapanFormatted + '</td>' +
         '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8; text-align: right;" title="Laba bersih murni hak pemilik">' + (k.gaji > 0 ? 'Rp ' + k.gaji.toLocaleString('id-ID') : 'Rp 0') + '</td>' +
@@ -6116,9 +6124,9 @@ function renderBuku3View() {
     });
 
     const latestVerifiedEndapan = verifiedList.length > 0 
-      ? (verifiedList[verifiedList.length - 1].kasSiapEsok || verifiedList[verifiedList.length - 1].endapan) 
-      : 100000;
-    const modalPlafonAktif = 100000;
+      ? (verifiedList[verifiedList.length - 1].kasSiapEsok || verifiedList[verifiedList.length - 1].endapan || 0) 
+      : 0;
+    const modalPlafonAktif = verifiedList.length > 0 ? (verifiedList[0].modalAwal || 0) : 0;
 
     if (b3Foot) {
       b3Foot.innerHTML = 
@@ -6396,10 +6404,10 @@ function initLaporanHarianState() {
   if (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[activeDate] && auraData.buku1RencanaHistory[activeDate].length > 0) {
     lhRencanaRows = JSON.parse(JSON.stringify(auraData.buku1RencanaHistory[activeDate]));
   } else {
-    // Alokasi default higienis & rapi per titik titipan + Konsumsi Rumah
+    // Alokasi default higienis & rapi per titik titipan (No 1 Tara, No 2 Koperasi) + Konsumsi Rumah
     lhRencanaRows = [
-      { no: 1, nama: 'Koperasi Sekolah', ubi: 15, sosis: 5, roti: 5 },
-      { no: 2, nama: 'Warung Sayur Tara', ubi: 15, sosis: 5, roti: 5 },
+      { no: 1, nama: 'Warung Sayur Tara', ubi: 15, sosis: 5, roti: 5 },
+      { no: 2, nama: 'Koperasi Sekolah', ubi: 15, sosis: 5, roti: 5 },
       { no: 3, nama: 'Kantin Bu Martanto', ubi: 0, sosis: 0, roti: 0 },
       { no: 4, nama: 'Kantin Bu Rusdi', ubi: 0, sosis: 0, roti: 0 },
       { no: 5, nama: 'Kantin Bu Parman', ubi: 0, sosis: 0, roti: 0 },
