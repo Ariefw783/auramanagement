@@ -7275,8 +7275,8 @@ initSidebarDrawer();
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
-const APP_VERSION = 'v7.0.0';
-const APP_BUILD_TIME = '29/10/2026 16:52 WIB';
+const APP_VERSION = 'v7.0.2';
+const APP_BUILD_TIME = '29/10/2026 16:58 WIB';
 const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
