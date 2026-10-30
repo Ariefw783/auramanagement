@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.2.0';
-const APP_BUILD_TIME = '29/10/2026 18:08 WIB';
+const APP_VERSION = 'v7.3.0';
+const APP_BUILD_TIME = '30/10/2026 07:45 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
 
@@ -1241,7 +1241,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     namaHari: isoDate,
     shortLabel: isoDate,
     noBkk: 'BKK-01',
-    modal: 100000,
+    modal: 0,
     isTarget: false
   };
 
@@ -1254,7 +1254,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 
   // 1. Jika Hari Ini Ditandai Libur Operasional
   if (isHoliday) {
-    const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 100000);
+    const modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 0);
     return {
       isoDate: cfg.isoDate,
       b2Key: cfg.b2Key,
@@ -1448,7 +1448,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     recoveryModal: (omzet - gajiBos),
     targetHpp: computeDayTargetHPP(isoDate),
     deficitToCover,
-    plafonModal: 100000,
+    plafonModal: 0,
     gajiBos,
     status3Amplop,
     kasSiapEsok,
@@ -1747,7 +1747,7 @@ window.switchDate = function(dateStr) {
       KUITANSI_DATE_CONFIG[matchedDayCfg.b2Key] = {
         namaHari: matchedDayCfg.namaHari,
         noBkk: matchedDayCfg.noBkk,
-        modal: matchedDayCfg.modal || 100000
+        modal: matchedDayCfg.modal || 0
       };
     }
   }
@@ -3370,7 +3370,7 @@ const KUITANSI_DATE_CONFIG = (function() {
     cfg[c.b2Key] = {
       namaHari: c.namaHari,
       noBkk: c.noBkk,
-      modal: c.modal || 100000
+      modal: c.modal || 0
     };
   });
   return cfg;
@@ -3430,7 +3430,7 @@ window.handleCreateNewKuitansiDay = function() {
         KUITANSI_DATE_CONFIG[val] = {
           namaHari: 'Hari ' + val,
           noBkk: 'BKK-' + val.replace(/[^0-9]/g, '') + '-01',
-          modal: 100000
+          modal: 0
         };
       }
       window.closeAppModal();
@@ -5960,7 +5960,7 @@ function renderKuitansiView() {
         KUITANSI_DATE_CONFIG[b.tgl] = {
           namaHari: m ? m.namaHari : ('Hari ' + b.tgl),
           noBkk: m ? m.noBkk : ('BKK-' + b.tgl.replace(/[^0-9]/g, '') + '-01'),
-          modal: 100000
+          modal: 0
         };
       }
     });
@@ -5984,14 +5984,14 @@ function renderKuitansiView() {
   const currentDayCfg = KUITANSI_DATE_CONFIG[selectedBuku2Date] || {
     namaHari: 'Hari ' + selectedBuku2Date,
     noBkk: 'BKK-' + selectedBuku2Date.replace(/[^0-9]/g, '') + '-01',
-    modal: 100000
+    modal: 0
   };
 
   const allDaysAccounting = getAllDaysAccounting();
   const matchedDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.b2Key === selectedBuku2Date);
   const dayAccounting = allDaysAccounting.find(d => d.b2Key === selectedBuku2Date || (matchedDayCfg && d.isoDate === matchedDayCfg.isoDate)) || (matchedDayCfg ? computeDayAccounting(matchedDayCfg.isoDate) : null);
   const dayTotal = currentItems.reduce((acc, cur) => acc + (cur.biaya || 0), 0);
-  const kasTersedia = dayAccounting ? (dayAccounting.totalKasTersedia || dayAccounting.modalAwal || 100000) : (currentDayCfg.modal || 100000);
+  const kasTersedia = dayAccounting ? (dayAccounting.totalKasTersedia !== undefined ? dayAccounting.totalKasTersedia : (dayAccounting.modalAwal || 0)) : (currentDayCfg.modal || 0);
   const sisaKasFisik = kasTersedia - dayTotal;
 
   if (kuitansiCurrentDayLabelEl) kuitansiCurrentDayLabelEl.innerText = selectedBuku2Date;
@@ -6146,7 +6146,7 @@ function renderBuku3View() {
 
     renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan);
 
-    const bepTarget = 100000;
+    const bepTarget = 0;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
     const bepPct = Math.min(100, ((totalGajiAll / bepTarget) * 100)).toFixed(1);
     
