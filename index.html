@@ -176,7 +176,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.3</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.4</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -309,7 +309,8 @@
                   <p class="sheet-section-desc">Ketik Kirim dan Retur sisa sore per warung. Laku dan setoran terhitung otomatis.</p>
                 </div>
               </div>
-              <div class="sheet-header-actions no-print">
+              <div class="sheet-header-actions no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="tool-btn" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.35); font-weight: 700;" onclick="window.syncLhFromPreviousDayRencana(true)" title="Otomatis isi kolom Kirim dari Rencana Produksi Poin 3 tanggal sebelumnya">Tarik Rencana Kemarin</button>
                 <button type="button" class="tool-btn tool-btn-primary" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra Titipan</button>
               </div>
             </div>

@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.3';
+const APP_VERSION = 'v7.3.4';
 const APP_BUILD_TIME = '30/10/2026 08:55 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
@@ -1732,6 +1732,9 @@ window.goToToday = function() {
 
 window.switchDate = function(dateStr) {
   if (!dateStr) return;
+  if (activeDate !== dateStr) {
+    lhActiveDateCache = null;
+  }
   activeDate = dateStr;
 
   if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === activeDate)) {
@@ -6381,6 +6384,14 @@ window.handleNumBlur = function(el, fallback = '0') {
 
 function getPreviousIsoDate(isoStr) {
   if (!isoStr || typeof isoStr !== 'string') return '';
+  // Cek apakah tanggal terdaftar di urutan kronologis OPERATIONAL_DAYS_CONFIG
+  if (typeof OPERATIONAL_DAYS_CONFIG !== 'undefined' && Array.isArray(OPERATIONAL_DAYS_CONFIG)) {
+    const sorted = [...OPERATIONAL_DAYS_CONFIG].sort((a, b) => a.isoDate.localeCompare(b.isoDate));
+    const curIdx = sorted.findIndex(c => c.isoDate === isoStr);
+    if (curIdx > 0) {
+      return sorted[curIdx - 1].isoDate;
+    }
+  }
   const parts = isoStr.split('-').map(Number);
   if (parts.length !== 3) return '';
   const d = new Date(parts[0], parts[1] - 1, parts[2]);
@@ -6391,6 +6402,24 @@ function getPreviousIsoDate(isoStr) {
   return year + '-' + month + '-' + day;
 }
 
+// Autosave draf saat pengguna mengetik angka di Formulir Operasional Harian
+let _lhDraftSaveTimeout = null;
+function triggerLhDraftAutoSave() {
+  if (_lhDraftSaveTimeout) clearTimeout(_lhDraftSaveTimeout);
+  _lhDraftSaveTimeout = setTimeout(() => {
+    if (!auraData) return;
+    if (!auraData.buku1History) auraData.buku1History = {};
+    if (!auraData.buku1RencanaHistory) auraData.buku1RencanaHistory = {};
+    // Simpan draf ke memori lokal tanpa memicu render ulang yang mengganggu kursor
+    auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
+    auraData.buku1RencanaHistory[activeDate] = JSON.parse(JSON.stringify(lhRencanaRows));
+    auraData._lastUpdated = Date.now();
+    try {
+      localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+    } catch (e) {}
+  }, 400);
+}
+
 function initLaporanHarianState() {
   if (lhActiveDateCache === activeDate && lhMitraRows.length > 0) {
     return; // Pertahankan baris yang sedang diedit jika tanggal tidak berubah
@@ -6399,13 +6428,39 @@ function initLaporanHarianState() {
   lhAmplop1Manual = null;
 
   // 1. Inisialisasi Baris Mitra Konsinyasi
+  const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
+  const prevDate = getPreviousIsoDate(activeDate);
+  const prevRencana = (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[prevDate] && auraData.buku1RencanaHistory[prevDate].length > 0)
+    ? auraData.buku1RencanaHistory[prevDate]
+    : null;
+
   if (auraData.buku1History && auraData.buku1History[activeDate] && auraData.buku1History[activeDate].length > 0) {
     lhMitraRows = JSON.parse(JSON.stringify(auraData.buku1History[activeDate]));
-  } else {
-    // Otomatis tarik rencana produksi hari sebelumnya (Tanggal A -> Tanggal B)
-    const prevDate = getPreviousIsoDate(activeDate);
-    const prevRencana = (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[prevDate]) ? auraData.buku1RencanaHistory[prevDate] : null;
 
+    // Jika hari ini belum pernah disimpan secara permanen DAN seluruh kirim mitra masih 0, sinkronkan otomatis dari rencana kemarin jika tersedia
+    if (!isSavedDay && prevRencana) {
+      const allKirimZero = lhMitraRows.every(r => (Number(r.kirim) || 0) === 0);
+      if (allKirimZero) {
+        lhMitraRows.forEach(r => {
+          const rName = (r.nama || '').toLowerCase().trim();
+          const pMatch = prevRencana.find(pr => {
+            const prName = (pr.nama || '').toLowerCase().trim();
+            return prName === rName || (prName.length > 3 && (rName.includes(prName) || prName.includes(rName)));
+          });
+          if (pMatch) {
+            const plannedPcs = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+            if (plannedPcs > 0) {
+              r.kirim = plannedPcs;
+              r.laku = Math.max(0, r.kirim - (Number(r.retur) || 0));
+              const rate = Number(r.hargaSetor) || 800;
+              r.setor = r.laku * rate;
+            }
+          }
+        });
+      }
+    }
+  } else {
+    // Tanggal baru murni: otomatis tarik rencana produksi hari sebelumnya (Tanggal A -> Tanggal B)
     const basePartners = [
       { no: 1, nama: 'Warung Sayur Tara', hargaSetor: 800, marginMitra: 200 },
       { no: 2, nama: 'Koperasi Sekolah', hargaSetor: 800, marginMitra: 200 },
@@ -6418,7 +6473,11 @@ function initLaporanHarianState() {
     lhMitraRows = basePartners.map(bp => {
       let kirimPcs = 0;
       if (prevRencana && prevRencana.length > 0) {
-        const pMatch = prevRencana.find(r => r.nama && r.nama.toLowerCase().trim() === bp.nama.toLowerCase().trim());
+        const bpName = bp.nama.toLowerCase().trim();
+        const pMatch = prevRencana.find(r => {
+          const rName = (r.nama || '').toLowerCase().trim();
+          return rName === bpName || (rName.length > 3 && (bpName.includes(rName) || rName.includes(bpName)));
+        });
         if (pMatch) {
           kirimPcs = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
         }
@@ -6785,6 +6844,7 @@ function renderLhMitraCards(rows, totKirim, totRetur, totLaku, totMargin, totSet
       <span>KARTU MITRA KONSINYASI</span>
     </div>
     <div class="card-view-header-actions">
+      <button type="button" class="btn-card-toggle-all" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4);" onclick="window.syncLhFromPreviousDayRencana(true)" title="Tarik data jatah titip kirim dari Poin 3 tanggal sebelumnya">Tarik Rencana Kemarin</button>
       <button type="button" class="btn-card-toggle-all" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra</button>
       <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhMitra', true)">Buka Semua</button>
       <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhMitra', false)">Tutup Semua</button>
@@ -7267,6 +7327,7 @@ window.handleLhMitraInputChange = function(idx, field, value) {
     if (cIn && document.activeElement !== cIn) cIn.value = value;
 
     window.updateLhTotals();
+    triggerLhDraftAutoSave();
     return;
   }
 
@@ -7294,6 +7355,7 @@ window.handleLhMitraInputChange = function(idx, field, value) {
   }
 
   window.updateLhTotals();
+  triggerLhDraftAutoSave();
 };
 
 window.handleLhBelanjaInputChange = function(idx, field, value) {
@@ -7332,6 +7394,7 @@ window.handleLhRencanaProdChange = function(idx, field, value) {
   if (cIn && document.activeElement !== cIn) cIn.value = numVal;
 
   window.updateLhTotals();
+  triggerLhDraftAutoSave();
 };
 
 window.handleLhRencanaInputChange = function(idx, field, value) {
@@ -7405,6 +7468,69 @@ window.deleteMitraFromLaporanHarian = function(idx) {
   }
   lhMitraRows.splice(idx, 1);
   renderLaporanHarianView();
+};
+
+
+// ==============================================================
+// 1-KLIK SINKRONKAN JATAH KIRIM DARI RENCANA PRODUKSI KEMARIN
+// ==============================================================
+window.syncLhFromPreviousDayRencana = function(showNotice = true) {
+  const prevDate = getPreviousIsoDate(activeDate);
+  const prevRencana = (auraData && auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[prevDate])
+    ? auraData.buku1RencanaHistory[prevDate]
+    : null;
+
+  const prevCfg = (typeof OPERATIONAL_DAYS_CONFIG !== 'undefined')
+    ? OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === prevDate)
+    : null;
+  const prevDayName = prevCfg ? prevCfg.namaHari : prevDate;
+
+  if (!prevRencana || prevRencana.length === 0) {
+    if (showNotice && typeof window.showAlertModal === 'function') {
+      window.showAlertModal(
+        'Rencana Kemarin Belum Ada',
+        'Belum ditemukan catatan Rencana Produksi (Poin 3) pada tanggal sebelumnya (' + prevDayName + '). Pastikan Poin 3 pada tanggal tersebut sudah diisi terlebih dahulu.'
+      );
+    }
+    return false;
+  }
+
+  let filledCount = 0;
+  let totalPcsTransferred = 0;
+
+  lhMitraRows.forEach(m => {
+    const mName = (m.nama || '').toLowerCase().trim();
+    const pMatch = prevRencana.find(r => {
+      const rName = (r.nama || '').toLowerCase().trim();
+      return rName === mName || (rName.length > 3 && (mName.includes(rName) || rName.includes(mName)));
+    });
+
+    if (pMatch) {
+      const plannedTotal = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+      m.kirim = plannedTotal;
+      m.laku = Math.max(0, m.kirim - (Number(m.retur) || 0));
+      const rate = Number(m.hargaSetor) || 800;
+      m.setor = m.laku * rate;
+      if (plannedTotal > 0) {
+        filledCount++;
+        totalPcsTransferred += plannedTotal;
+      }
+    }
+  });
+
+  // Simpan seketika ke draf
+  triggerLhDraftAutoSave();
+  renderLaporanHarianView();
+
+  if (showNotice && typeof window.showSuccessModal === 'function') {
+    window.showSuccessModal(
+      'Integrasi Rencana Berhasil',
+      'Berhasil menyinkronkan jatah Kirim (Poin 1) hari ini berdasarkan Rencana Produksi (' + prevDayName + '):\n' +
+      '• Jumlah Mitra Terisi: ' + filledCount + ' titik\n' +
+      '• Total Gorengan Dititipkan: ' + totalPcsTransferred + ' Pcs'
+    );
+  }
+  return true;
 };
 
 window.stepDay = function(delta) {
