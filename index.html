@@ -479,14 +479,14 @@
             </div>
           </div>
 
-          <!-- 5. BLOK 4: FORM ARUS KAS & ALOKASI LABA (SISTEM 3 AMPLOP & 5 POS KEUANGAN) -->
+          <!-- 5. BLOK 4: FORM ALOKASI ARUS KAS & SALDO LABA (5 POS KEUANGAN & TARIK JUMAT) -->
           <div class="sheet-section-card">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">4</span>
                 <div>
-                  <h3 class="sheet-section-title">Form Alokasi Arus Kas &amp; Saldo Laba (Sistem 3 Amplop &amp; 5 Pos)</h3>
-                  <p class="sheet-section-desc">Pemisahan otomatis antara modal belanja subuh, cadangan gas &amp; minyak, serta laba bersih pemilik.</p>
+                  <h3 class="sheet-section-title">Form Alokasi Arus Kas &amp; Saldo Laba (Sistem 5 Pos &amp; Tarik Jumat)</h3>
+                  <p class="sheet-section-desc">Pemisahan otomatis antara modal belanja subuh, cadangan gas &amp; minyak, serta akumulasi laba bersih tarik Jumat.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -496,18 +496,18 @@
 
             <!-- Arus Kas Strip -->
             <div class="lh-cashflow-strip">
-              <div class="lh-cf-item pos-omzet">
-                <span class="lh-cf-label"><span class="lh-cf-badge plus">+ Masuk</span> 1. Total Omzet Terverifikasi</span>
+              <div class="lh-cf-item">
+                <span class="lh-cf-label">Total Omzet Setoran (+)</span>
                 <span class="lh-cf-val" id="lhCfOmzet" style="color: #38BDF8;">Rp 0</span>
               </div>
-              <div class="lh-cf-math">&minus;</div>
-              <div class="lh-cf-item pos-belanja">
-                <span class="lh-cf-label"><span class="lh-cf-badge minus">&minus; Keluar</span> 2. Total Belanja Bahan</span>
+              <div class="lh-cf-math">-</div>
+              <div class="lh-cf-item">
+                <span class="lh-cf-label">Total Belanja Hari Ini (-)</span>
                 <span class="lh-cf-val" id="lhCfBelanja" style="color: #FB7185;">Rp 0</span>
               </div>
               <div class="lh-cf-math">=</div>
-              <div class="lh-cf-item highlight pos-sisa">
-                <span class="lh-cf-label"><span class="lh-cf-badge equal">= Sisa Kas</span> Sisa Kas Fisik Di Tangan</span>
+              <div class="lh-cf-item highlight">
+                <span class="lh-cf-label">Sisa Kas Fisik Hari Ini</span>
                 <span class="lh-cf-val" id="lhCfSisaKas" style="color: #FFFFFF;">Rp 0</span>
               </div>
             </div>

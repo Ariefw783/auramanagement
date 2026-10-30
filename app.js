@@ -6200,7 +6200,8 @@ function renderBuku3View() {
     }
 
     // Tombol Tarik Gaji Jumat Sore
-    const isFriday = activeDate.includes('-10-30') || (new Date().getDay() === 5);
+    const dayOfWeek = (activeDate ? new Date(activeDate.replace(/-/g, '/')).getDay() : new Date().getDay());
+    const isFriday = (dayOfWeek === 5);
     const isWithdrawn = !!(auraData.gajiDitarikJumat && auraData.gajiDitarikJumat[activeDate]);
     if (btnTarikGajiEl) {
       if (isFriday && totalGajiAll > 0 && !isWithdrawn) {
