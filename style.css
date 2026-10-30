@@ -3425,24 +3425,29 @@ body {
 /* DATA TABLES & RESPONSIVE TOUCH SPREADSHEET ENGINE              */
 /* ============================================================== */
 .collapsible-cards-container {
-  display: none !important;
+  display: none;
 }
 
-@media screen and (max-width: 820px) {
-  /* Sembunyikan kartu akordeon terpisah demi efisiensi spreadsheet */
+@media screen and (min-width: 821px) {
+  .table-responsive-wrapper {
+    display: block !important;
+  }
   .collapsible-cards-container {
     display: none !important;
   }
+}
 
-  /* Tampilkan tabel data penuh dengan scroll horizontal halus di HP */
-  .table-responsive-wrapper {
+@media screen and (max-width: 820px) {
+  /* Di Ponsel: Sistem Kartu Akordeon Lipat Modern & Ergonomis */
+  .collapsible-cards-container {
     display: block !important;
     width: 100% !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    margin-bottom: 12px !important;
-    border: 1px solid var(--card-border) !important;
-    border-radius: var(--radius-sm) !important;
+    margin-bottom: 14px !important;
+  }
+
+  /* Sembunyikan tabel lebar horizontal di layar HP */
+  .table-responsive-wrapper {
+    display: none !important;
   }
 
   .modal-formula-scroll-wrap {
@@ -6174,43 +6179,7 @@ body {
     border-radius: 4px !important;
   }
 
-  /* Sticky first two columns for smooth horizontal swipe */
-  .sheet-grid-table th:first-child,
-  .sheet-grid-table td:first-child,
-  .slate-table th:first-child,
-  .slate-table td:first-child {
-    position: sticky !important;
-    left: 0 !important;
-    z-index: 2 !important;
-    background: #182334 !important;
-  }
-
-  .sheet-grid-table th:nth-child(2),
-  .sheet-grid-table td:nth-child(2),
-  .slate-table th:nth-child(2),
-  .slate-table td:nth-child(2) {
-    position: sticky !important;
-    left: 36px !important;
-    z-index: 2 !important;
-    background: #182334 !important;
-    border-right: 2px solid rgba(56, 189, 248, 0.3) !important;
-  }
-
-  .sheet-grid-table thead th:first-child,
-  .sheet-grid-table thead th:nth-child(2),
-  .slate-table thead th:first-child,
-  .slate-table thead th:nth-child(2) {
-    z-index: 3 !important;
-    background: #0F172A !important;
-  }
-
-  .sheet-grid-table tfoot td:first-child,
-  .sheet-grid-table tfoot td:nth-child(2),
-  .slate-table tfoot td:first-child,
-  .slate-table tfoot td:nth-child(2) {
-    z-index: 3 !important;
-    background: #0F172A !important;
-  }
+  /* Accordion cards aktif di ponsel, sticky columns tidak diperlukan */
 
   /* Rencana Summary Cards Grid: Proportional 2x2 */
   .rencana-summary-cards-grid {
@@ -6392,3 +6361,139 @@ body {
 }
 
 
+
+
+/* ============================================================== */
+/* REFINED MOBILE ACCORDION CARDS STYLING                         */
+/* ============================================================== */
+@media screen and (max-width: 820px) {
+  .expandable-record-card {
+    background: #16202E !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 10px !important;
+    margin-bottom: 8px !important;
+    overflow: hidden !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .expandable-record-card:not(.collapsed) {
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    background: #1A2636 !important;
+  }
+
+  .record-card-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 9px 12px !important;
+    gap: 6px !important;
+    background: #182334 !important;
+    position: relative !important;
+    cursor: pointer !important;
+  }
+
+  .record-title-wrap {
+    width: 100% !important;
+    padding-right: 80px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .record-num-tag {
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    color: #38BDF8 !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    padding: 2px 5px !important;
+    border-radius: 4px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .record-title-name {
+    font-size: 0.88rem !important;
+    font-weight: 800 !important;
+    color: #FFFFFF !important;
+    line-height: 1.3 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .btn-record-expand-toggle {
+    position: absolute !important;
+    top: 9px !important;
+    right: 12px !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    color: #38BDF8 !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    border: 1px solid rgba(56, 189, 248, 0.3) !important;
+    border-radius: 4px !important;
+    padding: 2px 7px !important;
+  }
+
+  .record-header-meta {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .record-chip {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    font-family: var(--font-mono, monospace) !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    background: rgba(15, 23, 42, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #94A3B8 !important;
+  }
+
+  .record-chip.accent {
+    color: #38BDF8 !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.3) !important;
+  }
+
+  .record-chip.success {
+    color: #34D399 !important;
+    background: rgba(52, 211, 153, 0.12) !important;
+    border-color: rgba(52, 211, 153, 0.3) !important;
+  }
+
+  .record-chip.danger {
+    color: #FB7185 !important;
+    background: rgba(251, 113, 133, 0.12) !important;
+    border-color: rgba(251, 113, 133, 0.3) !important;
+  }
+
+  .record-card-body {
+    padding: 10px 12px 12px 12px !important;
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .card-view-header-bar {
+    padding: 8px 10px !important;
+    background: rgba(15, 23, 42, 0.7) !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--card-border) !important;
+    margin-bottom: 8px !important;
+  }
+
+  .card-view-header-title {
+    font-size: 0.74rem !important;
+    font-weight: 800 !important;
+    color: #38BDF8 !important;
+  }
+
+  .btn-card-toggle-all {
+    font-size: 0.68rem !important;
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+  }
+}

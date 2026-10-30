@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.0';
-const APP_BUILD_TIME = '30/10/2026 07:45 WIB';
+const APP_VERSION = 'v7.3.1';
+const APP_BUILD_TIME = '30/10/2026 08:15 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
 
@@ -5151,7 +5151,10 @@ window.cardsCollapsedState = window.cardsCollapsedState || {
   kuitansi: {},
   buku3: {},
   master: {},
-  stok: {}
+  stok: {},
+  lhMitra: {},
+  lhBelanja: {},
+  lhRencana: {}
 };
 
 window.toggleCardItem = function(group, idx) {
@@ -6486,18 +6489,18 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" value="${row.nama || ''}" onchange="window.handleLhMitraInputChange(${idx}, 'nama', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
+          <input type="number" id="lhMitraTableKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
+          <input type="number" id="lhMitraTableReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
         </td>
-        <td style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
+        <td id="lhMitraTableLaku_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
           ${laku}
         </td>
-        <td style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: #FBBF24;">
+        <td id="lhMitraTableMargin_${idx}" style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: #FBBF24;">
           Rp ${margin.toLocaleString('id-ID')}
         </td>
-        <td style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: #34D399;">
+        <td id="lhMitraTableSetoran_${idx}" style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: #34D399;">
           Rp ${setoran.toLocaleString('id-ID')}
         </td>
         <td style="text-align: center;" class="no-print">
@@ -6521,6 +6524,7 @@ function renderLaporanHarianView() {
   if (elTotLaku) elTotLaku.innerText = totLaku;
   if (elTotMargin) elTotMargin.innerText = 'Rp ' + totMargin.toLocaleString('id-ID');
   if (elTotSetoran) elTotSetoran.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+  renderLhMitraCards(lhMitraRows, totKirim, totRetur, totLaku, totMargin, totSetoran);
 
   // ----------------------------------------------------------------
   // RENDER BLOK 2: BELANJA BAHAN PASAR
@@ -6547,7 +6551,7 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${row.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
         </td>
         <td>
-          <input type="number" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
+          <input type="number" id="lhBelanjaTableBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
         </td>
         <td style="text-align: center;" class="no-print">
           <button type="button" class="btn-del-row" onclick="window.deleteBelanjaRowLaporanHarian(${idx})" title="Hapus baris belanja ini">
@@ -6561,6 +6565,7 @@ function renderLaporanHarianView() {
 
   const elTotBelanja = document.getElementById('lhBelanjaTotalRp');
   if (elTotBelanja) elTotBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+  renderLhBelanjaCards(lhBelanjaRows, totBelanja);
 
   // ----------------------------------------------------------------
   // RENDER BLOK 3: RENCANA PRODUKSI & TITIP ESOK (SOP DAPUR MATRIX)
@@ -6592,15 +6597,15 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" value="${r.nama || ''}" style="width: 100%; text-align: left; font-weight: 700; color: ${r.isSpecial ? '#FCD34D' : '#F1F5F9'};" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
+          <input type="number" id="lhRencanaTable_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
+          <input type="number" id="lhRencanaTable_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
+          <input type="number" id="lhRencanaTable_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
         </td>
-        <td style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
+        <td id="lhRencanaTableTotal_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
           ${totalTitik} Pcs
         </td>
       `;
@@ -6617,6 +6622,7 @@ function renderLaporanHarianView() {
   if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
   if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
   if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
+  renderLhRencanaCards(lhRencanaRows, totRencanaUbi, totRencanaSosis, totRencanaRoti, grandTotal);
   const totRencanaKirim = grandTotal;
 
   // Update Ringkasan Kartu Adonan Subuh
@@ -6694,35 +6700,476 @@ function renderLaporanHarianView() {
   if (kpiLaba) kpiLaba.innerText = 'Rp ' + amplop2Val.toLocaleString('id-ID');
 }
 
-// Handlers Interaktif
+// ==============================================================
+// SISTEM KARTU AKORDEON LIPAT TERPADU (MOBILE FORMULIR HARIAN)
+// ==============================================================
+function renderLhMitraCards(rows, totKirim, totRetur, totLaku, totMargin, totSetoran) {
+  const container = document.getElementById('lhMitraCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = `
+    <div class="card-view-header-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>KARTU MITRA KONSINYASI</span>
+    </div>
+    <div class="card-view-header-actions">
+      <button type="button" class="btn-card-toggle-all" onclick="window.addMitraToLaporanHarian()">+ Tambah Mitra</button>
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhMitra', true)">Buka Semua</button>
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhMitra', false)">Tutup Semua</button>
+    </div>
+  `;
+  container.appendChild(topBar);
+
+  rows.forEach((r, idx) => {
+    const kirim = Number(r.kirim) || 0;
+    const retur = Number(r.retur) || 0;
+    const laku = Math.max(0, kirim - retur);
+    const marginRate = Number(r.marginMitra) || 200;
+    const hargaSetorRate = Number(r.hargaSetor) || 800;
+    const margin = laku * marginRate;
+    const setoran = laku * hargaSetorRate;
+
+    const isCollapsed = (window.cardsCollapsedState.lhMitra && window.cardsCollapsedState.lhMitra[idx] !== undefined)
+      ? !!window.cardsCollapsedState.lhMitra[idx]
+      : true;
+
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'lhMitraCard_' + idx;
+
+    card.innerHTML = `
+      <div class="record-card-header" onclick="window.toggleCardItem('lhMitra', ${idx})">
+        <div class="record-title-wrap">
+          <span class="record-num-tag">#${idx + 1}</span>
+          <strong class="record-title-name" id="lhMitraCardTitle_${idx}">${r.nama || 'Mitra ' + (idx + 1)}</strong>
+        </div>
+        <div class="record-header-meta">
+          <span class="record-chip accent" id="lhMitraCardChipKirim_${idx}">${kirim} krm</span>
+          <span class="record-chip" id="lhMitraCardChipLaku_${idx}">${laku} lku</span>
+          <span class="record-chip success" id="lhMitraCardChipSetor_${idx}">Rp ${setoran.toLocaleString('id-ID')}</span>
+          <span class="btn-record-expand-toggle">${isCollapsed ? '▼ Buka' : '▲ Sembunyikan'}</span>
+        </div>
+      </div>
+      <div class="record-card-body">
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">NAMA MITRA / WARUNG:</label>
+          <input type="text" class="sheet-input" value="${r.nama || ''}" onchange="window.handleLhMitraInputChange(${idx}, 'nama', this.value)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label style="font-size: 0.68rem; color: #38BDF8; font-weight: 700; display: block; margin-bottom: 4px;">KIRIM PAGI (PCS):</label>
+            <input type="number" id="lhMitraCardKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
+          </div>
+          <div>
+            <label style="font-size: 0.68rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 4px;">RETUR SISA (PCS):</label>
+            <input type="number" id="lhMitraCardReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06); text-align: center; margin-bottom: 8px;">
+          <div>
+            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Laku</span>
+            <strong id="lhMitraCardLakuVal_${idx}" style="font-size: 0.88rem; color: #38BDF8; font-family: var(--font-mono);">${laku} pcs</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Margin</span>
+            <strong id="lhMitraCardMarginVal_${idx}" style="font-size: 0.88rem; color: #FBBF24; font-family: var(--font-mono);">Rp ${margin.toLocaleString('id-ID')}</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Setoran</span>
+            <strong id="lhMitraCardSetorVal_${idx}" style="font-size: 0.88rem; color: #34D399; font-family: var(--font-mono);">Rp ${setoran.toLocaleString('id-ID')}</strong>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-del-row" style="width: auto; padding: 4px 10px; font-size: 0.72rem; color: #F87171;" onclick="window.deleteMitraFromLaporanHarian(${idx})">
+            Hapus Mitra
+          </button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderLhBelanjaCards(rows, totBelanja) {
+  const container = document.getElementById('lhBelanjaCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = `
+    <div class="card-view-header-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span>KARTU BELANJA BAHAN</span>
+    </div>
+    <div class="card-view-header-actions">
+      <button type="button" class="btn-card-toggle-all" onclick="window.addBelanjaRowLaporanHarian()">+ Tambah Belanja</button>
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhBelanja', true)">Buka Semua</button>
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhBelanja', false)">Tutup Semua</button>
+    </div>
+  `;
+  container.appendChild(topBar);
+
+  rows.forEach((r, idx) => {
+    const biaya = Number(r.biaya) || 0;
+    const isCollapsed = (window.cardsCollapsedState.lhBelanja && window.cardsCollapsedState.lhBelanja[idx] !== undefined)
+      ? !!window.cardsCollapsedState.lhBelanja[idx]
+      : true;
+
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'lhBelanjaCard_' + idx;
+
+    card.innerHTML = `
+      <div class="record-card-header" onclick="window.toggleCardItem('lhBelanja', ${idx})">
+        <div class="record-title-wrap">
+          <span class="record-num-tag">#${idx + 1}</span>
+          <strong class="record-title-name" id="lhBelanjaCardTitle_${idx}">${r.nama || 'Item Belanja #' + (idx + 1)}</strong>
+        </div>
+        <div class="record-header-meta">
+          <span class="record-chip danger" id="lhBelanjaCardChipBiaya_${idx}">Rp ${biaya.toLocaleString('id-ID')}</span>
+          <span class="btn-record-expand-toggle">${isCollapsed ? '▼ Buka' : '▲ Sembunyikan'}</span>
+        </div>
+      </div>
+      <div class="record-card-body">
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">NAMA BAHAN / KEBUTUHAN:</label>
+          <input type="text" list="lhMasterBahanDatalist" class="sheet-input" placeholder="Misal: Minyak Goreng 2L..." value="${r.nama || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'nama', this.value)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+          <div>
+            <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">QTY / SATUAN:</label>
+            <input type="text" class="sheet-input" placeholder="1 pouch / 2 bks" value="${r.qty || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'qty', this.value)">
+          </div>
+          <div>
+            <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">TEMPAT / TOKO:</label>
+            <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${r.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 0.68rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 4px;">NOMINAL HARGA RIIL (RP):</label>
+          <input type="number" id="lhBelanjaCardBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
+        </div>
+
+        <div style="display: flex; justify-content: flex-end;">
+          <button type="button" class="btn-del-row" style="width: auto; padding: 4px 10px; font-size: 0.72rem; color: #F87171;" onclick="window.deleteBelanjaRowLaporanHarian(${idx})">
+            Hapus Belanja
+          </button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
+  const container = document.getElementById('lhRencanaCardsContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const topBar = document.createElement('div');
+  topBar.className = 'card-view-header-bar';
+  topBar.innerHTML = `
+    <div class="card-view-header-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>KARTU RENCANA PRODUKSI</span>
+    </div>
+    <div class="card-view-header-actions">
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhRencana', true)">Buka Semua</button>
+      <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhRencana', false)">Tutup Semua</button>
+    </div>
+  `;
+  container.appendChild(topBar);
+
+  rows.forEach((r, idx) => {
+    const ubi = Number(r.ubi) || 0;
+    const sosis = Number(r.sosis) || 0;
+    const roti = Number(r.roti) || 0;
+    const totalTitik = ubi + sosis + roti;
+
+    const isCollapsed = (window.cardsCollapsedState.lhRencana && window.cardsCollapsedState.lhRencana[idx] !== undefined)
+      ? !!window.cardsCollapsedState.lhRencana[idx]
+      : true;
+
+    const card = document.createElement('div');
+    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = 'lhRencanaCard_' + idx;
+    if (r.isSpecial) {
+      card.style.borderLeft = '3px solid #F59E0B';
+    }
+
+    card.innerHTML = `
+      <div class="record-card-header" onclick="window.toggleCardItem('lhRencana', ${idx})">
+        <div class="record-title-wrap">
+          <span class="record-num-tag">#${idx + 1}</span>
+          <strong class="record-title-name" id="lhRencanaCardTitle_${idx}" style="color: ${r.isSpecial ? '#FCD34D' : '#FFFFFF'};">${r.nama || 'Titik #' + (idx + 1)}</strong>
+        </div>
+        <div class="record-header-meta">
+          <span class="record-chip accent" id="lhRencanaCardChipTotal_${idx}">${totalTitik} Pcs</span>
+          <span class="btn-record-expand-toggle">${isCollapsed ? '▼ Buka' : '▲ Sembunyikan'}</span>
+        </div>
+      </div>
+      <div class="record-card-body">
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">TITIK ALOKASI:</label>
+          <input type="text" class="sheet-input" value="${r.nama || ''}" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
+          <div>
+            <label style="font-size: 0.62rem; color: #818CF8; font-weight: 700; display: block; margin-bottom: 2px;">Ubi (Pcs):</label>
+            <input type="number" id="lhRencanaCard_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 800;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
+          </div>
+          <div>
+            <label style="font-size: 0.62rem; color: #F59E0B; font-weight: 700; display: block; margin-bottom: 2px;">Sosis (Pcs):</label>
+            <input type="number" id="lhRencanaCard_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 800;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
+          </div>
+          <div>
+            <label style="font-size: 0.62rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 2px;">Roti (Pcs):</label>
+            <input type="number" id="lhRencanaCard_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 800;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
+          </div>
+        </div>
+
+        <div style="padding: 8px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.72rem; color: #94A3B8; font-weight: 700;">TOTAL ALOKASI TITIK:</span>
+          <strong id="lhRencanaCardTotalVal_${idx}" style="font-size: 0.95rem; color: #38BDF8; font-family: var(--font-mono);">${totalTitik} Pcs</strong>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// ==============================================================
+// LIVE REACTIVE CALCULATION & HANDLERS (BEBAS BUG 1-KARAKTER)
+// ==============================================================
+window.updateLhTotals = function() {
+  let totKirim = 0, totRetur = 0, totLaku = 0, totMargin = 0, totSetoran = 0;
+  lhMitraRows.forEach((row, idx) => {
+    const kirim = Number(row.kirim) || 0;
+    const retur = Number(row.retur) || 0;
+    const laku = Math.max(0, kirim - retur);
+    row.laku = laku;
+    const margin = laku * (Number(row.marginMitra) || 200);
+    const setoran = laku * (Number(row.hargaSetor) || 800);
+    row.setor = setoran;
+
+    totKirim += kirim;
+    totRetur += retur;
+    totLaku += laku;
+    totMargin += margin;
+    totSetoran += setoran;
+
+    const elLaku = document.getElementById('lhMitraTableLaku_' + idx);
+    if (elLaku) elLaku.innerText = laku;
+    const elMargin = document.getElementById('lhMitraTableMargin_' + idx);
+    if (elMargin) elMargin.innerText = 'Rp ' + margin.toLocaleString('id-ID');
+    const elSetor = document.getElementById('lhMitraTableSetoran_' + idx);
+    if (elSetor) elSetor.innerText = 'Rp ' + setoran.toLocaleString('id-ID');
+
+    const cKirim = document.getElementById('lhMitraCardChipKirim_' + idx);
+    if (cKirim) cKirim.innerText = kirim + ' krm';
+    const cLaku = document.getElementById('lhMitraCardChipLaku_' + idx);
+    if (cLaku) cLaku.innerText = laku + ' lku';
+    const cSetor = document.getElementById('lhMitraCardChipSetor_' + idx);
+    if (cSetor) cSetor.innerText = 'Rp ' + setoran.toLocaleString('id-ID');
+    const cLakuVal = document.getElementById('lhMitraCardLakuVal_' + idx);
+    if (cLakuVal) cLakuVal.innerText = laku + ' pcs';
+    const cMarginVal = document.getElementById('lhMitraCardMarginVal_' + idx);
+    if (cMarginVal) cMarginVal.innerText = 'Rp ' + margin.toLocaleString('id-ID');
+    const cSetorVal = document.getElementById('lhMitraCardSetorVal_' + idx);
+    if (cSetorVal) cSetorVal.innerText = 'Rp ' + setoran.toLocaleString('id-ID');
+  });
+
+  const elTotKirim = document.getElementById('lhMitraTotalKirim');
+  const elTotRetur = document.getElementById('lhMitraTotalRetur');
+  const elTotLaku = document.getElementById('lhMitraTotalLaku');
+  const elTotMargin = document.getElementById('lhMitraTotalMargin');
+  const elTotSetoran = document.getElementById('lhMitraTotalSetoran');
+
+  if (elTotKirim) elTotKirim.innerText = totKirim;
+  if (elTotRetur) elTotRetur.innerText = totRetur;
+  if (elTotLaku) elTotLaku.innerText = totLaku;
+  if (elTotMargin) elTotMargin.innerText = 'Rp ' + totMargin.toLocaleString('id-ID');
+  if (elTotSetoran) elTotSetoran.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+
+  // Belanja
+  let totBelanja = 0;
+  lhBelanjaRows.forEach((row, idx) => {
+    const biaya = Number(row.biaya) || 0;
+    totBelanja += biaya;
+    const cBiaya = document.getElementById('lhBelanjaCardChipBiaya_' + idx);
+    if (cBiaya) cBiaya.innerText = 'Rp ' + biaya.toLocaleString('id-ID');
+  });
+  const elTotBelanja = document.getElementById('lhBelanjaTotalRp');
+  if (elTotBelanja) elTotBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+
+  // Rencana Matrix
+  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandTotal = 0;
+  lhRencanaRows.forEach((r, idx) => {
+    const ubi = Number(r.ubi) || 0;
+    const sosis = Number(r.sosis) || 0;
+    const roti = Number(r.roti) || 0;
+    const totalTitik = ubi + sosis + roti;
+
+    totRencanaUbi += ubi;
+    totRencanaSosis += sosis;
+    totRencanaRoti += roti;
+    grandTotal += totalTitik;
+
+    const elTotal = document.getElementById('lhRencanaTableTotal_' + idx);
+    if (elTotal) elTotal.innerText = totalTitik + ' Pcs';
+    const cChipTotal = document.getElementById('lhRencanaCardChipTotal_' + idx);
+    if (cChipTotal) cChipTotal.innerText = totalTitik + ' Pcs';
+    const cTotalVal = document.getElementById('lhRencanaCardTotalVal_' + idx);
+    if (cTotalVal) cTotalVal.innerText = totalTitik + ' Pcs';
+  });
+
+  const elRencanaUbi = document.getElementById('lhRencanaTotalUbi');
+  const elRencanaSosis = document.getElementById('lhRencanaTotalSosis');
+  const elRencanaRoti = document.getElementById('lhRencanaTotalRoti');
+  const elRencanaGrand = document.getElementById('lhRencanaGrandTotal');
+
+  if (elRencanaUbi) elRencanaUbi.innerText = totRencanaUbi;
+  if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
+  if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
+  if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
+
+  const cUbi = document.getElementById('cardRencanaUbi');
+  const cUbiSub = document.getElementById('cardRencanaUbiSub');
+  const cSosis = document.getElementById('cardRencanaSosis');
+  const cSosisSub = document.getElementById('cardRencanaSosisSub');
+  const cRoti = document.getElementById('cardRencanaRoti');
+  const cRotiSub = document.getElementById('cardRencanaRotiSub');
+  const cGrand = document.getElementById('cardRencanaGrandTotal');
+
+  if (cUbi) cUbi.innerText = totRencanaUbi + ' Pcs';
+  if (cUbiSub) cUbiSub.innerText = 'Est: ' + (totRencanaUbi * 12).toLocaleString('id-ID') + 'g pasta ubi + ' + totRencanaUbi + ' lbr kulit';
+  if (cSosis) cSosis.innerText = totRencanaSosis + ' Pcs';
+  if (cSosisSub) cSosisSub.innerText = 'Est: ' + Math.ceil(totRencanaSosis / 8) + ' btg sosis + panir krispi';
+  if (cRoti) cRoti.innerText = totRencanaRoti + ' Pcs';
+  if (cRotiSub) cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti / 2) + ' lbr roti kupas + filling';
+  if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
+
+  // Arus Kas & Amplop
+  const sisaKasFisik = totSetoran - totBelanja;
+  const elCfOmzet = document.getElementById('lhCfOmzet');
+  const elCfBelanja = document.getElementById('lhCfBelanja');
+  const elCfSisaKas = document.getElementById('lhCfSisaKas');
+
+  if (elCfOmzet) elCfOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+  if (elCfBelanja) elCfBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+  if (elCfSisaKas) {
+    elCfSisaKas.innerText = (sisaKasFisik < 0 ? '-Rp ' : 'Rp ') + Math.abs(sisaKasFisik).toLocaleString('id-ID');
+    elCfSisaKas.style.color = sisaKasFisik < 0 ? '#FB7185' : '#FFFFFF';
+  }
+
+  let amplop1Val = 0;
+  if (lhAmplop1Manual !== null) {
+    amplop1Val = Number(lhAmplop1Manual) || 0;
+  } else {
+    const estimasiBelanjaEsok = Math.max(20000, grandTotal * 500);
+    if (sisaKasFisik > 0) {
+      amplop1Val = Math.min(sisaKasFisik, estimasiBelanjaEsok);
+    } else {
+      amplop1Val = 0;
+    }
+  }
+  const amplop2Val = Math.max(0, sisaKasFisik - amplop1Val);
+
+  const amplop1Input = document.getElementById('lhAmplop1Input');
+  const amplop2Display = document.getElementById('lhAmplop2Display');
+
+  if (amplop1Input && document.activeElement !== amplop1Input) {
+    amplop1Input.value = amplop1Val;
+  }
+  if (amplop2Display) {
+    amplop2Display.value = amplop2Val.toLocaleString('id-ID');
+  }
+
+  // 4 Top KPI
+  const kpiOmzet = document.getElementById('lhKpiOmzet');
+  const kpiBelanja = document.getElementById('lhKpiBelanja');
+  const kpiKasEsok = document.getElementById('lhKpiKasEsok');
+  const kpiLaba = document.getElementById('lhKpiLabaBersih');
+
+  if (kpiOmzet) kpiOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
+  if (kpiBelanja) kpiBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
+  if (kpiKasEsok) kpiKasEsok.innerText = 'Rp ' + amplop1Val.toLocaleString('id-ID');
+  if (kpiLaba) kpiLaba.innerText = 'Rp ' + amplop2Val.toLocaleString('id-ID');
+};
+
+// Handlers Interaktif (Real-Time Reactive, Bebas Bug 1-Karakter)
 window.handleLhMitraInputChange = function(idx, field, value) {
   if (!lhMitraRows[idx]) return;
   if (field === 'nama') {
     lhMitraRows[idx].nama = value;
-  } else {
-    lhMitraRows[idx][field] = Number(value) || 0;
+    const cTitle = document.getElementById('lhMitraCardTitle_' + idx);
+    if (cTitle) cTitle.innerText = value || ('Mitra #' + (idx + 1));
+    return;
   }
-  renderLaporanHarianView();
+  lhMitraRows[idx][field] = Number(value) || 0;
+
+  // Sinkronisasi silang antara Tabel dan Kartu tanpa mengganggu input yang aktif
+  if (field === 'kirim') {
+    const tIn = document.getElementById('lhMitraTableKirimInput_' + idx);
+    const cIn = document.getElementById('lhMitraCardKirimInput_' + idx);
+    if (tIn && document.activeElement !== tIn) tIn.value = value;
+    if (cIn && document.activeElement !== cIn) cIn.value = value;
+  } else if (field === 'retur') {
+    const tIn = document.getElementById('lhMitraTableReturInput_' + idx);
+    const cIn = document.getElementById('lhMitraCardReturInput_' + idx);
+    if (tIn && document.activeElement !== tIn) tIn.value = value;
+    if (cIn && document.activeElement !== cIn) cIn.value = value;
+  }
+
+  window.updateLhTotals();
 };
 
 window.handleLhBelanjaInputChange = function(idx, field, value) {
   if (!lhBelanjaRows[idx]) return;
   if (field === 'biaya') {
     lhBelanjaRows[idx].biaya = Number(value) || 0;
+    const tIn = document.getElementById('lhBelanjaTableBiayaInput_' + idx);
+    const cIn = document.getElementById('lhBelanjaCardBiayaInput_' + idx);
+    if (tIn && document.activeElement !== tIn) tIn.value = lhBelanjaRows[idx].biaya > 0 ? lhBelanjaRows[idx].biaya : '';
+    if (cIn && document.activeElement !== cIn) cIn.value = lhBelanjaRows[idx].biaya > 0 ? lhBelanjaRows[idx].biaya : '';
+    window.updateLhTotals();
   } else {
     lhBelanjaRows[idx][field] = value;
+    if (field === 'nama') {
+      const cTitle = document.getElementById('lhBelanjaCardTitle_' + idx);
+      if (cTitle) cTitle.innerText = value || ('Item #' + (idx + 1));
+    }
   }
-  renderLaporanHarianView();
 };
 
 window.handleLhRencanaProdChange = function(idx, field, value) {
   if (!lhRencanaRows[idx]) return;
   if (field === 'nama') {
     lhRencanaRows[idx].nama = value;
-  } else {
-    lhRencanaRows[idx][field] = Math.max(0, parseInt(value, 10) || 0);
+    const cTitle = document.getElementById('lhRencanaCardTitle_' + idx);
+    if (cTitle) cTitle.innerText = value;
+    return;
   }
-  renderLaporanHarianView();
+
+  const numVal = Math.max(0, parseInt(value, 10) || 0);
+  lhRencanaRows[idx][field] = numVal;
+
+  const tIn = document.getElementById('lhRencanaTable_' + field + '_' + idx);
+  const cIn = document.getElementById('lhRencanaCard_' + field + '_' + idx);
+  if (tIn && document.activeElement !== tIn) tIn.value = numVal;
+  if (cIn && document.activeElement !== cIn) cIn.value = numVal;
+
+  window.updateLhTotals();
 };
 
 window.handleLhRencanaInputChange = function(idx, field, value) {
