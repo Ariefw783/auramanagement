@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.1';
-const APP_BUILD_TIME = '30/10/2026 08:15 WIB';
+const APP_VERSION = 'v7.3.2';
+const APP_BUILD_TIME = '30/10/2026 08:55 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
 
@@ -6473,8 +6473,17 @@ function renderLaporanHarianView() {
       const marginRate = Number(row.marginMitra) || 200;
       const hargaSetorRate = Number(row.hargaSetor) || 800;
       const margin = laku * marginRate;
-      const setoran = laku * hargaSetorRate;
-      row.setor = setoran;
+
+      let setoran = 0;
+      if (row.setorManual && row.setor !== undefined) {
+        setoran = Number(row.setor) || 0;
+      } else if (row.setor !== undefined && row.setor > 0 && !row.setorAutoCalculated) {
+        setoran = Number(row.setor);
+      } else {
+        setoran = laku * hargaSetorRate;
+        row.setor = setoran;
+        row.setorAutoCalculated = true;
+      }
 
       totKirim += kirim;
       totRetur += retur;
@@ -6500,8 +6509,11 @@ function renderLaporanHarianView() {
         <td id="lhMitraTableMargin_${idx}" style="text-align: right; font-weight: 700; font-family: var(--font-mono); color: #FBBF24;">
           Rp ${margin.toLocaleString('id-ID')}
         </td>
-        <td id="lhMitraTableSetoran_${idx}" style="text-align: right; font-weight: 800; font-family: var(--font-mono); color: #34D399;">
-          Rp ${setoran.toLocaleString('id-ID')}
+        <td style="text-align: right;">
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
+            <span style="font-size: 0.72rem; color: #64748B; font-family: var(--font-mono);">Rp</span>
+            <input type="number" id="lhMitraTableSetoranInput_${idx}" class="sheet-input price-input" style="width: 105px; text-align: right; color: #34D399; font-weight: 800;" value="${setoran}" min="0" step="500" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)" title="Ketik nominal setoran fisik aktual jika berbeda dari rumus">
+          </div>
         </td>
         <td style="text-align: center;" class="no-print">
           <button type="button" class="btn-del-row" onclick="window.deleteMitraFromLaporanHarian(${idx})" title="Hapus mitra dari lembar ini">
@@ -6770,18 +6782,25 @@ function renderLhMitraCards(rows, totKirim, totRetur, totLaku, totMargin, totSet
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06); text-align: center; margin-bottom: 8px;">
+        <div style="margin-bottom: 8px;">
+          <label style="font-size: 0.68rem; color: #34D399; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span>NOMINAL SETORAN AKTUAL (RP):</span>
+            <span style="font-size: 0.62rem; color: #94A3B8; font-weight: normal;">(Bisa diedit sesuai uang fisik)</span>
+          </label>
+          <div style="display: flex; align-items: center; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 2px 8px;">
+            <span style="font-size: 0.78rem; font-weight: 800; color: #94A3B8; font-family: var(--font-mono); margin-right: 4px;">Rp</span>
+            <input type="number" id="lhMitraCardSetorInput_${idx}" class="sheet-input price-input" style="border: none; background: transparent; color: #34D399; font-size: 1rem; font-weight: 900; text-align: right; width: 100%; padding: 4px 0;" value="${setoran}" min="0" step="500" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06); text-align: center; margin-bottom: 8px;">
           <div>
-            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Laku</span>
+            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Laku Terjual</span>
             <strong id="lhMitraCardLakuVal_${idx}" style="font-size: 0.88rem; color: #38BDF8; font-family: var(--font-mono);">${laku} pcs</strong>
           </div>
           <div>
-            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Margin</span>
+            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Margin Toko</span>
             <strong id="lhMitraCardMarginVal_${idx}" style="font-size: 0.88rem; color: #FBBF24; font-family: var(--font-mono);">Rp ${margin.toLocaleString('id-ID')}</strong>
-          </div>
-          <div>
-            <span style="font-size: 0.62rem; color: #94A3B8; display: block;">Setoran</span>
-            <strong id="lhMitraCardSetorVal_${idx}" style="font-size: 0.88rem; color: #34D399; font-family: var(--font-mono);">Rp ${setoran.toLocaleString('id-ID')}</strong>
           </div>
         </div>
 
@@ -6959,8 +6978,18 @@ window.updateLhTotals = function() {
     const laku = Math.max(0, kirim - retur);
     row.laku = laku;
     const margin = laku * (Number(row.marginMitra) || 200);
-    const setoran = laku * (Number(row.hargaSetor) || 800);
-    row.setor = setoran;
+    const hargaSetorRate = Number(row.hargaSetor) || 800;
+
+    let setoran = 0;
+    if (row.setorManual && row.setor !== undefined) {
+      setoran = Number(row.setor) || 0;
+    } else if (row.setor !== undefined && row.setor > 0 && !row.setorAutoCalculated) {
+      setoran = Number(row.setor);
+    } else {
+      setoran = laku * hargaSetorRate;
+      row.setor = setoran;
+      row.setorAutoCalculated = true;
+    }
 
     totKirim += kirim;
     totRetur += retur;
@@ -6972,8 +7001,16 @@ window.updateLhTotals = function() {
     if (elLaku) elLaku.innerText = laku;
     const elMargin = document.getElementById('lhMitraTableMargin_' + idx);
     if (elMargin) elMargin.innerText = 'Rp ' + margin.toLocaleString('id-ID');
-    const elSetor = document.getElementById('lhMitraTableSetoran_' + idx);
-    if (elSetor) elSetor.innerText = 'Rp ' + setoran.toLocaleString('id-ID');
+
+    // Sinkronkan input setoran tabel dan kartu (jika tidak sedang diedit aktif)
+    const tSetorIn = document.getElementById('lhMitraTableSetoranInput_' + idx);
+    if (tSetorIn && document.activeElement !== tSetorIn) {
+      tSetorIn.value = setoran;
+    }
+    const cSetorIn = document.getElementById('lhMitraCardSetorInput_' + idx);
+    if (cSetorIn && document.activeElement !== cSetorIn) {
+      cSetorIn.value = setoran;
+    }
 
     const cKirim = document.getElementById('lhMitraCardChipKirim_' + idx);
     if (cKirim) cKirim.innerText = kirim + ' krm';
@@ -6985,8 +7022,6 @@ window.updateLhTotals = function() {
     if (cLakuVal) cLakuVal.innerText = laku + ' pcs';
     const cMarginVal = document.getElementById('lhMitraCardMarginVal_' + idx);
     if (cMarginVal) cMarginVal.innerText = 'Rp ' + margin.toLocaleString('id-ID');
-    const cSetorVal = document.getElementById('lhMitraCardSetorVal_' + idx);
-    if (cSetorVal) cSetorVal.innerText = 'Rp ' + setoran.toLocaleString('id-ID');
   });
 
   const elTotKirim = document.getElementById('lhMitraTotalKirim');
@@ -7116,7 +7151,31 @@ window.handleLhMitraInputChange = function(idx, field, value) {
     if (cTitle) cTitle.innerText = value || ('Mitra #' + (idx + 1));
     return;
   }
+
+  // Jika kolom setoran diedit manual oleh pemilik untuk akurasi uang fisik lapangan
+  if (field === 'setor') {
+    lhMitraRows[idx].setor = Number(value) || 0;
+    lhMitraRows[idx].setorManual = true;
+    delete lhMitraRows[idx].setorAutoCalculated;
+
+    const tIn = document.getElementById('lhMitraTableSetoranInput_' + idx);
+    const cIn = document.getElementById('lhMitraCardSetorInput_' + idx);
+    if (tIn && document.activeElement !== tIn) tIn.value = value;
+    if (cIn && document.activeElement !== cIn) cIn.value = value;
+
+    window.updateLhTotals();
+    return;
+  }
+
   lhMitraRows[idx][field] = Number(value) || 0;
+
+  // Jika kirim atau retur diubah dan setor belum pernah diubah manual, hitung otomatis rumus
+  if (!lhMitraRows[idx].setorManual) {
+    const laku = Math.max(0, (lhMitraRows[idx].kirim || 0) - (lhMitraRows[idx].retur || 0));
+    const hargaRate = Number(lhMitraRows[idx].hargaSetor) || 800;
+    lhMitraRows[idx].setor = laku * hargaRate;
+    lhMitraRows[idx].setorAutoCalculated = true;
+  }
 
   // Sinkronisasi silang antara Tabel dan Kartu tanpa mengganggu input yang aktif
   if (field === 'kirim') {
