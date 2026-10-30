@@ -176,7 +176,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.4</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.5</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -244,7 +244,7 @@
               <div>
                 <div class="laporan-badge-tag">FORMULIR OPERASIONAL HARIAN</div>
                 <h2 class="laporan-main-title">DAPUR MOM FITRI</h2>
-                <div class="laporan-sub-title">Sistem Pencatatan Terpadu Konsinyasi, Belanja Pasar, Rencana Produksi &amp; Arus Kas (Sistem 2 Amplop)</div>
+                <div class="laporan-sub-title">Sistem Pencatatan Terpadu Konsinyasi, Belanja Pasar, Rencana Produksi &amp; Arus Kas (5 Pos Keuangan)</div>
               </div>
 
               <!-- Date Selector & Stepper -->
@@ -274,27 +274,33 @@
             <!-- Top 4 KPI Ringkasan Kartu -->
             <div class="financial-kpi-grid" style="margin-top: 18px; margin-bottom: 0;">
               <div class="financial-kpi-card" style="border-left: 4px solid #38BDF8;">
-                <span class="kpi-label">Total Omzet Setoran (Sore)</span>
+                <span class="kpi-label">Total Omzet Terverifikasi</span>
                 <strong class="kpi-val" id="lhKpiOmzet" style="color: #38BDF8;">Rp 0</strong>
-                <span class="kpi-sub" id="lhKpiOmzetSub">Penarikan laku konsinyasi</span>
+                <span class="kpi-sub" id="lhKpiOmzetSub">Setoran laku konsinyasi</span>
               </div>
 
               <div class="financial-kpi-card" style="border-left: 4px solid #FB7185;">
-                <span class="kpi-label">Total Pengeluaran Belanja</span>
+                <span class="kpi-label">Total Belanja Bahan</span>
                 <strong class="kpi-val" id="lhKpiBelanja" style="color: #FB7185;">Rp 0</strong>
-                <span class="kpi-sub" id="lhKpiBelanjaSub">Kebutuhan pasar &amp; operasional</span>
+                <span class="kpi-sub" id="lhKpiBelanjaSub">Realisasi nota belanja pasar</span>
               </div>
 
               <div class="financial-kpi-card" style="border-left: 4px solid #FBBF24;">
-                <span class="kpi-label">Kas Modal Belanja Esok (Amplop 1)</span>
+                <span class="kpi-label">Modal Belanja Ulang</span>
                 <strong class="kpi-val" id="lhKpiKasEsok" style="color: #FBBF24;">Rp 0</strong>
-                <span class="kpi-sub" id="lhKpiKasEsokSub">Uang putaran belanja subuh</span>
+                <span class="kpi-sub" id="lhKpiKasEsokSub">Bahan segar subuh esok</span>
+              </div>
+
+              <div class="financial-kpi-card" style="border-left: 4px solid #F97316;">
+                <span class="kpi-label">Modal Gas &amp; Minyak</span>
+                <strong class="kpi-val" id="lhKpiGasMinyak" style="color: #F97316;">Rp 0</strong>
+                <span class="kpi-sub" id="lhKpiGasMinyakSub">Cadangan tabung &amp; jeriken</span>
               </div>
 
               <div class="financial-kpi-card" style="border-left: 4px solid #34D399;">
-                <span class="kpi-label">Laba Bersih Harian (Amplop 2)</span>
+                <span class="kpi-label">Laba Bersih Pemilik</span>
                 <strong class="kpi-val" id="lhKpiLabaBersih" style="color: #34D399;">Rp 0</strong>
-                <span class="kpi-sub" id="lhKpiLabaBersihSub">Gaji harian / laba pemilik</span>
+                <span class="kpi-sub" id="lhKpiLabaBersihSub">Bisa ditarik ke kantong</span>
               </div>
             </div>
           </div>
@@ -473,14 +479,14 @@
             </div>
           </div>
 
-          <!-- 5. BLOK 4: FORM PEMBAGIAN OMZET HARIAN & ARUS KAS (SISTEM 2 AMPLOP) -->
+          <!-- 5. BLOK 4: FORM ARUS KAS & ALOKASI LABA (SISTEM 3 AMPLOP & 5 POS KEUANGAN) -->
           <div class="sheet-section-card">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">4</span>
                 <div>
-                  <h3 class="sheet-section-title">Form Pembagian Omzet Harian &amp; Arus Kas (Sistem 2 Amplop)</h3>
-                  <p class="sheet-section-desc">Pemisahan otomatis antara modal belanja esok hari dan gaji bersih pemilik bisnis.</p>
+                  <h3 class="sheet-section-title">Form Alokasi Arus Kas &amp; Saldo Laba (Sistem 3 Amplop &amp; 5 Pos)</h3>
+                  <p class="sheet-section-desc">Pemisahan otomatis antara modal belanja subuh, cadangan gas &amp; minyak, serta laba bersih pemilik.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -490,46 +496,58 @@
 
             <!-- Arus Kas Strip -->
             <div class="lh-cashflow-strip">
-              <div class="lh-cf-item">
-                <span class="lh-cf-label">Total Omzet Setoran (+)</span>
+              <div class="lh-cf-item pos-omzet">
+                <span class="lh-cf-label"><span class="lh-cf-badge plus">+ Masuk</span> 1. Total Omzet Terverifikasi</span>
                 <span class="lh-cf-val" id="lhCfOmzet" style="color: #38BDF8;">Rp 0</span>
               </div>
-              <div class="lh-cf-math">-</div>
-              <div class="lh-cf-item">
-                <span class="lh-cf-label">Total Belanja Hari Ini (-)</span>
+              <div class="lh-cf-math">&minus;</div>
+              <div class="lh-cf-item pos-belanja">
+                <span class="lh-cf-label"><span class="lh-cf-badge minus">&minus; Keluar</span> 2. Total Belanja Bahan</span>
                 <span class="lh-cf-val" id="lhCfBelanja" style="color: #FB7185;">Rp 0</span>
               </div>
               <div class="lh-cf-math">=</div>
-              <div class="lh-cf-item highlight">
-                <span class="lh-cf-label">Sisa Kas Fisik Hari Ini</span>
+              <div class="lh-cf-item highlight pos-sisa">
+                <span class="lh-cf-label"><span class="lh-cf-badge equal">= Sisa Kas</span> Sisa Kas Fisik Di Tangan</span>
                 <span class="lh-cf-val" id="lhCfSisaKas" style="color: #FFFFFF;">Rp 0</span>
               </div>
             </div>
 
             <!-- 2 Amplop Boxes Layout -->
             <div class="lh-amplop-grid">
-              <!-- Amplop 1 -->
+              <!-- Amplop 1: Modal Belanja Ulang -->
               <div class="lh-amplop-card amplop-belanja">
-                <div class="lh-amplop-badge">AMPLOP 1 : WAJIB DI KOTAK KAS DAPUR</div>
-                <h4 class="lh-amplop-title">Kas Modal Belanja Esok &amp; Cadangan Operasional</h4>
-                <p class="lh-amplop-sub">Uang wajib ditinggalkan di dapur untuk belanja bahan subuh besok hari.</p>
+                <div class="lh-amplop-badge">AMPLOP 1 : KAS DAPUR HARIAN</div>
+                <h4 class="lh-amplop-title">Modal Belanja Ulang (Subuh)</h4>
+                <p class="lh-amplop-sub">Kas untuk belanja bahan segar esok hari (kulit lumpia, telur, sosis, sayur).</p>
                 <div class="lh-amplop-nominal-box">
                   <span class="lh-curr-prefix">Rp</span>
                   <input type="number" id="lhAmplop1Input" class="lh-amplop-input" value="0" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleAmplop1Change(this.value)">
                 </div>
-                <div class="lh-amplop-hint" id="lhAmplop1Hint">Disarankan minimal menutup estimasi belanja esok</div>
+                <div class="lh-amplop-hint" id="lhAmplop1Hint">Otomatis dihitung dari target rencana produksi esok</div>
               </div>
 
-              <!-- Amplop 2 -->
+              <!-- Amplop 2: Modal Gas & Minyak -->
+              <div class="lh-amplop-card amplop-gas">
+                <div class="lh-amplop-badge">AMPLOP 2 : TABUNGAN OPERASIONAL</div>
+                <h4 class="lh-amplop-title">Modal Gas &amp; Minyak (Awet)</h4>
+                <p class="lh-amplop-sub">Cadangan wajib untuk beli tabung Gas LPG &amp; Minyak Goreng jeriken/karton.</p>
+                <div class="lh-amplop-nominal-box">
+                  <span class="lh-curr-prefix">Rp</span>
+                  <input type="number" id="lhAmplopGasInput" class="lh-amplop-input" value="0" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleAmplopGasChange(this.value)">
+                </div>
+                <div class="lh-amplop-hint" id="lhAmplopGasHint">Alokasi aman ~Rp 200/pcs laku terjual</div>
+              </div>
+
+              <!-- Amplop 3: Laba Bersih Pemilik -->
               <div class="lh-amplop-card amplop-laba">
-                <div class="lh-amplop-badge">AMPLOP 2 : GAJI BERSIH HARIAN / TAKE HOME PAY</div>
-                <h4 class="lh-amplop-title">Akumulasi Laba Bersih Pemilik (Bisa Ditarik)</h4>
-                <p class="lh-amplop-sub">Hak laba bersih yang aman diambil tanpa mengganggu putaran bahan dapur.</p>
+                <div class="lh-amplop-badge">AMPLOP 3 : TAKE HOME PAY</div>
+                <h4 class="lh-amplop-title">Laba Bersih Pemilik</h4>
+                <p class="lh-amplop-sub">Hak laba bersih murni yang 100% aman ditarik ke kantong pribadi.</p>
                 <div class="lh-amplop-nominal-box">
                   <span class="lh-curr-prefix">Rp</span>
                   <input type="text" id="lhAmplop2Display" class="lh-amplop-input readonly" value="0" readonly>
                 </div>
-                <div class="lh-amplop-hint" id="lhAmplop2Hint">Laba murni bersih operasional hari ini</div>
+                <div class="lh-amplop-hint" id="lhAmplop2Hint">Sisa murni setelah belanja ulang &amp; cadangan gas/minyak</div>
               </div>
             </div>
           </div>
@@ -1088,19 +1106,23 @@
             </div>
             <div class="bep-stats-grid">
               <div class="bep-stat-pill">
-                <span>Total Omzet Terverifikasi</span>
+                <span>1. TOTAL OMZET TERVERIFIKASI</span>
                 <strong style="color: #38BDF8;" id="b3RekapOmzet">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
-                <span>Total Belanja Bahan</span>
+                <span>2. TOTAL BELANJA BAHAN</span>
                 <strong style="color: #FB7185;" id="b3RekapBelanja">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
-                <span>Kas Dapur (Belanja + Tabungan)</span>
-                <strong style="color: #FBBF24;" id="b3RekapKasDapur">Rp 0</strong>
+                <span>3. MODAL BELANJA ULANG</span>
+                <strong style="color: #FBBF24;" id="b3RekapBelanjaUlang">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
-                <span>Akumulasi Laba Pemilik</span>
+                <span>4. MODAL GAS &amp; MINYAK</span>
+                <strong style="color: #F97316;" id="b3RekapGasMinyak">Rp 0</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>5. LABA BERSIH</span>
                 <strong style="color: #34D399;" id="bepAccumulated">Rp 0</strong>
               </div>
             </div>
@@ -1115,12 +1137,12 @@
                   <th>Kirim</th>
                   <th>Retur</th>
                   <th>Laku</th>
-                  <th>Omzet Kas</th>
-                  <th>Kas Awal</th>
-                  <th>Belanja Riil</th>
-                  <th>Sisa Endapan</th>
-                  <th>Amplop 2 (Gaji)</th>
-                  <th>Kas Siap Esok</th>
+                  <th>1. Omzet Terverifikasi</th>
+                  <th>2. Belanja Bahan</th>
+                  <th>Sisa Kas</th>
+                  <th>3. Modal Belanja Ulang</th>
+                  <th>4. Modal Gas &amp; Minyak</th>
+                  <th>5. Laba Bersih</th>
                 </tr>
               </thead>
               <tbody id="buku3TableBody"></tbody>

@@ -3223,7 +3223,7 @@ body {
   border-radius: 12px;
   border: 1px solid rgba(56, 189, 248, 0.25);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .date-step-btn {
@@ -3394,7 +3394,7 @@ body {
   .date-stepper-container {
     display: flex;
     width: 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 6px;
     padding: 6px;
     box-sizing: border-box;
@@ -5892,39 +5892,81 @@ body {
   color: #F87171;
 }
 
-/* CASHFLOW STRIP & 2 AMPLOP */
+
+/* CASHFLOW STRIP (5 POS KEUANGAN INTEGRATED) */
 .lh-cashflow-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 16px;
-  border-radius: 10px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 20px;
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr auto 1.3fr !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 16px 20px !important;
+  border-radius: 12px !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  margin-bottom: 20px !important;
 }
 
 .lh-cf-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-align: center;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  text-align: center !important;
 }
 
 .lh-cf-item.highlight {
-  background: rgba(56, 189, 248, 0.08);
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.08) !important;
+  padding: 10px 16px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+.lh-cf-math {
+  font-size: 1.5rem !important;
+  font-weight: 800 !important;
+  color: #94A3B8 !important;
+  user-select: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
 }
 
 .lh-cf-label {
-  font-size: 0.72rem;
-  color: var(--text-secondary, #94A3B8);
-  font-weight: 600;
-  text-transform: uppercase;
+  font-size: 0.72rem !important;
+  color: var(--text-secondary, #94A3B8) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+}
+
+.lh-cf-badge {
+  display: inline-block !important;
+  font-size: 0.6rem !important;
+  font-weight: 800 !important;
+  padding: 1px 6px !important;
+  border-radius: 4px !important;
+  letter-spacing: 0.04em !important;
+}
+
+.lh-cf-badge.plus {
+  background: rgba(56, 189, 248, 0.2) !important;
+  color: #38BDF8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+}
+
+.lh-cf-badge.minus {
+  background: rgba(251, 113, 133, 0.2) !important;
+  color: #FB7185 !important;
+  border: 1px solid rgba(251, 113, 133, 0.4) !important;
+}
+
+.lh-cf-badge.equal {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
 }
 
 .lh-cf-val {
@@ -5978,6 +6020,17 @@ body {
 .amplop-belanja .lh-amplop-badge {
   background: rgba(245, 158, 11, 0.2);
   color: #FBBF24;
+}
+
+
+.lh-amplop-card.amplop-gas {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+.amplop-gas .lh-amplop-badge {
+  background: rgba(249, 115, 22, 0.2);
+  color: #FB923C;
 }
 
 .amplop-laba .lh-amplop-badge {
@@ -6536,5 +6589,101 @@ body {
     font-size: 0.68rem !important;
     padding: 3px 8px !important;
     border-radius: 4px !important;
+  }
+}
+
+
+/* ============================================================== */
+/* V7.3.5 CASHFLOW & DATE STEPPER MOBILE ENHANCEMENTS            */
+/* ============================================================== */
+@media screen and (max-width: 820px) {
+  .date-stepper-container {
+    flex-wrap: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .date-display-trigger {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    font-size: 0.78rem !important;
+  }
+
+  .date-step-btn {
+    flex-shrink: 0 !important;
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .date-today-btn {
+    flex-shrink: 0 !important;
+    font-size: 0.72rem !important;
+    padding: 4px 8px !important;
+    height: 30px !important;
+  }
+
+  .laporan-date-box {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .laporan-status-pill {
+    align-self: flex-start !important;
+    margin-top: 2px !important;
+  }
+
+  /* Cashflow Strip 2-Col on Mobile */
+  .lh-cashflow-strip {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .lh-cashflow-strip .lh-cf-math {
+    display: none !important;
+  }
+
+  .lh-cashflow-strip .pos-omzet {
+    grid-column: 1 / 2 !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(56, 189, 248, 0.2) !important;
+  }
+
+  .lh-cashflow-strip .pos-belanja {
+    grid-column: 2 / 3 !important;
+    background: rgba(251, 113, 133, 0.08) !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(251, 113, 133, 0.2) !important;
+  }
+
+  .lh-cashflow-strip .pos-sisa {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 10px 12px !important;
+    background: rgba(56, 189, 248, 0.14) !important;
+    border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  }
+
+  .lh-cf-label {
+    font-size: 0.65rem !important;
+  }
+
+  .lh-cf-val {
+    font-size: 1.05rem !important;
   }
 }

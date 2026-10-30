@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.4';
+const APP_VERSION = 'v7.3.5';
 const APP_BUILD_TIME = '30/10/2026 08:55 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
@@ -1364,38 +1364,35 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     targetTabunganAwet = 0;
     gajiBos = 0;
     status3Amplop = 'MENUNGGU_PENARIKAN_SORE';
-  } else if (omzet > 0 && belanja > 0) {
-    // KEDUANYA SUDAH DIKETAHUI: Belanja malam & Omzet sore sudah selesai
-    alokasiBelanjaHarian = belanja;
-    targetTabunganAwet = Math.round(laku * 200);
+  } else if (omzet > 0) {
+    // 5 POS KEUANGAN TERPADU
+    targetTabunganAwet = Math.round(laku * 200); // Pos 4: Modal Gas & Minyak (~Rp 200/pcs)
+    const estimasiBelanjaEsok = Math.max(20000, kirim * 450); // Pos 3: Modal Belanja Ulang Esok
 
     if (isDefisitBelanja) {
-      // Kasus Defisit: Belanja malam > Total kas tersedia! Butuh talangan modal bos
       tabunganBahanAwet = 0;
+      alokasiBelanjaHarian = 0;
       gajiBos = 0;
       status3Amplop = 'DEFISIT_KAS';
     } else {
-      // Prioritas 2: Tabungan Bahan Awet HANYA menyerap dari sisa uang fisik nyata yang tersisa
-      tabunganBahanAwet = Math.min(targetTabunganAwet, sisaKasSetelahBelanja);
-
-      // Prioritas 3: Gaji Bersih Bos HANYA diambil dari sisa murni setelah Belanja dan Target Tabungan terpenuhi
-      const sisaMurniLaba = sisaKasSetelahBelanja - targetTabunganAwet;
-      gajiBos = Math.max(0, sisaMurniLaba);
-
-      if (tabunganBahanAwet < targetTabunganAwet) {
-        status3Amplop = 'TABUNGAN_PARSIAL';
-      } else {
+      const cadanganDapurIdeal = estimasiBelanjaEsok + targetTabunganAwet;
+      if (sisaKasSetelahBelanja >= cadanganDapurIdeal) {
+        alokasiBelanjaHarian = estimasiBelanjaEsok;
+        tabunganBahanAwet = targetTabunganAwet;
+        gajiBos = sisaKasSetelahBelanja - cadanganDapurIdeal;
         status3Amplop = 'LENGKAP';
+      } else {
+        alokasiBelanjaHarian = Math.min(sisaKasSetelahBelanja, estimasiBelanjaEsok);
+        const sisaSisa = Math.max(0, sisaKasSetelahBelanja - alokasiBelanjaHarian);
+        tabunganBahanAwet = Math.min(sisaSisa, targetTabunganAwet);
+        gajiBos = Math.max(0, sisaKasSetelahBelanja - alokasiBelanjaHarian - tabunganBahanAwet);
+        status3Amplop = 'TABUNGAN_PARSIAL';
       }
     }
-  } else if (omzet > 0 && belanja === 0) {
-    // Penarikan sore sudah ada, tapi belanja malam belum dicatat
-    alokasiBelanjaHarian = 0;
-    targetTabunganAwet = Math.round(laku * 200);
-    tabunganBahanAwet = 0;
-    gajiBos = 0; // Kas belum dibagi ke bos sebelum belanja malam diketahui
-    status3Amplop = 'MENUNGGU_BELANJA_MALAM';
   } else {
+    alokasiBelanjaHarian = 0;
+    tabunganBahanAwet = 0;
+    targetTabunganAwet = 0;
     gajiBos = 0;
     status3Amplop = 'KOSONG';
   }
@@ -1443,7 +1440,9 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     totalKasTersedia,
     sisaEndapanKas,
     alokasiBelanjaHarian,
+    modalBelanjaUlang: alokasiBelanjaHarian,
     tabunganBahanAwet,
+    modalGasMinyak: tabunganBahanAwet,
     targetTabunganAwet,
     recoveryModal: (omzet - gajiBos),
     targetHpp: computeDayTargetHPP(isoDate),
@@ -5444,7 +5443,7 @@ function renderKuitansiCards(items, total) {
   container.appendChild(summary);
 }
 
-function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totModal, totGaji, totBelanja, totEndapan) {
+function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totModal, totGaji, totBelanja, totEndapan, totBelanjaUlang = 0, totGasMinyak = 0) {
   const container = document.getElementById('buku3CardsContainer');
   if (!container) return;
   container.innerHTML = '';
@@ -5453,7 +5452,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = 
     '<div class="card-view-header-title">' +
-      '<span>REKAP ARUS KAS HARIAN</span>' +
+      '<span>REKAP ARUS KAS (5 POS KEUANGAN)</span>' +
     '</div>' +
     '<div class="card-view-header-actions">' +
       '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'buku3\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
@@ -5469,28 +5468,31 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
     card.id = 'buku3Card_' + idx;
 
     const sisaEndapanFmt = k.sisaEndapanKas < 0 ? '-Rp ' + Math.abs(k.sisaEndapanKas).toLocaleString('id-ID') : 'Rp ' + (k.sisaEndapanKas || 0).toLocaleString('id-ID');
-    const sisaEndapanColor = k.sisaEndapanKas < 0 ? '#FB7185' : '#FBBF24';
-    const kasSiapFmt = 'Rp ' + (k.kasSiapEsok || 0).toLocaleString('id-ID');
+    const sisaEndapanColor = k.sisaEndapanKas < 0 ? '#FB7185' : '#FFFFFF';
+    const belanjaUlangFmt = 'Rp ' + (k.modalBelanjaUlang !== undefined ? k.modalBelanjaUlang : (k.alokasiBelanjaHarian || 0)).toLocaleString('id-ID');
+    const gasMinyakFmt = 'Rp ' + (k.modalGasMinyak !== undefined ? k.modalGasMinyak : (k.tabunganBahanAwet || 0)).toLocaleString('id-ID');
+    const labaBersihFmt = 'Rp ' + (k.gaji > 0 ? k.gaji : 0).toLocaleString('id-ID');
 
     card.innerHTML = 
       '<div class="record-card-header" onclick="window.toggleCardItem(\'buku3\', ' + idx + ')">' +
         '<div class="record-title-wrap">' +
-          '<span class="record-num-tag">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split('-')[2], 10) : '-')) + '</span>' +
+          '<span class="record-num-tag">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split("-")[2], 10) : "-")) + '</span>' +
           '<strong class="record-title-name">' + k.hari + '</strong>' +
         '</div>' +
         '<div class="record-header-meta">' +
-          '<span class="record-chip success">Omzet: Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="record-chip accent">Omzet: Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</span>' +
+          '<span class="record-chip success">Laba: ' + labaBersihFmt + '</span>' +
           '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="record-card-body">' +
         '<div class="record-meta-row"><span class="label">Konsinyasi:</span><span class="val">Kirim ' + k.kirim + ' • Retur ' + k.retur + ' • <strong>Laku ' + k.laku + ' pcs</strong></span></div>' +
-        '<div class="record-meta-row"><span class="label">Total Omzet Kas:</span><strong class="val" style="color:#34D399;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Kas Awal:</span><span class="val" style="color:#94A3B8;">Rp ' + (k.modalAwal !== undefined ? k.modalAwal : 0).toLocaleString('id-ID') + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Belanja Riil Bahan:</span><span class="val" style="color:#FB7185;">-Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Sisa Endapan Kas:</span><strong class="val" style="color:' + sisaEndapanColor + ';">' + sisaEndapanFmt + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Amplop 2 (Laba Pemilik):</span><strong class="val" style="color:#818CF8; font-size: 0.95rem;">Rp ' + (k.gaji || 0).toLocaleString('id-ID') + '</strong></div>' +
-        '<div class="record-meta-row"><span class="label">Kas Dapur Siap Esok:</span><strong class="val" style="color:#34D399;">' + kasSiapFmt + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">1. Total Omzet Terverifikasi:</span><strong class="val" style="color:#38BDF8;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">2. Total Belanja Bahan:</span><span class="val" style="color:#FB7185;">-Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</span></div>' +
+        '<div class="record-meta-row"><span class="label">Sisa Kas Fisik:</span><strong class="val" style="color:' + sisaEndapanColor + ';">' + sisaEndapanFmt + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">3. Modal Belanja Ulang:</span><strong class="val" style="color:#FBBF24;">' + belanjaUlangFmt + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">4. Modal Gas & Minyak:</span><strong class="val" style="color:#F97316;">' + gasMinyakFmt + '</strong></div>' +
+        '<div class="record-meta-row"><span class="label">5. Laba Bersih Pemilik:</span><strong class="val" style="color:#34D399; font-size: 1rem;">' + labaBersihFmt + '</strong></div>' +
       '</div>';
     container.appendChild(card);
   });
@@ -5498,14 +5500,14 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totMod
   const summary = document.createElement('div');
   summary.className = 'buku1-card-summary-total';
   summary.innerHTML = 
-    '<div class="card-summary-title">TOTAL AKTUAL TERVERIFIKASI</div>' +
+    '<div class="card-summary-title">REKAP TOTAL 5 POS KEUANGAN</div>' +
     '<div class="card-summary-grid">' +
-      '<div class="card-stat-pill"><span>Total Kirim:</span><strong>' + totKirim + ' pcs</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Laku:</span><strong style="color:#38BDF8;">' + totLaku + ' pcs</strong></div>' +
-      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>TOTAL OMZET KAS:</span><strong>Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Belanja:</span><strong style="color:#F87171;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill"><span>Total Laba Pemilik:</span><strong style="color:#818CF8;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>KAS DAPUR SIAP OPERASIONAL:</span><strong style="color:#34D399;">Rp ' + totEndapan.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>1. TOTAL OMZET TERVERIFIKASI:</span><strong style="color:#38BDF8;">Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>2. TOTAL BELANJA:</span><strong style="color:#FB7185;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>SISA KAS FISIK:</span><strong style="color:#FFFFFF;">Rp ' + Math.max(0, totSetor - totBelanja).toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>3. MODAL BELANJA ULANG:</span><strong style="color:#FBBF24;">Rp ' + totBelanjaUlang.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill"><span>4. MODAL GAS & MINYAK:</span><strong style="color:#F97316;">Rp ' + totGasMinyak.toLocaleString('id-ID') + '</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>5. TOTAL LABA BERSIH PEMILIK:</span><strong style="color:#34D399; font-size: 1.05rem;">Rp ' + totGaji.toLocaleString('id-ID') + '</strong></div>' +
     '</div>';
   container.appendChild(summary);
 }
@@ -6090,7 +6092,7 @@ function renderBuku3View() {
 
     // Hanya rekap hari-hari yang sah terverifikasi secara stabil (TIDAK terpengaruh posisi activeDate)
     const verifiedList = auraData.buku3Kas.filter(k => !k.isTarget || k.isSavedDay || (k.setor > 0 || k.realBelanja > 0));
-    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0;
+    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0, totalBelanjaUlangAll = 0, totalGasMinyakAll = 0;
 
     verifiedList.forEach(k => {
       totalKirimAll += (k.kirim || 0);
@@ -6099,6 +6101,8 @@ function renderBuku3View() {
       totalSetorAll += (k.setor || 0);
       totalBelanjaAll += (k.realBelanja || 0);
       totalGajiAll += (k.gaji || 0);
+      totalBelanjaUlangAll += (k.modalBelanjaUlang !== undefined ? k.modalBelanjaUlang : (k.alokasiBelanjaHarian || 0));
+      totalGasMinyakAll += (k.modalGasMinyak !== undefined ? k.modalGasMinyak : (k.tabunganBahanAwet || 0));
     });
 
     verifiedList.forEach(k => {
@@ -6117,18 +6121,22 @@ function renderBuku3View() {
       if (k.isoDate === activeDate) {
         tr.style.background = 'rgba(56, 189, 248, 0.08)';
       }
+      const belanjaUlangVal = k.modalBelanjaUlang !== undefined ? k.modalBelanjaUlang : (k.alokasiBelanjaHarian || 0);
+      const gasMinyakVal = k.modalGasMinyak !== undefined ? k.modalGasMinyak : (k.tabunganBahanAwet || 0);
+      const labaBersihVal = (k.gaji > 0 ? k.gaji : 0);
+
       tr.innerHTML = 
-        '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split('-')[2], 10) : '-')) + '</td>' +
+        '<td data-label="Tanggal" style="font-family: var(--font-mono); font-weight: 700;">' + (k.tgl || (k.isoDate ? parseInt(k.isoDate.split("-")[2], 10) : "-")) + '</td>' +
         '<td data-label="Hari">' + hariLabel + '</td>' +
         '<td data-label="Kirim" style="font-family: var(--font-mono); text-align: center;">' + k.kirim + '</td>' +
         '<td data-label="Retur" style="font-family: var(--font-mono); color: #FBBF24; text-align: center;">' + k.retur + '</td>' +
         '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + k.laku + '</td>' +
-        '<td data-label="Omzet Kas" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Kas Awal" style="font-family: var(--font-mono); color: #94A3B8; text-align: right;">Rp ' + (k.modalAwal !== undefined ? k.modalAwal : 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Belanja Riil" style="font-family: var(--font-mono); color: #FB7185; text-align: right;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
-        '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); font-weight: 800; color: ' + sisaEndapanColor + '; text-align: right;" title="Saldo kas di kotak dapur setelah belanja">' + sisaEndapanFormatted + '</td>' +
-        '<td data-label="Amplop 2 (Gaji)" style="font-family: var(--font-mono); font-weight: 800; color: #818CF8; text-align: right;" title="Laba bersih murni hak pemilik">' + (k.gaji > 0 ? 'Rp ' + k.gaji.toLocaleString('id-ID') : 'Rp 0') + '</td>' +
-        '<td data-label="Kas Siap Esok" style="font-family: var(--font-mono); font-weight: 900; color: #34D399; text-align: right;" title="Saldo kas kotak dapur kembali utuh untuk modal besok">' + kasSiapFormatted + '</td>';
+        '<td data-label="1. Omzet" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: right;">Rp ' + (k.setor || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="2. Belanja" style="font-family: var(--font-mono); color: #FB7185; text-align: right;">Rp ' + (k.realBelanja || 0).toLocaleString('id-ID') + '</td>' +
+        '<td data-label="Sisa Kas" style="font-family: var(--font-mono); font-weight: 800; color: ' + sisaEndapanColor + '; text-align: right;" title="Sisa Kas Fisik = Omzet - Belanja">' + sisaEndapanFormatted + '</td>' +
+        '<td data-label="3. Belanja Ulang" style="font-family: var(--font-mono); font-weight: 700; color: #FBBF24; text-align: right;" title="Modal Belanja Subuh Esok">Rp ' + belanjaUlangVal.toLocaleString('id-ID') + '</td>' +
+        '<td data-label="4. Gas & Minyak" style="font-family: var(--font-mono); font-weight: 700; color: #F97316; text-align: right;" title="Cadangan Gas LPG & Minyak Goreng">Rp ' + gasMinyakVal.toLocaleString('id-ID') + '</td>' +
+        '<td data-label="5. Laba Bersih" style="font-family: var(--font-mono); font-weight: 900; color: #34D399; text-align: right;" title="Laba Bersih Pemilik (Bisa Ditarik)">Rp ' + labaBersihVal.toLocaleString('id-ID') + '</td>';
       b3Body.appendChild(tr);
     });
 
@@ -6144,16 +6152,16 @@ function renderBuku3View() {
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalKirimAll + '</td>' +
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalReturAll + '</td>' +
           '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + totalLakuAll + '</td>' +
-          '<td data-label="Total Omzet" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Modal Awal" style="font-family: var(--font-mono); color: #94A3B8; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + modalPlafonAktif.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Belanja" style="font-family: var(--font-mono); color: #FB7185; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Sisa Endapan" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + Math.max(0, modalPlafonAktif - totalBelanjaAll).toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Total Gaji" style="font-family: var(--font-mono); color: #818CF8; font-weight: 900; font-size: 0.95rem; padding: 12px 14px; text-align: right;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
-          '<td data-label="Kas Siap Esok" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; padding: 12px 14px; text-align: right;" title="Saldo Kas Kotak Dapur Saat Ini">Rp ' + latestVerifiedEndapan.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="1. Total Omzet" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="2. Total Belanja" style="font-family: var(--font-mono); color: #FB7185; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + totalBelanjaAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="Total Sisa Kas" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + Math.max(0, totalSetorAll - totalBelanjaAll).toLocaleString('id-ID') + '</td>' +
+          '<td data-label="3. Belanja Ulang" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + totalBelanjaUlangAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="4. Gas & Minyak" style="font-family: var(--font-mono); color: #F97316; font-weight: 800; padding: 12px 14px; text-align: right;">Rp ' + totalGasMinyakAll.toLocaleString('id-ID') + '</td>' +
+          '<td data-label="5. Laba Bersih" style="font-family: var(--font-mono); color: #34D399; font-weight: 900; font-size: 0.95rem; padding: 12px 14px; text-align: right;">Rp ' + totalGajiAll.toLocaleString('id-ID') + '</td>' +
         '</tr>';
     }
 
-    renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan);
+    renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, modalPlafonAktif, totalGajiAll, totalBelanjaAll, latestVerifiedEndapan, totalBelanjaUlangAll, totalGasMinyakAll);
 
     const bepTarget = 0;
     const bepRemain = Math.max(0, bepTarget - totalGajiAll);
@@ -6166,14 +6174,16 @@ function renderBuku3View() {
 
     const b3OmzetEl = document.getElementById('b3RekapOmzet');
     const b3BelanjaEl = document.getElementById('b3RekapBelanja');
-    const b3KasEl = document.getElementById('b3RekapKasDapur');
+    const b3BelanjaUlangEl = document.getElementById('b3RekapBelanjaUlang');
+    const b3GasMinyakEl = document.getElementById('b3RekapGasMinyak');
     const accEl = document.getElementById('bepAccumulated');
     const estEl = document.getElementById('bepDaysEstimate');
     const btnTarikGajiEl = document.getElementById('btnTarikGajiJumat');
 
     if (b3OmzetEl) b3OmzetEl.innerText = 'Rp ' + totalSetorAll.toLocaleString('id-ID');
     if (b3BelanjaEl) b3BelanjaEl.innerText = 'Rp ' + totalBelanjaAll.toLocaleString('id-ID');
-    if (b3KasEl) b3KasEl.innerText = 'Rp ' + latestVerifiedEndapan.toLocaleString('id-ID');
+    if (b3BelanjaUlangEl) b3BelanjaUlangEl.innerText = 'Rp ' + totalBelanjaUlangAll.toLocaleString('id-ID');
+    if (b3GasMinyakEl) b3GasMinyakEl.innerText = 'Rp ' + totalGasMinyakAll.toLocaleString('id-ID');
     if (accEl) accEl.innerText = 'Rp ' + totalGajiAll.toLocaleString('id-ID');
 
     if (estEl) {
@@ -6360,6 +6370,7 @@ let lhMitraRows = [];
 let lhBelanjaRows = [];
 let lhRencanaRows = [];
 let lhAmplop1Manual = null;
+let lhAmplopGasManual = null;
 let lhActiveDateCache = null;
 
 // ==============================================================
@@ -6426,6 +6437,7 @@ function initLaporanHarianState() {
   }
   lhActiveDateCache = activeDate;
   lhAmplop1Manual = null;
+  lhAmplopGasManual = null;
 
   // 1. Inisialisasi Baris Mitra Konsinyasi
   const isSavedDay = !!(auraData.buku1SavedDates && auraData.buku1SavedDates[activeDate]);
@@ -7257,7 +7269,7 @@ window.updateLhTotals = function() {
   const cGrandSub = document.getElementById('cardRencanaGrandTotalSub');
   if (cGrandSub) cGrandSub.innerText = 'Siap edar & konsumsi dapur';
 
-  // Arus Kas & Amplop
+  // Arus Kas & 5 POS KEUANGAN
   const sisaKasFisik = totSetoran - totBelanja;
   const elCfOmzet = document.getElementById('lhCfOmzet');
   const elCfBelanja = document.getElementById('lhCfBelanja');
@@ -7270,39 +7282,58 @@ window.updateLhTotals = function() {
     elCfSisaKas.style.color = sisaKasFisik < 0 ? '#FB7185' : '#FFFFFF';
   }
 
-  let amplop1Val = 0;
+  // 1. Pos 3: Modal Belanja Ulang Esok
+  let modalBelanjaUlang = 0;
   if (lhAmplop1Manual !== null) {
-    amplop1Val = Number(lhAmplop1Manual) || 0;
+    modalBelanjaUlang = Number(lhAmplop1Manual) || 0;
   } else {
-    const estimasiBelanjaEsok = Math.max(20000, grandTotal * 500);
+    const estimasiBelanjaEsok = Math.max(20000, grandTotal * 450);
     if (sisaKasFisik > 0) {
-      amplop1Val = Math.min(sisaKasFisik, estimasiBelanjaEsok);
+      modalBelanjaUlang = Math.min(sisaKasFisik, estimasiBelanjaEsok);
     } else {
-      amplop1Val = 0;
+      modalBelanjaUlang = 0;
     }
   }
-  const amplop2Val = Math.max(0, sisaKasFisik - amplop1Val);
+
+  // 2. Pos 4: Modal Gas & Minyak (Cadangan Tabung LPG & Jeriken Minyak ~Rp 200/pcs laku)
+  let modalGasMinyak = 0;
+  if (lhAmplopGasManual !== null) {
+    modalGasMinyak = Number(lhAmplopGasManual) || 0;
+  } else {
+    const targetGasMinyak = Math.round(totLaku * 200);
+    const sisaSetelahBelanjaUlang = Math.max(0, sisaKasFisik - modalBelanjaUlang);
+    modalGasMinyak = Math.min(sisaSetelahBelanjaUlang, targetGasMinyak);
+  }
+
+  // 3. Pos 5: Laba Bersih Pemilik (Murni hak tarik pemilik)
+  const labaBersihPemilik = Math.max(0, sisaKasFisik - modalBelanjaUlang - modalGasMinyak);
 
   const amplop1Input = document.getElementById('lhAmplop1Input');
+  const amplopGasInput = document.getElementById('lhAmplopGasInput');
   const amplop2Display = document.getElementById('lhAmplop2Display');
 
   if (amplop1Input && document.activeElement !== amplop1Input) {
-    amplop1Input.value = amplop1Val;
+    amplop1Input.value = modalBelanjaUlang;
+  }
+  if (amplopGasInput && document.activeElement !== amplopGasInput) {
+    amplopGasInput.value = modalGasMinyak;
   }
   if (amplop2Display) {
-    amplop2Display.value = amplop2Val.toLocaleString('id-ID');
+    amplop2Display.value = labaBersihPemilik.toLocaleString('id-ID');
   }
 
-  // 4 Top KPI
+  // 5 Top KPI di Kop Atas
   const kpiOmzet = document.getElementById('lhKpiOmzet');
   const kpiBelanja = document.getElementById('lhKpiBelanja');
   const kpiKasEsok = document.getElementById('lhKpiKasEsok');
+  const kpiGasMinyak = document.getElementById('lhKpiGasMinyak');
   const kpiLaba = document.getElementById('lhKpiLabaBersih');
 
   if (kpiOmzet) kpiOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
   if (kpiBelanja) kpiBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
-  if (kpiKasEsok) kpiKasEsok.innerText = 'Rp ' + amplop1Val.toLocaleString('id-ID');
-  if (kpiLaba) kpiLaba.innerText = 'Rp ' + amplop2Val.toLocaleString('id-ID');
+  if (kpiKasEsok) kpiKasEsok.innerText = 'Rp ' + modalBelanjaUlang.toLocaleString('id-ID');
+  if (kpiGasMinyak) kpiGasMinyak.innerText = 'Rp ' + modalGasMinyak.toLocaleString('id-ID');
+  if (kpiLaba) kpiLaba.innerText = 'Rp ' + labaBersihPemilik.toLocaleString('id-ID');
 };
 
 // Handlers Interaktif (Real-Time Reactive, Bebas Bug 1-Karakter)
@@ -7416,6 +7447,12 @@ window.addLhRencanaRow = function() {
 window.removeLhRencanaRow = function(idx) {
   if (lhRencanaRows.length <= 1) return;
   lhRencanaRows.splice(idx, 1);
+  renderLaporanHarianView();
+};
+
+window.handleAmplopGasChange = function(value) {
+  lhAmplopGasManual = Number(value) || 0;
+  triggerLhDraftAutoSave();
   renderLaporanHarianView();
 };
 
@@ -7657,6 +7694,7 @@ window.copyLaporanHarianWhatsApp = function() {
   const sisaKas = totSetoran - totBelanja;
   const amplop1 = (document.getElementById('lhAmplop1Input')?.value) || 0;
   const amplop2 = (document.getElementById('lhAmplop2Display')?.value) || 0;
+  const amplopGas = (document.getElementById('lhAmplopGasInput')?.value) || 0;
 
   let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandRencana = 0;
   let rencanaLines = [];
