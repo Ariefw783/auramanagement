@@ -176,7 +176,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.2</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.3</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -445,7 +445,7 @@
             <div id="lhRencanaCardsContainer" class="collapsible-cards-container"></div>
 
             <!-- Ringkasan Kartu Adonan Subuh -->
-            <div class="rencana-summary-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px;">
+            <div class="rencana-summary-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin-top: 10px;">
               <div class="rencana-prod-card" style="background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.3); border-radius: 8px; padding: 12px 14px;">
                 <span style="font-size: 0.72rem; font-weight: 700; color: #818CF8; text-transform: uppercase;">1. Lumpia Ubi Ungu</span>
                 <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaUbi">0 Pcs</div>
@@ -514,7 +514,7 @@
                 <p class="lh-amplop-sub">Uang wajib ditinggalkan di dapur untuk belanja bahan subuh besok hari.</p>
                 <div class="lh-amplop-nominal-box">
                   <span class="lh-curr-prefix">Rp</span>
-                  <input type="number" id="lhAmplop1Input" class="lh-amplop-input" value="0" min="0" step="500" oninput="window.handleAmplop1Change(this.value)">
+                  <input type="number" id="lhAmplop1Input" class="lh-amplop-input" value="0" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleAmplop1Change(this.value)">
                 </div>
                 <div class="lh-amplop-hint" id="lhAmplop1Hint">Disarankan minimal menutup estimasi belanja esok</div>
               </div>
@@ -1338,10 +1338,10 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Daftar Menu & Kalkulator Takaran Dapur</span>
+                <span>Formula Resep & Standar Gramasi Presisi</span>
                 <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Dapur & SOP</span>
               </div>
-              <div class="slate-card-subtitle">Daftar resep menu jajanan, sakelar menu aktif, dan kalkulator takaran bahan baku otomatis (Tbsp/Tsp/Gram/Fisik).</div>
+              <div class="slate-card-subtitle">Daftar resep menu jajanan, panduan visual SOP penggorengan, dan standar formula bahan baku presisi.</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>
@@ -1349,76 +1349,10 @@
             </div>
           </div>
 
-          <!-- ZONE 1: KALKULATOR TAKARAN DAPUR SUBUH PRESISI -->
-          <div class="form-card-wrap">
-            <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-              <span>Kalkulator Takaran Produksi Subuh & Audit HPP</span>
-              <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.syncRecipeFromBuku1(true)">Tarik Target dari Distribusi Mitra</button>
-            </div>
-            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 14px;">
-              Target produksi otomatis disinkronkan dengan total pengiriman Distribusi Konsinyasi (atau dapat diubah manual). Sistem menghitung gramasi kebutuhan bahan serta estimasi HPP per produk.
-            </p>
-
-            <!-- Input Rencana Pcs -->
-            <div class="form-grid-4" id="calcInputsGrid">
-              <div>
-                <label class="form-label" style="color: #818CF8;">1. Lumpia Ubi Ungu (Pcs)</label>
-                <input type="number" id="calcUbiPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #818CF8;" value="66" min="0" oninput="window.calculateTakaran()">
-              </div>
-              <div>
-                <label class="form-label" style="color: #34D399;">2. Lumpia Sayur Sosis (Pcs)</label>
-                <input type="number" id="calcSayurPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #34D399;" value="32" min="0" oninput="window.calculateTakaran()">
-              </div>
-              <div>
-                <label class="form-label" style="color: #FBBF24;">3. Roti Goreng Collins (Pcs)</label>
-                <input type="number" id="calcRotiPcs" class="form-control-slate" style="font-weight: 800; font-family: var(--font-mono); color: #FBBF24;" value="32" min="0" oninput="window.calculateTakaran()">
-              </div>
-              <div>
-                <label class="form-label">Total Produksi Target</label>
-                <input type="text" id="calcTotalPcs" class="form-control-slate" style="font-weight: 900; font-family: var(--font-mono); color: #38BDF8;" value="130 pcs" readonly>
-              </div>
-            </div>
-            <!-- Dynamic Slot for Custom Variant Inputs -->
-            <div id="calcCustomInputsContainer" style="display: none; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-top: 10px;"></div>
-
-            <!-- Presets & Actions (Tertata 3 Baris Rapi) -->
-            <div class="calc-controls-wrap">
-              <div class="calc-presets-row">
-                <button type="button" class="tool-btn" onclick="window.syncRecipeFromBuku1(true)">Target Distribusi</button>
-                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(66, 32, 32)">Paket 130 Pcs</button>
-                <button type="button" class="tool-btn" onclick="window.applyRecipePreset(44, 44, 42)">Trio 130 Pcs</button>
-              </div>
-              <div class="calc-units-row">
-                <span class="calc-units-label">Mode Satuan:</span>
-                <div class="calc-units-pills">
-                  <button type="button" class="filter-pill active" id="btnUnitModeAll" onclick="window.setTakaranUnitMode('all')">Tbsp/Tsp + Gram</button>
-                  <button type="button" class="filter-pill" id="btnUnitModeSpoon" onclick="window.setTakaranUnitMode('spoon')">Fokus Tbsp/Tsp</button>
-                  <button type="button" class="filter-pill" id="btnUnitModeGram" onclick="window.setTakaranUnitMode('gram')">Fokus Gram</button>
-                </div>
-              </div>
-              <button type="button" class="tool-btn tool-btn-success btn-copy-takaran-full" id="btnCopyTakaran">
-                Salin Checklist Takaran Subuh
-              </button>
-            </div>
-
-            <!-- Sakelar Tab Varian Takaran Subuh (Mobile Optimized) -->
-            <div class="takaran-tabs-bar" id="takaranTabsBar"></div>
-
-            <!-- Dynamic Symmetrical Result Grid -->
-            <div class="takaran-result-grid" id="takaranResultContainer">
-              <!-- Rendered Dynamically via app.js -->
-            </div>
-
-            <!-- Dynamic HPP & Profitabilidad Audit Bar -->
-            <div id="hppAuditContainer" style="margin-top: 16px;">
-              <!-- Rendered Dynamically via app.js -->
-            </div>
-          </div>
-
           <!-- ZONE 2: SIMETRIS VISUAL RECIPE & SOP CARDS (DYNAMIC) -->
           <div style="margin-top: 24px;">
             <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-              <span>Bagian 2: Daftar Menu Jajanan & SOP Penggorengan</span>
+              <span>Daftar Menu Jajanan & SOP Penggorengan</span>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.restoreDefaultRecipes()">Pulihkan Menu Standar</button>
                 <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>

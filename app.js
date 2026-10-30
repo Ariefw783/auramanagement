@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.2';
+const APP_VERSION = 'v7.3.3';
 const APP_BUILD_TIME = '30/10/2026 08:55 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
@@ -2471,6 +2471,8 @@ window.updateBuku1RowPlan = function(idx, field, val) {
 };
 
 window.syncRecipeFromBuku1 = function(showNotice) {
+  const ubiInput = document.getElementById('calcUbiPcs');
+  if (!ubiInput) return;
   const rows = getActiveBuku1Rows();
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
@@ -2491,7 +2493,6 @@ window.syncRecipeFromBuku1 = function(showNotice) {
   const bonusUbi = Math.ceil(sumBonus / 2);
   const bonusSayur = sumBonus - bonusUbi;
 
-  const ubiInput = document.getElementById('calcUbiPcs');
   const sayurInput = document.getElementById('calcSayurPcs');
   const rotiInput = document.getElementById('calcRotiPcs');
 
@@ -3958,6 +3959,8 @@ function getStokGramByKey(keyword) {
 }
 
 window.calculateTakaran = function() {
+  const takaranContainer = document.getElementById('takaranResultContainer');
+  if (!takaranContainer) return;
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
     : DEFAULT_MASTER_RESEP;
@@ -6356,6 +6359,38 @@ let lhRencanaRows = [];
 let lhAmplop1Manual = null;
 let lhActiveDateCache = null;
 
+// ==============================================================
+// GLOBAL HELPER: AUTO-CLEAR & AUTO-SELECT ON ZERO FOCUS
+// ==============================================================
+window.handleNumFocus = function(el) {
+  if (!el) return;
+  if (el.value === '0' || el.value === 0) {
+    el.value = '';
+  }
+  try {
+    if (el.select) el.select();
+  } catch (e) {}
+};
+
+window.handleNumBlur = function(el, fallback = '0') {
+  if (!el) return;
+  if (el.value === '' || isNaN(Number(el.value))) {
+    el.value = fallback;
+  }
+};
+
+function getPreviousIsoDate(isoStr) {
+  if (!isoStr || typeof isoStr !== 'string') return '';
+  const parts = isoStr.split('-').map(Number);
+  if (parts.length !== 3) return '';
+  const d = new Date(parts[0], parts[1] - 1, parts[2]);
+  d.setDate(d.getDate() - 1);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return year + '-' + month + '-' + day;
+}
+
 function initLaporanHarianState() {
   if (lhActiveDateCache === activeDate && lhMitraRows.length > 0) {
     return; // Pertahankan baris yang sedang diedit jika tanggal tidak berubah
@@ -6367,19 +6402,41 @@ function initLaporanHarianState() {
   if (auraData.buku1History && auraData.buku1History[activeDate] && auraData.buku1History[activeDate].length > 0) {
     lhMitraRows = JSON.parse(JSON.stringify(auraData.buku1History[activeDate]));
   } else {
-    const baseRows = (typeof getActiveBuku1Rows === 'function') ? getActiveBuku1Rows() : [];
-    if (baseRows && baseRows.length > 0) {
-      lhMitraRows = JSON.parse(JSON.stringify(baseRows));
-    } else {
-      lhMitraRows = [
-        { no: 1, nama: 'Warung Sayur Tara', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
-        { no: 2, nama: 'Koperasi Sekolah', kirim: 20, retur: 0, laku: 20, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 16000 },
-        { no: 3, nama: 'Kantin Bu Martanto', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
-        { no: 4, nama: 'Kantin Bu Rusdi', kirim: 25, retur: 0, laku: 25, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 20000 },
-        { no: 5, nama: 'Kantin Bu Parman', kirim: 17, retur: 0, laku: 17, bonus: 2, hargaSetor: 800, marginMitra: 200, setor: 13600 },
-        { no: 6, nama: 'Warung Mbak Ragil', kirim: 8, retur: 0, laku: 8, bonus: 1, hargaSetor: 800, marginMitra: 200, setor: 6400 }
-      ];
-    }
+    // Otomatis tarik rencana produksi hari sebelumnya (Tanggal A -> Tanggal B)
+    const prevDate = getPreviousIsoDate(activeDate);
+    const prevRencana = (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[prevDate]) ? auraData.buku1RencanaHistory[prevDate] : null;
+
+    const basePartners = [
+      { no: 1, nama: 'Warung Sayur Tara', hargaSetor: 800, marginMitra: 200 },
+      { no: 2, nama: 'Koperasi Sekolah', hargaSetor: 800, marginMitra: 200 },
+      { no: 3, nama: 'Kantin Bu Martanto', hargaSetor: 800, marginMitra: 200 },
+      { no: 4, nama: 'Kantin Bu Rusdi', hargaSetor: 800, marginMitra: 200 },
+      { no: 5, nama: 'Kantin Bu Parman', hargaSetor: 800, marginMitra: 200 },
+      { no: 6, nama: 'Warung Mbak Ragil', hargaSetor: 800, marginMitra: 200 }
+    ];
+
+    lhMitraRows = basePartners.map(bp => {
+      let kirimPcs = 0;
+      if (prevRencana && prevRencana.length > 0) {
+        const pMatch = prevRencana.find(r => r.nama && r.nama.toLowerCase().trim() === bp.nama.toLowerCase().trim());
+        if (pMatch) {
+          kirimPcs = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+        }
+      }
+      const laku = kirimPcs;
+      const setor = laku * bp.hargaSetor;
+      return {
+        no: bp.no,
+        nama: bp.nama,
+        kirim: kirimPcs,
+        retur: 0,
+        laku: laku,
+        bonus: 0,
+        hargaSetor: bp.hargaSetor,
+        marginMitra: bp.marginMitra,
+        setor: setor
+      };
+    });
   }
 
   // 2. Inisialisasi Baris Belanja Pasar
@@ -6407,15 +6464,15 @@ function initLaporanHarianState() {
   if (auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[activeDate] && auraData.buku1RencanaHistory[activeDate].length > 0) {
     lhRencanaRows = JSON.parse(JSON.stringify(auraData.buku1RencanaHistory[activeDate]));
   } else {
-    // Alokasi default higienis & rapi per titik titipan (No 1 Tara, No 2 Koperasi) + Konsumsi Rumah
+    // Bersih tampilan default-nya 0 auto-clear (tanpa template jumlah)
     lhRencanaRows = [
-      { no: 1, nama: 'Warung Sayur Tara', ubi: 15, sosis: 5, roti: 5 },
-      { no: 2, nama: 'Koperasi Sekolah', ubi: 15, sosis: 5, roti: 5 },
+      { no: 1, nama: 'Warung Sayur Tara', ubi: 0, sosis: 0, roti: 0 },
+      { no: 2, nama: 'Koperasi Sekolah', ubi: 0, sosis: 0, roti: 0 },
       { no: 3, nama: 'Kantin Bu Martanto', ubi: 0, sosis: 0, roti: 0 },
       { no: 4, nama: 'Kantin Bu Rusdi', ubi: 0, sosis: 0, roti: 0 },
       { no: 5, nama: 'Kantin Bu Parman', ubi: 0, sosis: 0, roti: 0 },
       { no: 6, nama: 'Warung Mbak Ragil', ubi: 0, sosis: 0, roti: 0 },
-      { no: 7, nama: 'Bonus & Konsumsi Rumah', ubi: 3, sosis: 3, roti: 3, isSpecial: true }
+      { no: 7, nama: 'Bonus & Konsumsi Rumah', ubi: 0, sosis: 0, roti: 0, isSpecial: true }
     ];
   }
 }
@@ -6498,10 +6555,10 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" value="${row.nama || ''}" onchange="window.handleLhMitraInputChange(${idx}, 'nama', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" id="lhMitraTableKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
+          <input type="number" id="lhMitraTableKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" id="lhMitraTableReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
+          <input type="number" id="lhMitraTableReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
         </td>
         <td id="lhMitraTableLaku_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
           ${laku}
@@ -6512,7 +6569,7 @@ function renderLaporanHarianView() {
         <td style="text-align: right;">
           <div style="display: flex; align-items: center; justify-content: flex-end; gap: 4px;">
             <span style="font-size: 0.72rem; color: #64748B; font-family: var(--font-mono);">Rp</span>
-            <input type="number" id="lhMitraTableSetoranInput_${idx}" class="sheet-input price-input" style="width: 105px; text-align: right; color: #34D399; font-weight: 800;" value="${setoran}" min="0" step="500" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)" title="Ketik nominal setoran fisik aktual jika berbeda dari rumus">
+            <input type="number" id="lhMitraTableSetoranInput_${idx}" class="sheet-input price-input" style="width: 105px; text-align: right; color: #34D399; font-weight: 800;" value="${setoran}" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)" title="Ketik nominal setoran fisik aktual jika berbeda dari rumus">
           </div>
         </td>
         <td style="text-align: center;" class="no-print">
@@ -6563,7 +6620,7 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${row.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
         </td>
         <td>
-          <input type="number" id="lhBelanjaTableBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
+          <input type="number" id="lhBelanjaTableBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
         </td>
         <td style="text-align: center;" class="no-print">
           <button type="button" class="btn-del-row" onclick="window.deleteBelanjaRowLaporanHarian(${idx})" title="Hapus baris belanja ini">
@@ -6609,13 +6666,13 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" value="${r.nama || ''}" style="width: 100%; text-align: left; font-weight: 700; color: ${r.isSpecial ? '#FCD34D' : '#F1F5F9'};" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
+          <input type="number" id="lhRencanaTable_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
+          <input type="number" id="lhRencanaTable_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
         </td>
         <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
+          <input type="number" id="lhRencanaTable_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
         </td>
         <td id="lhRencanaTableTotal_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
           ${totalTitik} Pcs
@@ -6774,11 +6831,11 @@ function renderLhMitraCards(rows, totKirim, totRetur, totLaku, totMargin, totSet
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
           <div>
             <label style="font-size: 0.68rem; color: #38BDF8; font-weight: 700; display: block; margin-bottom: 4px;">KIRIM PAGI (PCS):</label>
-            <input type="number" id="lhMitraCardKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
+            <input type="number" id="lhMitraCardKirimInput_${idx}" class="sheet-input num-input" value="${kirim}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'kirim', this.value)">
           </div>
           <div>
             <label style="font-size: 0.68rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 4px;">RETUR SISA (PCS):</label>
-            <input type="number" id="lhMitraCardReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
+            <input type="number" id="lhMitraCardReturInput_${idx}" class="sheet-input num-input" value="${retur}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'retur', this.value)">
           </div>
         </div>
 
@@ -6789,7 +6846,7 @@ function renderLhMitraCards(rows, totKirim, totRetur, totLaku, totMargin, totSet
           </label>
           <div style="display: flex; align-items: center; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 6px; padding: 2px 8px;">
             <span style="font-size: 0.78rem; font-weight: 800; color: #94A3B8; font-family: var(--font-mono); margin-right: 4px;">Rp</span>
-            <input type="number" id="lhMitraCardSetorInput_${idx}" class="sheet-input price-input" style="border: none; background: transparent; color: #34D399; font-size: 1rem; font-weight: 900; text-align: right; width: 100%; padding: 4px 0;" value="${setoran}" min="0" step="500" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)">
+            <input type="number" id="lhMitraCardSetorInput_${idx}" class="sheet-input price-input" style="border: none; background: transparent; color: #34D399; font-size: 1rem; font-weight: 900; text-align: right; width: 100%; padding: 4px 0;" value="${setoran}" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhMitraInputChange(${idx}, 'setor', this.value)">
           </div>
         </div>
 
@@ -6945,15 +7002,15 @@ function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
           <div>
             <label style="font-size: 0.62rem; color: #818CF8; font-weight: 700; display: block; margin-bottom: 2px;">Ubi (Pcs):</label>
-            <input type="number" id="lhRencanaCard_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 800;" value="${ubi}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
+            <input type="number" id="lhRencanaCard_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 800;" value="${ubi}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
           </div>
           <div>
             <label style="font-size: 0.62rem; color: #F59E0B; font-weight: 700; display: block; margin-bottom: 2px;">Sosis (Pcs):</label>
-            <input type="number" id="lhRencanaCard_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 800;" value="${sosis}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
+            <input type="number" id="lhRencanaCard_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 800;" value="${sosis}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
           </div>
           <div>
             <label style="font-size: 0.62rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 2px;">Roti (Pcs):</label>
-            <input type="number" id="lhRencanaCard_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 800;" value="${roti}" min="0" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
+            <input type="number" id="lhRencanaCard_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 800;" value="${roti}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
           </div>
         </div>
 
@@ -7086,13 +7143,59 @@ window.updateLhTotals = function() {
   const cRotiSub = document.getElementById('cardRencanaRotiSub');
   const cGrand = document.getElementById('cardRencanaGrandTotal');
 
+  // Sinkronisasi estimasi takaran dengan Master Resep Formula
+  const activeMasterResep = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+
+  const rUbi = activeMasterResep.find(r => r.id === 'prod_ubi' || (r.shortName && r.shortName.toLowerCase().includes('ubi')));
+  const rSosis = activeMasterResep.find(r => r.id === 'prod_sayur' || (r.shortName && (r.shortName.toLowerCase().includes('sosis') || r.shortName.toLowerCase().includes('sayur'))));
+  const rRoti = activeMasterResep.find(r => r.id === 'prod_roti' || (r.shortName && r.shortName.toLowerCase().includes('roti')));
+
+  let ubiGramPerPcs = 13.2;
+  let ubiKulitPerPcs = 1;
+  if (rUbi && Array.isArray(rUbi.komposisi)) {
+    const kU = rUbi.komposisi.find(k => k.bahanKey === 'Ubi Ungu' || (k.nama && k.nama.toLowerCase().includes('ubi')));
+    if (kU && kU.qtyPerPcs) ubiGramPerPcs = Number(kU.qtyPerPcs);
+    const kK = rUbi.komposisi.find(k => k.bahanKey === 'Kulit Lumpia' || (k.nama && k.nama.toLowerCase().includes('kulit')));
+    if (kK && kK.qtyPerPcs) ubiKulitPerPcs = Number(kK.qtyPerPcs);
+  }
+
+  let sosisBtgPerPcs = 0.125; // 1 btg = 8 pcs
+  let sosisKulitPerPcs = 1;
+  if (rSosis && Array.isArray(rSosis.komposisi)) {
+    const kS = rSosis.komposisi.find(k => k.bahanKey === 'Sosis' || (k.nama && k.nama.toLowerCase().includes('sosis')));
+    if (kS && kS.qtyPerPcs) sosisBtgPerPcs = Number(kS.qtyPerPcs);
+    const kK = rSosis.komposisi.find(k => k.bahanKey === 'Kulit Lumpia' || (k.nama && k.nama.toLowerCase().includes('kulit')));
+    if (kK && kK.qtyPerPcs) sosisKulitPerPcs = Number(kK.qtyPerPcs);
+  }
+
+  let rotiLbrPerPcs = 0.5; // 1 lembar = 2 pcs
+  let chocoGramPerPcs = 2.5;
+  if (rRoti && Array.isArray(rRoti.komposisi)) {
+    const kR = rRoti.komposisi.find(k => k.bahanKey === 'Roti Tawar' || (k.nama && k.nama.toLowerCase().includes('roti')));
+    if (kR && kR.qtyPerPcs) rotiLbrPerPcs = Number(kR.qtyPerPcs);
+    const kC = rRoti.komposisi.find(k => k.bahanKey === 'Collins Cokelat' || (k.nama && (k.nama.toLowerCase().includes('collins') || k.nama.toLowerCase().includes('cokelat'))));
+    if (kC && kC.qtyPerPcs) chocoGramPerPcs = Number(kC.qtyPerPcs);
+  }
+
   if (cUbi) cUbi.innerText = totRencanaUbi + ' Pcs';
-  if (cUbiSub) cUbiSub.innerText = 'Est: ' + (totRencanaUbi * 12).toLocaleString('id-ID') + 'g pasta ubi + ' + totRencanaUbi + ' lbr kulit';
+  if (cUbiSub) cUbiSub.innerText = 'Est: ' + Math.round(totRencanaUbi * ubiGramPerPcs).toLocaleString('id-ID') + 'g pasta + ' + Math.ceil(totRencanaUbi * ubiKulitPerPcs) + ' kulit';
+
   if (cSosis) cSosis.innerText = totRencanaSosis + ' Pcs';
-  if (cSosisSub) cSosisSub.innerText = 'Est: ' + Math.ceil(totRencanaSosis / 8) + ' btg sosis + panir krispi';
+  if (cSosisSub) {
+    const btgNeeded = (totRencanaSosis * sosisBtgPerPcs).toFixed(1).replace('.0', '');
+    cSosisSub.innerText = 'Est: ' + btgNeeded + ' btg sosis + ' + Math.ceil(totRencanaSosis * sosisKulitPerPcs) + ' kulit';
+  }
+
   if (cRoti) cRoti.innerText = totRencanaRoti + ' Pcs';
-  if (cRotiSub) cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti / 2) + ' lbr roti kupas + filling';
+  if (cRotiSub) {
+    cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti * rotiLbrPerPcs) + ' lbr roti + ' + Math.round(totRencanaRoti * chocoGramPerPcs) + 'g collin';
+  }
+
   if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
+  const cGrandSub = document.getElementById('cardRencanaGrandTotalSub');
+  if (cGrandSub) cGrandSub.innerText = 'Siap edar & konsumsi dapur';
 
   // Arus Kas & Amplop
   const sisaKasFisik = totSetoran - totBelanja;
