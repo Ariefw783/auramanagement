@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.5';
-const APP_BUILD_TIME = '30/10/2026 08:55 WIB';
+const APP_VERSION = 'v7.3.6';
+const APP_BUILD_TIME = '30/10/2026 22:00 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v9';
 const FIRESTORE_META_PATH = 'meta_sync_v9';
 
@@ -132,8 +132,8 @@ function initFirestoreSync(retryCount = 0) {
           const cloudDoc = doc.data();
           if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
             const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            if (cloudDoc.lastUpdated >= localUpdated || !window._hasUnsavedLocalChanges) {
-              console.log('[Firestore] Network-First sukses memuat data server:', cloudDoc.lastUpdated);
+            if (cloudDoc.lastUpdated > localUpdated) {
+              console.log('[Firestore] Network-First sukses memuat data server yang lebih baru:', cloudDoc.lastUpdated);
               auraData = cloudDoc.payload;
               auraData._lastUpdated = cloudDoc.lastUpdated;
               localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
@@ -141,6 +141,9 @@ function initFirestoreSync(retryCount = 0) {
               const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
               setCloudStatusUI('connected', 'Online • ' + timeStr);
               return;
+            } else if (localUpdated > cloudDoc.lastUpdated) {
+              console.log('[Firestore] Data lokal lebih baru dari server, sinkronkan ke server...');
+              pushToFirestoreCloud(true).catch(() => {});
             }
           }
         }
@@ -166,8 +169,8 @@ function initFirestoreSync(retryCount = 0) {
         const cloudDoc = doc.data();
         if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
           const localUpdated = (auraData && auraData._lastUpdated) || 0;
-          if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
-            console.log('[Firestore] Realtime snapshot cloud diterima:', cloudDoc.lastUpdated);
+          if (cloudDoc.lastUpdated > localUpdated) {
+            console.log('[Firestore] Realtime snapshot cloud diterima (lebih baru):', cloudDoc.lastUpdated);
             auraData = cloudDoc.payload;
             auraData._lastUpdated = cloudDoc.lastUpdated;
             localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
@@ -232,7 +235,12 @@ function pushToFirestoreCloud(immediate = false) {
 
       setCloudStatusUI('syncing', 'Menyinkronkan...');
       const now = Date.now();
-      if (auraData) auraData._lastUpdated = now;
+      if (auraData) {
+        auraData._lastUpdated = now;
+        try {
+          localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+        } catch (e) {}
+      }
       const cleanPayload = JSON.parse(JSON.stringify(auraData));
 
       const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
@@ -737,7 +745,10 @@ if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === REAL_TODAY_ISO)) {
   const todayMeta = buildDayMetaFromIso(REAL_TODAY_ISO, OPERATIONAL_DAYS_CONFIG.length + 1);
   OPERATIONAL_DAYS_CONFIG.push(todayMeta);
 }
-let activeDate = REAL_TODAY_ISO;
+const savedActiveDate = localStorage.getItem('dapur_mom_fitri_active_date');
+let activeDate = (savedActiveDate && typeof savedActiveDate === 'string' && savedActiveDate.length >= 10)
+  ? savedActiveDate
+  : REAL_TODAY_ISO;
 const activeDayCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || OPERATIONAL_DAYS_CONFIG[0];
 let selectedBuku2Date = activeDayCfg.b2Key;
 let currentChartPeriod = 'mingguan';
@@ -1365,9 +1376,8 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     gajiBos = 0;
     status3Amplop = 'MENUNGGU_PENARIKAN_SORE';
   } else if (omzet > 0) {
-    // 5 POS KEUANGAN TERPADU
-    targetTabunganAwet = Math.round(laku * 200); // Pos 4: Modal Gas & Minyak (~Rp 200/pcs)
-    const estimasiBelanjaEsok = Math.max(20000, kirim * 450); // Pos 3: Modal Belanja Ulang Esok
+    // 5 POS KEUANGAN TERPADU (SISTEM ANGGARAN DAPUR 70% & HAK PEMILIK 30%)
+    targetTabunganAwet = Math.round(laku * 150); // Pos 4: Modal Gas & Minyak (~Rp 150/pcs)
 
     if (isDefisitBelanja) {
       tabunganBahanAwet = 0;
@@ -1375,19 +1385,12 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
       gajiBos = 0;
       status3Amplop = 'DEFISIT_KAS';
     } else {
-      const cadanganDapurIdeal = estimasiBelanjaEsok + targetTabunganAwet;
-      if (sisaKasSetelahBelanja >= cadanganDapurIdeal) {
-        alokasiBelanjaHarian = estimasiBelanjaEsok;
-        tabunganBahanAwet = targetTabunganAwet;
-        gajiBos = sisaKasSetelahBelanja - cadanganDapurIdeal;
-        status3Amplop = 'LENGKAP';
-      } else {
-        alokasiBelanjaHarian = Math.min(sisaKasSetelahBelanja, estimasiBelanjaEsok);
-        const sisaSisa = Math.max(0, sisaKasSetelahBelanja - alokasiBelanjaHarian);
-        tabunganBahanAwet = Math.min(sisaSisa, targetTabunganAwet);
-        gajiBos = Math.max(0, sisaKasSetelahBelanja - alokasiBelanjaHarian - tabunganBahanAwet);
-        status3Amplop = 'TABUNGAN_PARSIAL';
-      }
+      tabunganBahanAwet = Math.min(sisaKasSetelahBelanja, targetTabunganAwet);
+      const targetLaba30 = Math.round(omzet * 0.30);
+      const sisaUntukLaba = Math.max(0, sisaKasSetelahBelanja - tabunganBahanAwet);
+      gajiBos = Math.min(targetLaba30, sisaUntukLaba);
+      alokasiBelanjaHarian = Math.max(0, sisaKasSetelahBelanja - tabunganBahanAwet - gajiBos);
+      status3Amplop = 'LENGKAP';
     }
   } else {
     alokasiBelanjaHarian = 0;
@@ -1735,6 +1738,9 @@ window.switchDate = function(dateStr) {
     lhActiveDateCache = null;
   }
   activeDate = dateStr;
+  try {
+    localStorage.setItem('dapur_mom_fitri_active_date', activeDate);
+  } catch (e) {}
 
   if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === activeDate)) {
     const meta = buildDayMetaFromIso(activeDate, OPERATIONAL_DAYS_CONFIG.length + 1);
@@ -6422,12 +6428,34 @@ function triggerLhDraftAutoSave() {
     if (!auraData) return;
     if (!auraData.buku1History) auraData.buku1History = {};
     if (!auraData.buku1RencanaHistory) auraData.buku1RencanaHistory = {};
-    // Simpan draf ke memori lokal tanpa memicu render ulang yang mengganggu kursor
+    // Simpan draf konsinyasi & rencana
     auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
     auraData.buku1RencanaHistory[activeDate] = JSON.parse(JSON.stringify(lhRencanaRows));
+
+    // Simpan draf belanja pasar harian
+    const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
+    const currentB2Key = curCfg.b2Key;
+    const cleanBelanja = lhBelanjaRows
+      .filter(r => (r.nama && r.nama.trim().length > 0) || (r.biaya && Number(r.biaya) > 0))
+      .map((r, i) => ({
+        id: 'b2_lh_' + Date.now() + '_' + i,
+        tgl: currentB2Key,
+        isoDate: activeDate,
+        nama: (r.nama || 'Belanja Dapur').trim(),
+        kategori: 'Bahan Baku',
+        qty: r.qty || '1 unit',
+        biaya: Number(r.biaya) || 0,
+        paraf: r.toko || 'Pasar Subuh'
+      }));
+
+    auraData.buku2Belanja = (auraData.buku2Belanja || [])
+      .filter(b => b.tgl !== currentB2Key && b.isoDate !== activeDate)
+      .concat(cleanBelanja);
+
     auraData._lastUpdated = Date.now();
     try {
       localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+      localStorage.setItem('dapur_mom_fitri_active_date', activeDate);
     } catch (e) {}
   }, 400);
 }
@@ -6787,58 +6815,9 @@ function renderLaporanHarianView() {
   if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
 
   // ----------------------------------------------------------------
-  // RENDER BLOK 4: PEMBAGIAN OMZET & ARUS KAS (SISTEM 2 AMPLOP)
+  // REAKTIF: SINKRONKAN 5 POS KEUANGAN & KARTU KPI DI KOP ATAS
   // ----------------------------------------------------------------
-  const sisaKasFisik = totSetoran - totBelanja;
-
-  const elCfOmzet = document.getElementById('lhCfOmzet');
-  const elCfBelanja = document.getElementById('lhCfBelanja');
-  const elCfSisaKas = document.getElementById('lhCfSisaKas');
-
-  if (elCfOmzet) elCfOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
-  if (elCfBelanja) elCfBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
-  if (elCfSisaKas) {
-    elCfSisaKas.innerText = (sisaKasFisik < 0 ? '-Rp ' : 'Rp ') + Math.abs(sisaKasFisik).toLocaleString('id-ID');
-    elCfSisaKas.style.color = sisaKasFisik < 0 ? '#FB7185' : '#FFFFFF';
-  }
-
-  // Hitung Alokasi Amplop 1 (Modal Belanja Esok) & Amplop 2 (Gaji Pemilik)
-  let amplop1Val = 0;
-  if (lhAmplop1Manual !== null) {
-    amplop1Val = Number(lhAmplop1Manual) || 0;
-  } else {
-    const estimasiBelanjaEsok = Math.max(20000, totRencanaKirim * 500);
-    if (sisaKasFisik > 0) {
-      amplop1Val = Math.min(sisaKasFisik, estimasiBelanjaEsok);
-    } else {
-      amplop1Val = 0;
-    }
-  }
-
-  const amplop2Val = Math.max(0, sisaKasFisik - amplop1Val);
-
-  const amplop1Input = document.getElementById('lhAmplop1Input');
-  const amplop2Display = document.getElementById('lhAmplop2Display');
-
-  if (amplop1Input && document.activeElement !== amplop1Input) {
-    amplop1Input.value = amplop1Val;
-  }
-  if (amplop2Display) {
-    amplop2Display.value = amplop2Val.toLocaleString('id-ID');
-  }
-
-  // ----------------------------------------------------------------
-  // UPDATE 4 KARTU KPI UTAMA DI KOP ATAS
-  // ----------------------------------------------------------------
-  const kpiOmzet = document.getElementById('lhKpiOmzet');
-  const kpiBelanja = document.getElementById('lhKpiBelanja');
-  const kpiKasEsok = document.getElementById('lhKpiKasEsok');
-  const kpiLaba = document.getElementById('lhKpiLabaBersih');
-
-  if (kpiOmzet) kpiOmzet.innerText = 'Rp ' + totSetoran.toLocaleString('id-ID');
-  if (kpiBelanja) kpiBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
-  if (kpiKasEsok) kpiKasEsok.innerText = 'Rp ' + amplop1Val.toLocaleString('id-ID');
-  if (kpiLaba) kpiLaba.innerText = 'Rp ' + amplop2Val.toLocaleString('id-ID');
+  window.updateLhTotals();
 }
 
 // ==============================================================
@@ -7283,31 +7262,36 @@ window.updateLhTotals = function() {
     elCfSisaKas.style.color = sisaKasFisik < 0 ? '#FB7185' : '#FFFFFF';
   }
 
-  // 1. Pos 3: Modal Belanja Ulang Esok
-  let modalBelanjaUlang = 0;
-  if (lhAmplop1Manual !== null) {
-    modalBelanjaUlang = Number(lhAmplop1Manual) || 0;
-  } else {
-    const estimasiBelanjaEsok = Math.max(20000, grandTotal * 450);
-    if (sisaKasFisik > 0) {
-      modalBelanjaUlang = Math.min(sisaKasFisik, estimasiBelanjaEsok);
-    } else {
-      modalBelanjaUlang = 0;
-    }
-  }
-
-  // 2. Pos 4: Modal Gas & Minyak (Cadangan Tabung LPG & Jeriken Minyak ~Rp 200/pcs laku)
+  // ----------------------------------------------------------------
+  // ARUS KAS & 5 POS KEUANGAN TERPADU (SISTEM ANGGARAN DAPUR 70% & HAK PEMILIK 30%)
+  // ----------------------------------------------------------------
+  // 1. Pos 4: Modal Gas & Minyak (~Rp 150/pcs laku terjual)
   let modalGasMinyak = 0;
   if (lhAmplopGasManual !== null) {
     modalGasMinyak = Number(lhAmplopGasManual) || 0;
-  } else {
-    const targetGasMinyak = Math.round(totLaku * 200);
-    const sisaSetelahBelanjaUlang = Math.max(0, sisaKasFisik - modalBelanjaUlang);
-    modalGasMinyak = Math.min(sisaSetelahBelanjaUlang, targetGasMinyak);
+  } else if (totSetoran > 0) {
+    const targetGasMinyak = Math.round(totLaku * 150);
+    modalGasMinyak = Math.min(Math.max(0, sisaKasFisik), targetGasMinyak);
   }
 
-  // 3. Pos 5: Laba Bersih Pemilik (Murni hak tarik pemilik)
-  const labaBersihPemilik = Math.max(0, sisaKasFisik - modalBelanjaUlang - modalGasMinyak);
+  // 2. Pos 5: Laba Bersih Pemilik (Hak Pemilik 30% dari Omzet, Siap Tarik Jumat)
+  // Dilindungi agar Belanja Harian tidak langsung menggerus hak laba bersih pemilik
+  let labaBersihPemilik = 0;
+  if (totSetoran > 0) {
+    const targetLaba30 = Math.round(totSetoran * 0.30);
+    const sisaKasSetelahGas = Math.max(0, sisaKasFisik - modalGasMinyak);
+    labaBersihPemilik = Math.min(targetLaba30, sisaKasSetelahGas);
+  }
+
+  // 3. Pos 3: Modal Belanja Ulang Esok (Sisa Kas Dapur untuk Belanja Esok)
+  // Porsi Operasional Dapur (~70% Omzet) setelah dikurangi Belanja Riil Hari Ini & Gas
+  // Setiap Belanja Hari Ini diinput bertambah, Pos 3 inilah yang langsung terpakai/berkurang!
+  let modalBelanjaUlang = 0;
+  if (lhAmplop1Manual !== null) {
+    modalBelanjaUlang = Number(lhAmplop1Manual) || 0;
+  } else if (totSetoran > 0) {
+    modalBelanjaUlang = Math.max(0, sisaKasFisik - modalGasMinyak - labaBersihPemilik);
+  }
 
   const amplop1Input = document.getElementById('lhAmplop1Input');
   const amplopGasInput = document.getElementById('lhAmplopGasInput');
@@ -7644,6 +7628,9 @@ window.saveLaporanHarianMaster = function() {
   }
 
   // 4. Persistensi Lokal & Sinkron Cloud
+  try {
+    localStorage.setItem('dapur_mom_fitri_active_date', activeDate);
+  } catch (e) {}
   saveLocal();
   if (typeof pushToFirestoreCloud === 'function') {
     pushToFirestoreCloud(true).catch(() => {});
