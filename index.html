@@ -177,7 +177,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.8</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.9</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -517,22 +517,27 @@
               </div>
             </div>
 
-            <!-- Kotak Ringkasan Akumulasi Tarik Jumat -->
+            <!-- Kotak Ringkasan Laba Bersih & Aksi Tarik Laba (Prive) -->
             <div style="margin-top: 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
               <div style="display: flex; align-items: center; gap: 14px;">
                 <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
                   💰
                 </div>
                 <div>
-                  <h4 style="margin: 0; color: #FFFFFF; font-size: 0.95rem; font-weight: 700;">Akumulasi Laba Bersih Siap Tarik Jumat</h4>
+                  <h4 style="margin: 0; color: #FFFFFF; font-size: 0.95rem; font-weight: 700;">Laba Bersih &amp; Penarikan Pemilik (Prive)</h4>
                   <p style="margin: 4px 0 0; color: #94A3B8; font-size: 0.8rem; line-height: 1.4;">
-                    Seluruh belanja pasar (bahan basah, kulit, bumbu, telur, hingga gas &amp; minyak) langsung dikurangkan dari omzet. Sisa hasil usaha diakumulasikan setiap hari dan dapat dicairkan setiap Jumat sore.
+                    Laba Bersih = Omzet - Belanja. Penarikan kas ke rekening/dompet pribadi wajib dicatat agar saldo kas terpotong nyata dan tidak menumpuk semu.
                   </p>
                 </div>
               </div>
-              <div style="text-align: right; min-width: 160px;">
-                <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Laba Bersih Hari Ini</span>
-                <strong id="lhBlok4LabaDisplay" style="display: block; font-size: 1.4rem; color: #34D399; font-family: var(--font-mono); font-weight: 900;">Rp 0</strong>
+              <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <div style="text-align: right; min-width: 140px;">
+                  <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sisa Laba Siap Tarik</span>
+                  <strong id="lhBlok4LabaDisplay" style="display: block; font-size: 1.35rem; color: #34D399; font-family: var(--font-mono); font-weight: 900;">Rp 0</strong>
+                </div>
+                <button type="button" class="tool-btn tool-btn-success no-print" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; padding: 9px 15px; font-size: 0.82rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" title="Catat penarikan laba kas dapur ke kantong pribadi">
+                  + Catat Tarik Laba
+                </button>
               </div>
             </div>
           </div>
@@ -1107,6 +1112,7 @@
               <div class="slate-card-subtitle">Rekapitulasi omzet konsinyasi, seluruh pengeluaran belanja bahan, dan akumulasi laba bersih siap tarik.</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="tool-btn tool-btn-success" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; background: rgba(52, 211, 153, 0.2); border-color: #34D399; color: #34D399;">+ Catat Tarik Laba (Prive)</button>
               <button type="button" class="tool-btn" onclick="window.printBuku3()" title="Cetak laporan arus kas dan laba bersih ke format A4">Cetak Laporan</button>
             </div>
           </div>
@@ -1115,14 +1121,14 @@
           <div class="bep-card-wrap" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <strong style="color: #FFFFFF; font-size: 0.95rem;">Rekapitulasi Arus Kas &amp; Saldo Laba Pemilik</strong>
-                <div style="font-size: 0.75rem; color: #94A3B8;">Rumus: Laba Bersih = Omzet Kotor - Total Belanja (Mencakup seluruh bahan termasuk minyak &amp; gas).</div>
+                <strong style="color: #FFFFFF; font-size: 0.95rem;">Rekapitulasi Arus Kas &amp; Saldo Laba Bersih Pemilik</strong>
+                <div style="font-size: 0.75rem; color: #94A3B8;">Laba Bersih = Omzet - Belanja. Penarikan keuntungan ke rekening/dompet pribadi (Prive) otomatis mengurangi saldo kas.</div>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-                <button type="button" class="tool-btn" id="btnTarikGajiJumat" onclick="window.tarikGajiJumatSore()" style="display: none; padding: 5px 12px; font-size: 0.75rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">Tarik Gaji Jumat Sore</button>
+                <button type="button" class="tool-btn" id="btnTarikGajiJumat" onclick="window.openPenarikanLabaModal()" style="display: none; padding: 5px 12px; font-size: 0.75rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">+ Catat Tarik Laba</button>
               </div>
             </div>
-            <div class="bep-stats-grid">
+            <div class="bep-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));">
               <div class="bep-stat-pill">
                 <span>1. TOTAL OMZET TERVERIFIKASI</span>
                 <strong style="color: #38BDF8;" id="b3RekapOmzet">Rp 0</strong>
@@ -1132,8 +1138,16 @@
                 <strong style="color: #FB7185;" id="b3RekapBelanja">Rp 0</strong>
               </div>
               <div class="bep-stat-pill">
-                <span>3. AKUMULASI LABA BERSIH (SIAP TARIK JUMAT)</span>
-                <strong style="color: #34D399;" id="bepAccumulated">Rp 0</strong>
+                <span>3. TOTAL LABA DIHASILKAN</span>
+                <strong style="color: #FBBF24;" id="b3RekapLabaKotor">Rp 0</strong>
+              </div>
+              <div class="bep-stat-pill">
+                <span>4. SUDAH DITARIK (PRIVE)</span>
+                <strong style="color: #A855F7;" id="b3RekapPrive">Rp 0</strong>
+              </div>
+              <div class="bep-stat-pill" style="border-color: rgba(52, 211, 153, 0.6); background: rgba(52, 211, 153, 0.08);">
+                <span>5. SISA SALDO SIAP TARIK</span>
+                <strong style="color: #34D399; font-size: 1.15rem;" id="bepAccumulated">Rp 0</strong>
               </div>
             </div>
           </div>
@@ -1159,6 +1173,43 @@
 
           <!-- TAMPILAN KARTU ARUS KAS DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
           <div id="buku3CardsContainer" class="collapsible-cards-container"></div>
+
+          <!-- 4. RIWAYAT MUTASI PENARIKAN LABA BERSIH (BUKU PRIVE) -->
+          <div class="sheet-section-card" style="margin-top: 18px; break-inside: avoid; page-break-inside: avoid;">
+            <div class="sheet-section-header">
+              <div class="sheet-section-title-wrap">
+                <span class="sheet-section-number" style="background: #A855F7; color: #FFF;">P</span>
+                <div>
+                  <h3 class="sheet-section-title">Riwayat Mutasi Penarikan Laba Pemilik (Buku Prive)</h3>
+                  <p class="sheet-section-desc">Pencatatan resmi setiap penarikan keuntungan dapur ke dompet/rekening pribadi. Saldo kas langsung terpotong akurat.</p>
+                </div>
+              </div>
+              <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn tool-btn-success" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; background: rgba(168, 85, 247, 0.2); border-color: #A855F7; color: #C084FC;">+ Catat Tarik Laba</button>
+              </div>
+            </div>
+
+            <div class="table-responsive-wrapper">
+              <table class="slate-table" id="penarikanLabaTable">
+                <thead>
+                  <tr>
+                    <th style="width: 44px; text-align: center;">No</th>
+                    <th style="width: 120px;">Tanggal</th>
+                    <th style="min-width: 140px; text-align: right;">Nominal Ditarik</th>
+                    <th style="min-width: 200px;">Keterangan / Keperluan</th>
+                    <th style="min-width: 130px;">Penerima</th>
+                    <th style="width: 70px; text-align: center;" class="no-print">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="penarikanLabaTableBody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+                <tfoot id="penarikanLabaTableFoot">
+                  <!-- Total ditarik -->
+                </tfoot>
+              </table>
+            </div>
+          </div>
 
           <!-- LEMBAR TANDA TANGAN RESMI CETAK BUKU 3 (HANYA MUNCUL SAAT PRINT) -->
           <div class="b3-print-signatures" style="display: none; margin-top: 22px; padding-top: 14px; border-top: 1px dashed #666; break-inside: avoid; page-break-inside: avoid;">

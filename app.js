@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.8';
-const APP_BUILD_TIME = '31/10/2026 16:00 WIB';
+const APP_VERSION = 'v7.3.9';
+const APP_BUILD_TIME = '31/10/2026 16:45 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -721,6 +721,8 @@ const INITIAL_AURA_DATA = {
   masterBahan: INITIAL_MASTER_BAHAN,
   masterResep: DEFAULT_MASTER_RESEP,
 
+  penarikanLaba: [],
+
   buku2Belanja: [],
   buku2Committed: [],
   buku2SavedDates: {},
@@ -758,6 +760,7 @@ const INITIAL_AURA_DATA = {
 };
 
 let auraData = JSON.parse(localStorage.getItem(AURA_DB_KEY)) || INITIAL_AURA_DATA;
+if (!auraData.penarikanLaba) auraData.penarikanLaba = [];
 // Inisialisasi Tanggal Realtime Kalender Sistem
 if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === REAL_TODAY_ISO)) {
   const todayMeta = buildDayMetaFromIso(REAL_TODAY_ISO, OPERATIONAL_DAYS_CONFIG.length + 1);
@@ -2024,7 +2027,10 @@ window.savePenjualanHariIni = async function() {
 };
 window.savePenarikanSore = window.savePenjualanHariIni;
 
-window.tarikGajiJumatSore = async function() {
+window.tarikGajiJumatSore = function() {
+  window.openPenarikanLabaModal();
+};
+window._legacyTarikGajiJumatSore = async function() {
   const allDays = getAllDaysAccounting();
   const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
   const totalGajiBos = verifiedDays.reduce((sum, d) => sum + (d.gajiBos || 0), 0);
@@ -6064,6 +6070,221 @@ function renderKuitansiView() {
   }
 }
 
+
+// ==============================================================
+// SISTEM PENARIKAN LABA BERSIH PEMILIK (MODUL PRIVE RESMI)
+// ==============================================================
+window.openPenarikanLabaModal = function() {
+  const overlay = document.getElementById('appModalOverlay');
+  const icon = document.getElementById('appModalIcon');
+  const titleEl = document.getElementById('appModalTitle');
+  const body = document.getElementById('appModalBody');
+  const footer = document.getElementById('appModalFooter');
+
+  if (!overlay) return;
+  if (icon) {
+    icon.innerHTML = '<span style="font-size: 1.3rem;">💰</span>';
+    icon.style.display = 'inline-flex';
+  }
+  if (titleEl) titleEl.innerText = 'Catat Penarikan Laba Pemilik (Prive)';
+
+  // Hitung total laba dihasilkan dan total ditarik
+  const allDays = getAllDaysAccounting();
+  const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const totOmzet = verifiedDays.reduce((sum, d) => sum + (d.omzet || 0), 0);
+  const totBelanja = verifiedDays.reduce((sum, d) => sum + (d.belanja || 0), 0);
+  const totLabaBersih = totOmzet - totBelanja;
+
+  const totalDitarik = (auraData.penarikanLaba || []).reduce((sum, p) => sum + (Number(p.nominal) || 0), 0);
+  const sisaTersedia = Math.max(0, totLabaBersih - totalDitarik);
+
+  const defaultDate = activeDate || getRealTodayIso();
+
+  body.innerHTML = 
+    '<form id="formPenarikanLaba" onsubmit="window.submitPenarikanLaba(event)">' +
+      '<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 14px;">' +
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">' +
+          '<span style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">1. Total Laba Bersih Dihasilkan:</span>' +
+          '<strong style="font-size: 0.95rem; color: #FBBF24; font-family: var(--font-mono);">Rp ' + totLabaBersih.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
+          '<span style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">2. Sudah Ditarik Sebelumnya (Prive):</span>' +
+          '<span style="font-size: 0.95rem; color: #A855F7; font-weight: 700; font-family: var(--font-mono);">-Rp ' + totalDitarik.toLocaleString('id-ID') + '</span>' +
+        '</div>' +
+        '<div style="border-top: 1px dashed rgba(52, 211, 153, 0.3); padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">' +
+          '<span style="font-size: 0.82rem; color: #FFFFFF; font-weight: 800;">3. SISA SALDO SIAP DITARIK:</span>' +
+          '<strong style="font-size: 1.15rem; color: #34D399; font-weight: 900; font-family: var(--font-mono);">Rp ' + sisaTersedia.toLocaleString('id-ID') + '</strong>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom: 12px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Tanggal Penarikan</label>' +
+        '<input type="date" id="priveInputTanggal" class="form-control-slate" value="' + defaultDate + '" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+      '</div>' +
+
+      '<div style="margin-bottom: 12px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Nominal Penarikan (Rp)</label>' +
+        '<input type="number" id="priveInputNominal" class="form-control-slate" placeholder="0" min="1000" step="1000" value="' + (sisaTersedia > 0 ? sisaTersedia : '') + '" required style="width: 100%; padding: 8px 12px; font-size: 1.1rem; font-weight: 800; color: #34D399; background: #0F172A; border: 1px solid var(--card-border); border-radius: 6px; font-family: var(--font-mono);">' +
+        '<div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">' +
+          '<button type="button" class="tool-btn" onclick="document.getElementById(\'priveInputNominal\').value = ' + sisaTersedia + '" style="font-size: 0.72rem; padding: 3px 8px; font-weight: 700;">Tarik Semua (Rp ' + sisaTersedia.toLocaleString('id-ID') + ')</button>' +
+          (sisaTersedia >= 50000 ? '<button type="button" class="tool-btn" onclick="document.getElementById(\'priveInputNominal\').value = 50000" style="font-size: 0.72rem; padding: 3px 8px;">Rp 50.000</button>' : '') +
+          (sisaTersedia >= 100000 ? '<button type="button" class="tool-btn" onclick="document.getElementById(\'priveInputNominal\').value = 100000" style="font-size: 0.72rem; padding: 3px 8px;">Rp 100.000</button>' : '') +
+          (sisaTersedia >= 200000 ? '<button type="button" class="tool-btn" onclick="document.getElementById(\'priveInputNominal\').value = 200000" style="font-size: 0.72rem; padding: 3px 8px;">Rp 200.000</button>' : '') +
+        '</div>' +
+      '</div>' +
+
+      '<div style="margin-bottom: 12px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Keterangan / Keperluan Penarikan</label>' +
+        '<input type="text" id="priveInputKet" class="form-control-slate" placeholder="Contoh: Tarik Laba Mingguan ke Rekening Pribadi" value="Tarik Laba Bersih Mingguan" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+      '</div>' +
+
+      '<div style="margin-bottom: 12px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Nama Penerima</label>' +
+        '<input type="text" id="priveInputPenerima" class="form-control-slate" value="Fitri (Pemilik)" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+      '</div>' +
+    '</form>';
+
+  footer.innerHTML = 
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()">Batal</button>' +
+    '<button type="button" class="tool-btn tool-btn-success" onclick="window.submitPenarikanLaba()" style="font-weight: 800; min-width: 140px;">Simpan Penarikan</button>';
+
+  overlay.style.display = 'flex';
+};
+
+window.submitPenarikanLaba = async function(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const tgl = document.getElementById('priveInputTanggal')?.value || activeDate;
+  const nominal = Number(document.getElementById('priveInputNominal')?.value) || 0;
+  const ket = document.getElementById('priveInputKet')?.value || 'Tarik Laba Bersih';
+  const penerima = document.getElementById('priveInputPenerima')?.value || 'Fitri (Pemilik)';
+
+  if (nominal <= 0) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal('Nominal Tidak Valid', 'Masukkan nominal penarikan laba lebih dari Rp 0.');
+    }
+    return;
+  }
+
+  // Hitung ulang saldo laba tersedia secara mutlak
+  const allDays = getAllDaysAccounting();
+  const verifiedDays = allDays.filter(d => !d.isTarget || d.isSavedDay || (d.omzet > 0 || d.belanja > 0));
+  const totOmzet = verifiedDays.reduce((sum, d) => sum + (d.omzet || 0), 0);
+  const totBelanja = verifiedDays.reduce((sum, d) => sum + (d.belanja || 0), 0);
+  const totLabaBersih = totOmzet - totBelanja;
+  const totalDitarik = (auraData.penarikanLaba || []).reduce((sum, p) => sum + (Number(p.nominal) || 0), 0);
+  const sisaTersedia = totLabaBersih - totalDitarik;
+
+  if (nominal > sisaTersedia) {
+    if (typeof window.showAlertModal === 'function') {
+      window.showAlertModal(
+        'Saldo Tidak Mencukupi',
+        'Nominal penarikan (<strong>Rp ' + nominal.toLocaleString('id-ID') + '</strong>) melebihi sisa laba bersih yang tersedia (<strong>Rp ' + Math.max(0, sisaTersedia).toLocaleString('id-ID') + '</strong>).'
+      );
+    }
+    return;
+  }
+
+  if (!auraData.penarikanLaba) auraData.penarikanLaba = [];
+  const record = {
+    id: 'prive_' + Date.now(),
+    isoDate: tgl,
+    nominal: nominal,
+    keterangan: ket.trim(),
+    penerima: penerima.trim(),
+    createdAt: Date.now()
+  };
+
+  auraData.penarikanLaba.push(record);
+  if (auraData) auraData._lastUpdated = Date.now();
+  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  if (typeof pushToFirestoreCloud === 'function') {
+    pushToFirestoreCloud(true).catch(err => console.warn('Sync prive:', err));
+  }
+
+  window.closeAppModal();
+  renderAllViews();
+
+  if (typeof window.showSuccessModal === 'function') {
+    window.showSuccessModal(
+      'Penarikan Laba Berhasil Dicatat',
+      'Penarikan laba bersih sebesar <strong>Rp ' + nominal.toLocaleString('id-ID') + '</strong> berhasil dicatat pada tanggal <strong>' + tgl + '</strong>.<br><br>Saldo laba bersih dan kas mengendap otomatis telah terpotong secara riil.'
+    );
+  }
+};
+
+window.deletePenarikanLaba = function(id) {
+  if (!auraData.penarikanLaba) return;
+  const item = auraData.penarikanLaba.find(p => p.id === id);
+  if (!item) return;
+
+  if (typeof window.showConfirmModal === 'function') {
+    window.showConfirmModal(
+      'Hapus Catatan Penarikan Laba',
+      'Hapus catatan penarikan laba sebesar <strong>Rp ' + (Number(item.nominal) || 0).toLocaleString('id-ID') + '</strong> pada tanggal <strong>' + item.isoDate + '</strong>?<br><br>Saldo kas dan saldo laba akan otomatis dikembalikan (bertambah kembali).',
+      async () => {
+        auraData.penarikanLaba = auraData.penarikanLaba.filter(p => p.id !== id);
+        if (auraData) auraData._lastUpdated = Date.now();
+        localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+        if (typeof pushToFirestoreCloud === 'function') {
+          pushToFirestoreCloud(true).catch(err => console.warn('Sync prive delete:', err));
+        }
+        renderAllViews();
+        if (typeof window.showSuccessModal === 'function') {
+          window.showSuccessModal('Penarikan Dibatalkan', 'Catatan penarikan laba berhasil dihapus dan saldo kas telah dipulihkan.');
+        }
+      }
+    );
+  }
+};
+
+function renderPenarikanLabaTable() {
+  const tbody = document.getElementById('penarikanLabaTableBody');
+  const tfoot = document.getElementById('penarikanLabaTableFoot');
+  if (!tbody) return;
+
+  const list = auraData.penarikanLaba || [];
+  tbody.innerHTML = '';
+
+  if (list.length === 0) {
+    tbody.innerHTML = 
+      '<tr>' +
+        '<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px 10px; font-style: italic;">' +
+          'Belum ada riwayat penarikan laba (prive). Klik tombol "+ Catat Tarik Laba" untuk mencatat penarikan kas ke rekening/dompet pribadi.' +
+        '</td>' +
+      '</tr>';
+    if (tfoot) tfoot.innerHTML = '';
+    return;
+  }
+
+  const sorted = [...list].sort((a, b) => (b.isoDate || '').localeCompare(a.isoDate || '') || (b.createdAt || 0) - (a.createdAt || 0));
+  let totalDitarik = 0;
+
+  sorted.forEach((p, idx) => {
+    const nom = Number(p.nominal) || 0;
+    totalDitarik += nom;
+    const tr = document.createElement('tr');
+    tr.innerHTML = 
+      '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
+      '<td style="font-family: var(--font-mono); font-weight: 700;">' + (p.isoDate || '-') + '</td>' +
+      '<td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: #A855F7;">Rp ' + nom.toLocaleString('id-ID') + '</td>' +
+      '<td>' + (p.keterangan || '-') + '</td>' +
+      '<td><span class="mini-tag" style="background: rgba(168, 85, 247, 0.15); color: #C084FC;">' + (p.penerima || 'Pemilik') + '</span></td>' +
+      '<td style="text-align: center;" class="no-print">' +
+        '<button type="button" class="btn-del-mini" onclick="window.deletePenarikanLaba(\'' + p.id + '\')" title="Hapus catatan penarikan laba ini dan pulihkan saldo">&times;</button>' +
+      '</td>';
+    tbody.appendChild(tr);
+  });
+
+  if (tfoot) {
+    tfoot.innerHTML = 
+      '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
+        '<td colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 10px 12px;">TOTAL SUDAH DITARIK (PRIVE):</td>' +
+        '<td style="font-family: var(--font-mono); color: #A855F7; font-weight: 900; font-size: 1rem; text-align: right; padding: 10px 12px;">Rp ' + totalDitarik.toLocaleString('id-ID') + '</td>' +
+        '<td colspan="3" style="font-size: 0.75rem; color: #94A3B8; padding: 10px 12px;">Otomatis mengurangi sisa saldo laba siap tarik</td>' +
+      '</tr>';
+  }
+}
+
 function renderBuku3View() {
   const b3Body = document.getElementById('buku3TableBody');
   const b3Foot = document.getElementById('buku3TableFoot');
@@ -6150,17 +6371,28 @@ function renderBuku3View() {
 
     renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalBelanjaAll);
 
+    const totalDitarikAll = (auraData.penarikanLaba || []).reduce((sum, p) => sum + (Number(p.nominal) || 0), 0);
+    const sisaLabaTersedia = totalLabaBersihAll - totalDitarikAll;
+    const sisaLabaColor = sisaLabaTersedia <= 0 ? '#94A3B8' : '#34D399';
+    const sisaLabaFmt = (sisaLabaTersedia < 0 ? '-Rp ' : 'Rp ') + Math.abs(sisaLabaTersedia).toLocaleString('id-ID');
+
     const b3OmzetEl = document.getElementById('b3RekapOmzet');
     const b3BelanjaEl = document.getElementById('b3RekapBelanja');
+    const b3LabaKotorEl = document.getElementById('b3RekapLabaKotor');
+    const b3PriveEl = document.getElementById('b3RekapPrive');
     const accEl = document.getElementById('bepAccumulated');
     const btnTarikGajiEl = document.getElementById('btnTarikGajiJumat');
 
     if (b3OmzetEl) b3OmzetEl.innerText = 'Rp ' + totalSetorAll.toLocaleString('id-ID');
     if (b3BelanjaEl) b3BelanjaEl.innerText = 'Rp ' + totalBelanjaAll.toLocaleString('id-ID');
+    if (b3LabaKotorEl) b3LabaKotorEl.innerText = 'Rp ' + Math.max(0, totalLabaBersihAll).toLocaleString('id-ID');
+    if (b3PriveEl) b3PriveEl.innerText = '-Rp ' + totalDitarikAll.toLocaleString('id-ID');
     if (accEl) {
-      accEl.innerText = totalLabaFmt;
-      accEl.style.color = totalLabaColor;
+      accEl.innerText = sisaLabaFmt;
+      accEl.style.color = sisaLabaColor;
     }
+
+    renderPenarikanLabaTable();
 
     // Tombol Tarik Gaji Jumat Sore
     const dayOfWeek = (activeDate ? new Date(activeDate.replace(/-/g, '/')).getDay() : new Date().getDay());
@@ -7219,9 +7451,17 @@ window.updateLhTotals = function() {
     elCfSisaKas.innerText = (labaBersih < 0 ? '-Rp ' : 'Rp ') + Math.abs(labaBersih).toLocaleString('id-ID');
     elCfSisaKas.style.color = labaBersih < 0 ? '#FB7185' : '#34D399';
   }
+  const allDaysAccounting = getAllDaysAccounting();
+  const verifiedList = allDaysAccounting.filter(k => !k.isTarget || k.isSavedDay || (k.omzet > 0 || k.belanja > 0));
+  const totOmzetAll = verifiedList.reduce((s, k) => s + (k.omzet || 0), 0);
+  const totBelanjaAll = verifiedList.reduce((s, k) => s + (k.belanja || 0), 0);
+  const totLabaBersihAll = totOmzetAll - totBelanjaAll;
+  const totDitarikAll = (auraData.penarikanLaba || []).reduce((s, p) => s + (Number(p.nominal) || 0), 0);
+  const sisaLabaSiapTarik = Math.max(0, totLabaBersihAll - totDitarikAll);
+
   if (elBlok4Laba) {
-    elBlok4Laba.innerText = (labaBersih < 0 ? '-Rp ' : 'Rp ') + Math.abs(labaBersih).toLocaleString('id-ID');
-    elBlok4Laba.style.color = labaBersih < 0 ? '#FB7185' : '#34D399';
+    elBlok4Laba.innerText = 'Rp ' + sisaLabaSiapTarik.toLocaleString('id-ID');
+    elBlok4Laba.style.color = sisaLabaSiapTarik <= 0 ? '#94A3B8' : '#34D399';
   }
 
   // 3 Top KPI di Kop Atas
