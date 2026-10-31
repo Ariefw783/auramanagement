@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.9';
+const APP_VERSION = 'v7.4.0';
 const APP_BUILD_TIME = '31/10/2026 16:45 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
@@ -4497,7 +4497,7 @@ window.deleteProduct = function(prodId) {
 
   window.showConfirmModal(
     "Hapus Menu Produk",
-    'Apakah Anda yakin ingin menghapus menu "' + prod.nama + '" dari daftar menu Dapur Mom Fitri?',
+    'Apakah Anda yakin ingin menghapus menu "' + prod.nama + '" dari daftar menu Dapur Mom Fitri?\n\nMenu ini akan dihapus dari seluruh formulir rencana produksi & konsinyasi hari ini dan mendatang. Seluruh arsip laporan historis tanggal lampau tetap aman dan utuh.',
     () => {
       auraData.masterResep = recipes.filter(r => r.id !== prodId);
       saveLocal();
@@ -6649,6 +6649,124 @@ function triggerLhDraftAutoSave() {
   }, 400);
 }
 
+// ==============================================================
+// DYNAMIC PRODUCT & RECIPE ARCHITECTURE ENGINE (ZERO HARDCODE)
+// ==============================================================
+const PRODUCT_COLOR_PALETTE = ['#818CF8', '#F59E0B', '#FB7185', '#34D399', '#38BDF8', '#A78BFA', '#F472B6', '#FBBF24', '#4ADE80', '#E879F9'];
+
+function getActiveMasterResep() {
+  const recipes = (auraData && auraData.masterResep && Array.isArray(auraData.masterResep) && auraData.masterResep.length > 0)
+    ? auraData.masterResep
+    : DEFAULT_MASTER_RESEP;
+  return recipes.filter(r => r.isActive !== false);
+}
+
+function getProductColor(prod, idx = 0) {
+  if (prod && prod.badgeColor) return prod.badgeColor;
+  return PRODUCT_COLOR_PALETTE[idx % PRODUCT_COLOR_PALETTE.length];
+}
+
+function hexToRgba(hex, alpha) {
+  if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return `rgba(56, 189, 248, ${alpha})`;
+  let c = hex.substring(1);
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const num = parseInt(c, 16);
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function getLhRencanaProdQty(r, prodId) {
+  if (!r) return 0;
+  if (r.drops && r.drops[prodId] !== undefined) {
+    return Number(r.drops[prodId]) || 0;
+  }
+  if (r[prodId] !== undefined && !['no', 'nama', 'isSpecial', 'drops'].includes(prodId)) {
+    return Number(r[prodId]) || 0;
+  }
+  // Legacy backwards compatibility
+  if (prodId === 'prod_ubi') return Number(r.ubi || 0);
+  if (prodId === 'prod_sosis') return Number(r.sosis !== undefined ? r.sosis : (r.sayur || 0));
+  if (prodId === 'prod_sayur') return Number(r.sayur !== undefined ? r.sayur : (r.sosis || 0));
+  if (prodId === 'prod_roti') return Number(r.roti || 0);
+  return 0;
+}
+
+function getLhRencanaRowTotal(r, activeRecipes) {
+  if (!r) return 0;
+  const list = activeRecipes || getActiveMasterResep();
+  if (list && list.length > 0) {
+    return list.reduce((sum, p) => sum + getLhRencanaProdQty(r, p.id), 0);
+  }
+  return (Number(r.ubi) || 0) + (Number(r.sosis) || 0) + (Number(r.roti) || 0);
+}
+
+function getProductEstText(p, totalPcs) {
+  const tot = Number(totalPcs) || 0;
+  if (tot <= 0) return 'Belum ada target produksi';
+  if (!p || !Array.isArray(p.komposisi) || p.komposisi.length === 0) {
+    return tot + ' pcs adonan';
+  }
+  const kulit = p.komposisi.find(k => k.tipe === 'kulit' || k.unit === 'lembar' || (k.nama && k.nama.toLowerCase().includes('kulit')) || (k.nama && k.nama.toLowerCase().includes('roti')));
+  const isian = p.komposisi.find(k => k.tipe === 'isian');
+
+  let parts = [];
+  if (isian) {
+    const isianTot = tot * Number(isian.qtyPerPcs || 0);
+    const formatted = isianTot >= 10 ? Math.round(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
+    parts.push(formatted + (isian.unit === 'gram' ? 'g' : ' ' + isian.unit) + ' ' + (isian.nama || 'isian'));
+  }
+  if (kulit) {
+    const kulitTot = Math.ceil(tot * Number(kulit.qtyPerPcs || 1));
+    parts.push(kulitTot + ' ' + (kulit.unit || 'lembar') + ' ' + (kulit.nama || 'kulit'));
+  }
+  if (parts.length === 0) {
+    return tot + ' pcs adonan siap olah';
+  }
+  return 'Est: ' + parts.join(' + ');
+}
+
+window.stepLhRencanaProdQty = function(idx, prodId, delta) {
+  if (!lhRencanaRows[idx]) return;
+  const curVal = getLhRencanaProdQty(lhRencanaRows[idx], prodId);
+  const nextVal = Math.max(0, curVal + delta);
+  window.handleLhRencanaProdChange(idx, prodId, nextVal);
+};
+
+function renderLhEstimasiTakaranCards(totalsByProd, grandTotal, activeRecipes) {
+  const container = document.getElementById('lhEstimasiTakaranContainer');
+  if (!container) return;
+  const list = activeRecipes || getActiveMasterResep();
+  container.innerHTML = '';
+
+  list.forEach((p, idx) => {
+    const pTot = totalsByProd[p.id] || 0;
+    const color = getProductColor(p, idx);
+    const estTxt = getProductEstText(p, pTot);
+
+    const card = document.createElement('div');
+    card.className = 'rencana-prod-card';
+    card.style.cssText = `background: ${hexToRgba(color, 0.08)}; border: 1px solid ${hexToRgba(color, 0.3)}; border-radius: 8px; padding: 12px 14px;`;
+    card.innerHTML = `
+      <span style="font-size: 0.72rem; font-weight: 700; color: ${color}; text-transform: uppercase;">${idx + 1}. ${p.nama}</span>
+      <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaProd_${p.id}">${pTot} Pcs</div>
+      <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaProdSub_${p.id}">${estTxt}</div>
+    `;
+    container.appendChild(card);
+  });
+
+  const grandCard = document.createElement('div');
+  grandCard.className = 'rencana-prod-card';
+  grandCard.style.cssText = 'background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px;';
+  grandCard.innerHTML = `
+    <span style="font-size: 0.72rem; font-weight: 700; color: #38BDF8; text-transform: uppercase;">Total Gorengan Subuh</span>
+    <div style="font-size: 1.3rem; font-weight: 900; color: #38BDF8; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaGrandTotal">${grandTotal} Pcs</div>
+    <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaGrandTotalSub">Siap edar &amp; konsumsi dapur</div>
+  `;
+  container.appendChild(grandCard);
+}
+
 function initLaporanHarianState() {
   if (lhActiveDateCache === activeDate && lhMitraRows.length > 0) {
     return; // Pertahankan baris yang sedang diedit jika tanggal tidak berubah
@@ -6678,7 +6796,7 @@ function initLaporanHarianState() {
             return prName === rName || (prName.length > 3 && (rName.includes(prName) || prName.includes(rName)));
           });
           if (pMatch) {
-            const plannedPcs = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+            const plannedPcs = getLhRencanaRowTotal(pMatch, getActiveMasterResep());
             if (plannedPcs > 0) {
               r.kirim = plannedPcs;
               r.laku = Math.max(0, r.kirim - (Number(r.retur) || 0));
@@ -6709,7 +6827,7 @@ function initLaporanHarianState() {
           return rName === bpName || (rName.length > 3 && (bpName.includes(rName) || rName.includes(bpName)));
         });
         if (pMatch) {
-          kirimPcs = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+          kirimPcs = getLhRencanaRowTotal(pMatch, getActiveMasterResep());
         }
       }
       const laku = kirimPcs;
@@ -6926,82 +7044,98 @@ function renderLaporanHarianView() {
   renderLhBelanjaCards(lhBelanjaRows, totBelanja);
 
   // ----------------------------------------------------------------
-  // RENDER BLOK 3: RENCANA PRODUKSI & TITIP ESOK (SOP DAPUR MATRIX)
+  // RENDER BLOK 3: RENCANA PRODUKSI & TITIP ESOK (DYNAMIC MENU MATRIX)
   // ----------------------------------------------------------------
+  const activeMasterResep = getActiveMasterResep();
+  const theadRow = document.getElementById('lhRencanaTableHeaderRow');
   const rencanaTbody = document.getElementById('lhRencanaTableBody');
-  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandTotal = 0;
+  const tfootRow = document.getElementById('lhRencanaTableFooterRow');
+
+  // Render Dynamic Header Columns
+  if (theadRow) {
+    let headerHtml = `
+      <th style="width: 44px; text-align: center;">No.</th>
+      <th style="min-width: 170px;">Titik Alokasi / Mitra</th>
+    `;
+    activeMasterResep.forEach((p, pIdx) => {
+      const color = getProductColor(p, pIdx);
+      headerHtml += `<th style="min-width: 95px; text-align: center; color: ${color}; font-weight: 700;">${p.shortName || p.nama} (Pcs)</th>`;
+    });
+    headerHtml += `
+      <th style="width: 110px; text-align: center;">Total Titik</th>
+      <th style="width: 44px; text-align: center;" class="no-print">Aksi</th>
+    `;
+    theadRow.innerHTML = headerHtml;
+  }
+
+  const totalsByProd = {};
+  activeMasterResep.forEach(p => { totalsByProd[p.id] = 0; });
+  let grandTotal = 0;
 
   if (rencanaTbody) {
     rencanaTbody.innerHTML = '';
 
     lhRencanaRows.forEach((r, idx) => {
-      const ubi = Number(r.ubi) || 0;
-      const sosis = Number(r.sosis) || 0;
-      const roti = Number(r.roti) || 0;
-      const totalTitik = ubi + sosis + roti;
-
-      totRencanaUbi += ubi;
-      totRencanaSosis += sosis;
-      totRencanaRoti += roti;
+      const totalTitik = getLhRencanaRowTotal(r, activeMasterResep);
       grandTotal += totalTitik;
+
+      let cellsHtml = `
+        <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
+        <td style="font-weight: 700; color: ${r.isSpecial ? '#F59E0B' : '#FFFFFF'};">
+          <input type="text" class="sheet-input" value="${r.nama || ''}" style="width: 100%; text-align: left; font-weight: 700; color: ${r.isSpecial ? '#FCD34D' : '#F1F5F9'};" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
+        </td>
+      `;
+
+      activeMasterResep.forEach((p, pIdx) => {
+        const qty = getLhRencanaProdQty(r, p.id);
+        totalsByProd[p.id] = (totalsByProd[p.id] || 0) + qty;
+        const color = getProductColor(p, pIdx);
+        cellsHtml += `
+          <td style="text-align: center;">
+            <input type="number" id="lhRencanaTable_${p.id}_${idx}" class="sheet-input num-input" style="color: ${color}; font-weight: 700;" value="${qty}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, '${p.id}', this.value)">
+          </td>
+        `;
+      });
+
+      cellsHtml += `
+        <td id="lhRencanaTableTotal_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
+          ${totalTitik} Pcs
+        </td>
+        <td style="text-align: center;" class="no-print">
+          ${!r.isSpecial && lhRencanaRows.length > 1 ? `<button type="button" class="btn-sheet-del" onclick="window.removeLhRencanaRow(${idx})" title="Hapus baris titik">×</button>` : ''}
+        </td>
+      `;
 
       const tr = document.createElement('tr');
       if (r.isSpecial) {
         tr.style.background = 'rgba(245, 158, 11, 0.05)';
       }
-      tr.innerHTML = `
-        <td style="text-align: center; font-family: var(--font-mono); color: #94A3B8;">${idx + 1}</td>
-        <td style="font-weight: 700; color: ${r.isSpecial ? '#F59E0B' : '#FFFFFF'};">
-          <input type="text" class="sheet-input" value="${r.nama || ''}" style="width: 100%; text-align: left; font-weight: 700; color: ${r.isSpecial ? '#FCD34D' : '#F1F5F9'};" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
-        </td>
-        <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 700;" value="${ubi}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
-        </td>
-        <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 700;" value="${sosis}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
-        </td>
-        <td style="text-align: center;">
-          <input type="number" id="lhRencanaTable_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 700;" value="${roti}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
-        </td>
-        <td id="lhRencanaTableTotal_${idx}" style="text-align: center; font-weight: 800; font-family: var(--font-mono); color: #38BDF8;">
-          ${totalTitik} Pcs
-        </td>
-      `;
+      tr.innerHTML = cellsHtml;
       rencanaTbody.appendChild(tr);
     });
   }
 
-  const elRencanaUbi = document.getElementById('lhRencanaTotalUbi');
-  const elRencanaSosis = document.getElementById('lhRencanaTotalSosis');
-  const elRencanaRoti = document.getElementById('lhRencanaTotalRoti');
-  const elRencanaGrand = document.getElementById('lhRencanaGrandTotal');
+  // Render Dynamic Footer Row
+  if (tfootRow) {
+    let footerHtml = `
+      <td colspan="2" style="font-weight: 800;">TOTAL ADONAN GORENGAN SUBUH</td>
+    `;
+    activeMasterResep.forEach((p, pIdx) => {
+      const color = getProductColor(p, pIdx);
+      const pTot = totalsByProd[p.id] || 0;
+      footerHtml += `<td style="text-align: center; font-weight: 800; color: ${color}; font-size: 1rem;" id="lhRencanaTotal_${p.id}">${pTot}</td>`;
+    });
+    footerHtml += `
+      <td style="text-align: center; font-weight: 800; color: #38BDF8; font-size: 1.1rem;" id="lhRencanaGrandTotal">${grandTotal} Pcs</td>
+      <td class="no-print"></td>
+    `;
+    tfootRow.innerHTML = footerHtml;
+  }
 
-  if (elRencanaUbi) elRencanaUbi.innerText = totRencanaUbi;
-  if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
-  if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
-  if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
-  renderLhRencanaCards(lhRencanaRows, totRencanaUbi, totRencanaSosis, totRencanaRoti, grandTotal);
+  // Render Dynamic Cards & Dynamic Recipe Estimations
+  renderLhRencanaCards(lhRencanaRows, totalsByProd, grandTotal, activeMasterResep);
+  renderLhEstimasiTakaranCards(totalsByProd, grandTotal, activeMasterResep);
   const totRencanaKirim = grandTotal;
-
-  // Update Ringkasan Kartu Adonan Subuh
-  const cUbi = document.getElementById('cardRencanaUbi');
-  const cUbiSub = document.getElementById('cardRencanaUbiSub');
-  const cSosis = document.getElementById('cardRencanaSosis');
-  const cSosisSub = document.getElementById('cardRencanaSosisSub');
-  const cRoti = document.getElementById('cardRencanaRoti');
-  const cRotiSub = document.getElementById('cardRencanaRotiSub');
-  const cGrand = document.getElementById('cardRencanaGrandTotal');
-
-  if (cUbi) cUbi.innerText = totRencanaUbi + ' Pcs';
-  if (cUbiSub) cUbiSub.innerText = 'Est: ' + (totRencanaUbi * 12).toLocaleString('id-ID') + 'g pasta ubi + ' + totRencanaUbi + ' lbr kulit';
-
-  if (cSosis) cSosis.innerText = totRencanaSosis + ' Pcs';
-  if (cSosisSub) cSosisSub.innerText = 'Est: ' + Math.ceil(totRencanaSosis / 8) + ' btg sosis + panir krispi';
-
-  if (cRoti) cRoti.innerText = totRencanaRoti + ' Pcs';
-  if (cRotiSub) cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti / 2) + ' lbr roti kupas + filling';
-
-  if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
 
   // ----------------------------------------------------------------
   // REAKTIF: SINKRONKAN 5 POS KEUANGAN & KARTU KPI DI KOP ATAS
@@ -7187,19 +7321,22 @@ function renderLhBelanjaCards(rows, totBelanja) {
   });
 }
 
-function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
+function renderLhRencanaCards(rows, totalsByProd, grandTotal, activeRecipes) {
   const container = document.getElementById('lhRencanaCardsContainer');
   if (!container) return;
   container.innerHTML = '';
+
+  const list = activeRecipes || getActiveMasterResep();
 
   const topBar = document.createElement('div');
   topBar.className = 'card-view-header-bar';
   topBar.innerHTML = `
     <div class="card-view-header-title">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <span>KARTU RENCANA PRODUKSI</span>
+      <span>KARTU RENCANA PRODUKSI (${list.length} MENU AKTIF)</span>
     </div>
     <div class="card-view-header-actions">
+      <button type="button" class="btn-card-toggle-all" onclick="window.addLhRencanaRow()">+ Tambah Titik</button>
       <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhRencana', true)">Buka Semua</button>
       <button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup('lhRencana', false)">Tutup Semua</button>
     </div>
@@ -7207,10 +7344,7 @@ function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
   container.appendChild(topBar);
 
   rows.forEach((r, idx) => {
-    const ubi = Number(r.ubi) || 0;
-    const sosis = Number(r.sosis) || 0;
-    const roti = Number(r.roti) || 0;
-    const totalTitik = ubi + sosis + roti;
+    const totalTitik = getLhRencanaRowTotal(r, list);
 
     const isCollapsed = (window.cardsCollapsedState.lhRencana && window.cardsCollapsedState.lhRencana[idx] !== undefined)
       ? !!window.cardsCollapsedState.lhRencana[idx]
@@ -7222,6 +7356,24 @@ function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
     if (r.isSpecial) {
       card.style.borderLeft = '3px solid #F59E0B';
     }
+
+    let prodCountersHtml = list.map((p, pIdx) => {
+      const pQty = getLhRencanaProdQty(r, p.id);
+      const color = getProductColor(p, pIdx);
+      return `
+        <div class="card-prod-counter-wrap" style="background: rgba(15, 23, 42, 0.55); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 7px; padding: 6px 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span style="font-size: 0.68rem; font-weight: 700; color: ${color}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 85px;" title="${p.nama}">${p.shortName || p.nama}</span>
+            <span style="font-size: 0.6rem; color: #94A3B8;">Pcs</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <button type="button" class="btn-step-qty" onclick="window.stepLhRencanaProdQty(${idx}, '${p.id}', -5)" style="width: 26px; height: 30px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #EF4444; border-radius: 4px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">-</button>
+            <input type="number" id="lhRencanaCard_${p.id}_${idx}" class="sheet-input num-input" style="color: ${color}; font-weight: 800; text-align: center; font-size: 0.92rem; height: 30px; flex: 1; min-width: 0;" value="${pQty}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, '${p.id}', this.value)">
+            <button type="button" class="btn-step-qty" onclick="window.stepLhRencanaProdQty(${idx}, '${p.id}', 5)" style="width: 26px; height: 30px; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); color: #34D399; border-radius: 4px; font-weight: 800; font-size: 0.85rem; cursor: pointer;">+</button>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     card.innerHTML = `
       <div class="record-card-header" onclick="window.toggleCardItem('lhRencana', ${idx})">
@@ -7236,28 +7388,23 @@ function renderLhRencanaCards(rows, totUbi, totSosis, totRoti, grandTotal) {
       </div>
       <div class="record-card-body">
         <div style="margin-bottom: 8px;">
-          <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">TITIK ALOKASI:</label>
+          <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">TITIK ALOKASI / NAMA MITRA:</label>
           <input type="text" class="sheet-input" value="${r.nama || ''}" onchange="window.handleLhRencanaProdChange(${idx}, 'nama', this.value)">
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px;">
-          <div>
-            <label style="font-size: 0.62rem; color: #818CF8; font-weight: 700; display: block; margin-bottom: 2px;">Ubi (Pcs):</label>
-            <input type="number" id="lhRencanaCard_ubi_${idx}" class="sheet-input num-input" style="color: #818CF8; font-weight: 800;" value="${ubi}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'ubi', this.value)">
-          </div>
-          <div>
-            <label style="font-size: 0.62rem; color: #F59E0B; font-weight: 700; display: block; margin-bottom: 2px;">Sosis (Pcs):</label>
-            <input type="number" id="lhRencanaCard_sosis_${idx}" class="sheet-input num-input" style="color: #F59E0B; font-weight: 800;" value="${sosis}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'sosis', this.value)">
-          </div>
-          <div>
-            <label style="font-size: 0.62rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 2px;">Roti (Pcs):</label>
-            <input type="number" id="lhRencanaCard_roti_${idx}" class="sheet-input num-input" style="color: #FB7185; font-weight: 800;" value="${roti}" min="0" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhRencanaProdChange(${idx}, 'roti', this.value)">
-          </div>
+        <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 6px;">ALOKASI GORENGAN PER PRODUK:</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(115px, 1fr)); gap: 6px; margin-bottom: 10px;">
+          ${prodCountersHtml}
         </div>
 
-        <div style="padding: 8px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2); display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 0.72rem; color: #94A3B8; font-weight: 700;">TOTAL ALOKASI TITIK:</span>
-          <strong id="lhRencanaCardTotalVal_${idx}" style="font-size: 0.95rem; color: #38BDF8; font-family: var(--font-mono);">${totalTitik} Pcs</strong>
+        <div style="padding: 8px 10px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.2); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            ${!r.isSpecial && rows.length > 1 ? `<button type="button" class="btn-card-toggle-all" style="background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4); color: #EF4444;" onclick="window.removeLhRencanaRow(${idx})">Hapus Titik</button>` : ''}
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.72rem; color: #94A3B8; font-weight: 700;">TOTAL ALOKASI:</span>
+            <strong id="lhRencanaCardTotalVal_${idx}" style="font-size: 0.95rem; color: #38BDF8; font-family: var(--font-mono);">${totalTitik} Pcs</strong>
+          </div>
         </div>
       </div>
     `;
@@ -7345,17 +7492,19 @@ window.updateLhTotals = function() {
   const elTotBelanja = document.getElementById('lhBelanjaTotalRp');
   if (elTotBelanja) elTotBelanja.innerText = 'Rp ' + totBelanja.toLocaleString('id-ID');
 
-  // Rencana Matrix
-  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandTotal = 0;
-  lhRencanaRows.forEach((r, idx) => {
-    const ubi = Number(r.ubi) || 0;
-    const sosis = Number(r.sosis) || 0;
-    const roti = Number(r.roti) || 0;
-    const totalTitik = ubi + sosis + roti;
+  // Rencana Matrix (Dynamic Menu Calculation)
+  const activeMasterResep = getActiveMasterResep();
+  const totalsByProd = {};
+  activeMasterResep.forEach(p => { totalsByProd[p.id] = 0; });
+  let grandTotal = 0;
 
-    totRencanaUbi += ubi;
-    totRencanaSosis += sosis;
-    totRencanaRoti += roti;
+  lhRencanaRows.forEach((r, idx) => {
+    let totalTitik = 0;
+    activeMasterResep.forEach(p => {
+      const q = getLhRencanaProdQty(r, p.id);
+      totalsByProd[p.id] = (totalsByProd[p.id] || 0) + q;
+      totalTitik += q;
+    });
     grandTotal += totalTitik;
 
     const elTotal = document.getElementById('lhRencanaTableTotal_' + idx);
@@ -7366,74 +7515,23 @@ window.updateLhTotals = function() {
     if (cTotalVal) cTotalVal.innerText = totalTitik + ' Pcs';
   });
 
-  const elRencanaUbi = document.getElementById('lhRencanaTotalUbi');
-  const elRencanaSosis = document.getElementById('lhRencanaTotalSosis');
-  const elRencanaRoti = document.getElementById('lhRencanaTotalRoti');
+  // Update Dynamic Footer Totals
+  activeMasterResep.forEach(p => {
+    const el = document.getElementById('lhRencanaTotal_' + p.id);
+    if (el) el.innerText = totalsByProd[p.id] || 0;
+  });
   const elRencanaGrand = document.getElementById('lhRencanaGrandTotal');
-
-  if (elRencanaUbi) elRencanaUbi.innerText = totRencanaUbi;
-  if (elRencanaSosis) elRencanaSosis.innerText = totRencanaSosis;
-  if (elRencanaRoti) elRencanaRoti.innerText = totRencanaRoti;
   if (elRencanaGrand) elRencanaGrand.innerText = grandTotal + ' Pcs';
 
-  const cUbi = document.getElementById('cardRencanaUbi');
-  const cUbiSub = document.getElementById('cardRencanaUbiSub');
-  const cSosis = document.getElementById('cardRencanaSosis');
-  const cSosisSub = document.getElementById('cardRencanaSosisSub');
-  const cRoti = document.getElementById('cardRencanaRoti');
-  const cRotiSub = document.getElementById('cardRencanaRotiSub');
+  // Update Dynamic Estimasi Takaran Subuh Cards
+  activeMasterResep.forEach(p => {
+    const pTot = totalsByProd[p.id] || 0;
+    const elCard = document.getElementById('cardRencanaProd_' + p.id);
+    if (elCard) elCard.innerText = pTot + ' Pcs';
+    const elSub = document.getElementById('cardRencanaProdSub_' + p.id);
+    if (elSub) elSub.innerText = getProductEstText(p, pTot);
+  });
   const cGrand = document.getElementById('cardRencanaGrandTotal');
-
-  // Sinkronisasi estimasi takaran dengan Master Resep Formula
-  const activeMasterResep = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
-    ? auraData.masterResep
-    : DEFAULT_MASTER_RESEP;
-
-  const rUbi = activeMasterResep.find(r => r.id === 'prod_ubi' || (r.shortName && r.shortName.toLowerCase().includes('ubi')));
-  const rSosis = activeMasterResep.find(r => r.id === 'prod_sayur' || (r.shortName && (r.shortName.toLowerCase().includes('sosis') || r.shortName.toLowerCase().includes('sayur'))));
-  const rRoti = activeMasterResep.find(r => r.id === 'prod_roti' || (r.shortName && r.shortName.toLowerCase().includes('roti')));
-
-  let ubiGramPerPcs = 13.2;
-  let ubiKulitPerPcs = 1;
-  if (rUbi && Array.isArray(rUbi.komposisi)) {
-    const kU = rUbi.komposisi.find(k => k.bahanKey === 'Ubi Ungu' || (k.nama && k.nama.toLowerCase().includes('ubi')));
-    if (kU && kU.qtyPerPcs) ubiGramPerPcs = Number(kU.qtyPerPcs);
-    const kK = rUbi.komposisi.find(k => k.bahanKey === 'Kulit Lumpia' || (k.nama && k.nama.toLowerCase().includes('kulit')));
-    if (kK && kK.qtyPerPcs) ubiKulitPerPcs = Number(kK.qtyPerPcs);
-  }
-
-  let sosisBtgPerPcs = 0.125; // 1 btg = 8 pcs
-  let sosisKulitPerPcs = 1;
-  if (rSosis && Array.isArray(rSosis.komposisi)) {
-    const kS = rSosis.komposisi.find(k => k.bahanKey === 'Sosis' || (k.nama && k.nama.toLowerCase().includes('sosis')));
-    if (kS && kS.qtyPerPcs) sosisBtgPerPcs = Number(kS.qtyPerPcs);
-    const kK = rSosis.komposisi.find(k => k.bahanKey === 'Kulit Lumpia' || (k.nama && k.nama.toLowerCase().includes('kulit')));
-    if (kK && kK.qtyPerPcs) sosisKulitPerPcs = Number(kK.qtyPerPcs);
-  }
-
-  let rotiLbrPerPcs = 0.5; // 1 lembar = 2 pcs
-  let chocoGramPerPcs = 2.5;
-  if (rRoti && Array.isArray(rRoti.komposisi)) {
-    const kR = rRoti.komposisi.find(k => k.bahanKey === 'Roti Tawar' || (k.nama && k.nama.toLowerCase().includes('roti')));
-    if (kR && kR.qtyPerPcs) rotiLbrPerPcs = Number(kR.qtyPerPcs);
-    const kC = rRoti.komposisi.find(k => k.bahanKey === 'Collins Cokelat' || (k.nama && (k.nama.toLowerCase().includes('collins') || k.nama.toLowerCase().includes('cokelat'))));
-    if (kC && kC.qtyPerPcs) chocoGramPerPcs = Number(kC.qtyPerPcs);
-  }
-
-  if (cUbi) cUbi.innerText = totRencanaUbi + ' Pcs';
-  if (cUbiSub) cUbiSub.innerText = 'Est: ' + Math.round(totRencanaUbi * ubiGramPerPcs).toLocaleString('id-ID') + 'g pasta + ' + Math.ceil(totRencanaUbi * ubiKulitPerPcs) + ' kulit';
-
-  if (cSosis) cSosis.innerText = totRencanaSosis + ' Pcs';
-  if (cSosisSub) {
-    const btgNeeded = (totRencanaSosis * sosisBtgPerPcs).toFixed(1).replace('.0', '');
-    cSosisSub.innerText = 'Est: ' + btgNeeded + ' btg sosis + ' + Math.ceil(totRencanaSosis * sosisKulitPerPcs) + ' kulit';
-  }
-
-  if (cRoti) cRoti.innerText = totRencanaRoti + ' Pcs';
-  if (cRotiSub) {
-    cRotiSub.innerText = 'Est: ' + Math.ceil(totRencanaRoti * rotiLbrPerPcs) + ' lbr roti + ' + Math.round(totRencanaRoti * chocoGramPerPcs) + 'g collin';
-  }
-
   if (cGrand) cGrand.innerText = grandTotal + ' Pcs';
   const cGrandSub = document.getElementById('cardRencanaGrandTotalSub');
   if (cGrandSub) cGrandSub.innerText = 'Siap edar & konsumsi dapur';
@@ -7558,7 +7656,17 @@ window.handleLhRencanaProdChange = function(idx, field, value) {
   }
 
   const numVal = Math.max(0, parseInt(value, 10) || 0);
+  if (!lhRencanaRows[idx].drops) lhRencanaRows[idx].drops = {};
+  lhRencanaRows[idx].drops[field] = numVal;
   lhRencanaRows[idx][field] = numVal;
+
+  // Backwards compatibility legacy properties
+  if (field === 'prod_ubi') lhRencanaRows[idx].ubi = numVal;
+  if (field === 'prod_sosis' || field === 'prod_sayur') {
+    lhRencanaRows[idx].sosis = numVal;
+    lhRencanaRows[idx].sayur = numVal;
+  }
+  if (field === 'prod_roti') lhRencanaRows[idx].roti = numVal;
 
   const tIn = document.getElementById('lhRencanaTable_' + field + '_' + idx);
   const cIn = document.getElementById('lhRencanaCard_' + field + '_' + idx);
@@ -7575,13 +7683,16 @@ window.handleLhRencanaInputChange = function(idx, field, value) {
 
 window.addLhRencanaRow = function() {
   const nextNo = lhRencanaRows.length + 1;
-  lhRencanaRows.push({
+  const newRow = {
     no: nextNo,
     nama: 'Mitra Baru',
-    ubi: 0,
-    sosis: 0,
-    roti: 0
+    drops: {}
+  };
+  getActiveMasterResep().forEach(p => {
+    newRow.drops[p.id] = 0;
+    newRow[p.id] = 0;
   });
+  lhRencanaRows.push(newRow);
   renderLaporanHarianView();
 };
 
@@ -7684,7 +7795,7 @@ window.syncLhFromPreviousDayRencana = function(showNotice = true) {
     });
 
     if (pMatch) {
-      const plannedTotal = (Number(pMatch.ubi) || 0) + (Number(pMatch.sosis) || 0) + (Number(pMatch.roti) || 0);
+      const plannedTotal = getLhRencanaRowTotal(pMatch, getActiveMasterResep());
       m.kirim = plannedTotal;
       m.laku = Math.max(0, m.kirim - (Number(m.retur) || 0));
       const rate = Number(m.hargaSetor) || 800;
@@ -7849,22 +7960,32 @@ window.copyLaporanHarianWhatsApp = function() {
   const amplop2 = (document.getElementById('lhAmplop2Display')?.value) || 0;
   const amplopGas = (document.getElementById('lhAmplopGasInput')?.value) || 0;
 
-  let totRencanaUbi = 0, totRencanaSosis = 0, totRencanaRoti = 0, grandRencana = 0;
+  const activeMasterResep = getActiveMasterResep();
+  const totalsByProd = {};
+  activeMasterResep.forEach(p => { totalsByProd[p.id] = 0; });
+  let grandRencana = 0;
   let rencanaLines = [];
+
   lhRencanaRows.forEach((r, idx) => {
-    const u = Number(r.ubi) || 0;
-    const s = Number(r.sosis) || 0;
-    const rt = Number(r.roti) || 0;
-    const tot = u + s + rt;
-    totRencanaUbi += u;
-    totRencanaSosis += s;
-    totRencanaRoti += rt;
+    const prodDetails = activeMasterResep.map(p => {
+      const q = getLhRencanaProdQty(r, p.id);
+      totalsByProd[p.id] = (totalsByProd[p.id] || 0) + q;
+      return `${p.shortName || p.nama} ${q}`;
+    }).join(', ');
+    const tot = getLhRencanaRowTotal(r, activeMasterResep);
     grandRencana += tot;
+
     if (r.isSpecial) {
-      rencanaLines.push(`- *${r.nama}*: Ubi ${u}, Sosis ${s}, Roti ${rt} = *${tot} Pcs*`);
+      rencanaLines.push(`- *${r.nama}*: ${prodDetails} = *${tot} Pcs*`);
     } else {
-      rencanaLines.push(`${idx + 1}. *${r.nama}*: Ubi ${u}, Sosis ${s}, Roti ${rt} = *${tot} Pcs*`);
+      rencanaLines.push(`${idx + 1}. *${r.nama}*: ${prodDetails} = *${tot} Pcs*`);
     }
+  });
+
+  const ringkasanSubuhLines = activeMasterResep.map(p => {
+    const pTot = totalsByProd[p.id] || 0;
+    const estTxt = getProductEstText(p, pTot);
+    return `- ${p.nama}: *${pTot} Pcs* (${estTxt})`;
   });
 
   const text = 
@@ -7888,9 +8009,7 @@ ${belanjaLines.length > 0 ? belanjaLines.join('\n') : '- Belum ada pengeluaran b
 ${rencanaLines.join('\n')}
 ----------------------------------------
 *RINGKASAN TOTAL PRODUKSI SUBUH:*
-- Lumpia Ubi Ungu: *${totRencanaUbi} Pcs* (Est: ${(totRencanaUbi * 12).toLocaleString('id-ID')}g pasta + ${totRencanaUbi} lbr kulit)
-- Stik Sosis Panir: *${totRencanaSosis} Pcs* (Est: ${Math.ceil(totRencanaSosis / 8)} btg sosis + panir)
-- Roti Goreng Collins: *${totRencanaRoti} Pcs* (Est: ${Math.ceil(totRencanaRoti / 2)} lbr roti kupas)
+${ringkasanSubuhLines.join('\n')}
 *TOTAL ADONAN GORENGAN: ${grandRencana} Pcs*
 ----------------------------------------
 _Dicatat otomatis via PWA Dapur Mom Fitri_`;
