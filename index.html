@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -176,7 +177,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.7</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.3.8</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -237,6 +238,22 @@
       <!-- ============================================================== -->
       <section id="tab-laporan-harian" class="app-tab-panel active">
         <div class="laporan-harian-container">
+
+          <!-- KOP RESMI CETAK A4 / PDF (HANYA MUNCUL SAAT PRINT) -->
+          <div class="lh-print-kop" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
+              <div>
+                <h1 style="font-size: 14pt; font-weight: 800; color: #000; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">DAPUR MOM FITRI</h1>
+                <div style="font-size: 8.5pt; color: #333; margin-top: 2px;">Spesialis Aneka Gorengan &amp; Pastel Tradisional • Dokumen Operasional Resmi</div>
+                <div style="font-size: 9.5pt; font-weight: 700; color: #000; margin-top: 4px;">LEMBAR OPERASIONAL, DISTRIBUSI &amp; ARUS KAS HARIAN</div>
+              </div>
+              <div style="text-align: right; font-size: 8.5pt; color: #000;">
+                <div><strong>Hari / Tanggal:</strong> <span id="lhPrintDateDisplay">Sabtu, 31 Oktober 2026</span></div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 3px;">Waktu Cetak: <span id="lhPrintTimestamp">31/10/2026 16:00 WIB</span></div>
+                <div style="font-size: 7.5pt; color: #555;">Dokumen Tercatat Sistem PWA</div>
+              </div>
+            </div>
+          </div>
 
           <!-- 1. KOP LAPORAN HARIAN (SCREEN & PRINT) -->
           <div class="laporan-harian-header-card">
@@ -516,6 +533,22 @@
               <div style="text-align: right; min-width: 160px;">
                 <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Laba Bersih Hari Ini</span>
                 <strong id="lhBlok4LabaDisplay" style="display: block; font-size: 1.4rem; color: #34D399; font-family: var(--font-mono); font-weight: 900;">Rp 0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEMBAR TANDA TANGAN RESMI CETAK LAPORAN HARIAN (HANYA MUNCUL SAAT PRINT) -->
+          <div class="lh-print-signatures" style="display: none; margin-top: 18px; padding-top: 14px; border-top: 1px dashed #666; break-inside: avoid; page-break-inside: avoid;">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <div style="text-align: center; width: 45%;">
+                <div style="font-size: 8.5pt; color: #333; margin-bottom: 45px;">Diverifikasi &amp; Diserahkan Oleh:</div>
+                <div style="font-weight: 800; font-size: 9.5pt; color: #000; text-decoration: underline;">( Tim Operasional / Kurir )</div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 2px;">Pelaksana Harian Dapur</div>
+              </div>
+              <div style="text-align: center; width: 45%;">
+                <div style="font-size: 8.5pt; color: #333; margin-bottom: 45px;">Diterima &amp; Disahkan Oleh:</div>
+                <div style="font-weight: 800; font-size: 9.5pt; color: #000; text-decoration: underline;">( Fitri / Pemilik Dapur )</div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 2px;">Penanggung Jawab Keuangan</div>
               </div>
             </div>
           </div>
@@ -1049,6 +1082,22 @@
       <!-- ============================================================== -->
       <section id="tab-buku3" class="app-tab-panel">
         <div class="slate-card">
+          <!-- KOP RESMI CETAK A4 / PDF BUKU 3 (HANYA MUNCUL SAAT PRINT) -->
+          <div class="b3-print-kop" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; border-bottom: 2px solid #000; padding-bottom: 8px; margin-bottom: 12px;">
+              <div>
+                <h1 style="font-size: 14pt; font-weight: 800; color: #000; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">DAPUR MOM FITRI</h1>
+                <div style="font-size: 8.5pt; color: #333; margin-top: 2px;">Spesialis Aneka Gorengan &amp; Pastel Tradisional • Telp/WA: 0812-XXXX-XXXX</div>
+                <div style="font-size: 9.5pt; font-weight: 700; color: #000; margin-top: 4px;">LAPORAN REKAPITULASI ARUS KAS &amp; LABA BERSIH (TARIK JUMAT)</div>
+              </div>
+              <div style="text-align: right; font-size: 8.5pt; color: #000;">
+                <div><strong>Periode Operasional:</strong> <span>Oktober - November 2026</span></div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 3px;">Waktu Cetak: <span id="b3PrintTimestamp">31/10/2026 16:00 WIB</span></div>
+                <div style="font-size: 7.5pt; color: #555;">Sistem Akumulasi Mingguan</div>
+              </div>
+            </div>
+          </div>
+
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
@@ -1110,6 +1159,22 @@
 
           <!-- TAMPILAN KARTU ARUS KAS DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
           <div id="buku3CardsContainer" class="collapsible-cards-container"></div>
+
+          <!-- LEMBAR TANDA TANGAN RESMI CETAK BUKU 3 (HANYA MUNCUL SAAT PRINT) -->
+          <div class="b3-print-signatures" style="display: none; margin-top: 22px; padding-top: 14px; border-top: 1px dashed #666; break-inside: avoid; page-break-inside: avoid;">
+            <div style="display: flex; justify-content: space-between; width: 100%;">
+              <div style="text-align: center; width: 45%;">
+                <div style="font-size: 8.5pt; color: #333; margin-bottom: 45px;">Dihitung &amp; Direkap Oleh:</div>
+                <div style="font-weight: 800; font-size: 9.5pt; color: #000; text-decoration: underline;">( Tim Administrasi / Kasir )</div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 2px;">Pelaksana Rekap Arus Kas</div>
+              </div>
+              <div style="text-align: center; width: 45%;">
+                <div style="font-size: 8.5pt; color: #333; margin-bottom: 45px;">Diverifikasi &amp; Disetujui Oleh:</div>
+                <div style="font-weight: 800; font-size: 9.5pt; color: #000; text-decoration: underline;">( Fitri / Pemilik Dapur )</div>
+                <div style="font-size: 7.5pt; color: #555; margin-top: 2px;">Penanggung Jawab Keuangan</div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

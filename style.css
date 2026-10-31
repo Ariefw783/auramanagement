@@ -56,8 +56,8 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
 
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, -apple-system, sans-serif;
 }
 
 * {
@@ -67,6 +67,29 @@
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
 }
+
+/* ==============================================================
+   NUMERICAL TYPOGRAPHY: ANGKA 0 DAN 8 TERPISAH JELAS TANPA TITIK
+   ============================================================== */
+input,
+td,
+th,
+.kpi-val,
+.lh-cf-val,
+.bep-stat-pill strong,
+.card-stat-pill strong,
+.record-chip,
+.val,
+.price-display,
+.financial-kpi-card strong,
+.sheet-input {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1, "zero" 0;
+  -moz-font-feature-settings: "tnum" 1, "zero" 0;
+  font-feature-settings: "tnum" 1, "zero" 0;
+}
+
 
 /* ==============================================================
    HILANGKAN KURSOR / TOMBOL PANAH ATAS-BAWAH (SPIN BUTTONS)
@@ -6685,5 +6708,352 @@ body {
 
   .lh-cf-val {
     font-size: 1.05rem !important;
+  }
+}
+
+
+/* ============================================================== */
+/* MASTER PRINT ENGINE A4 PORTRAIT / PDF PRINT-READY DOKUMEN RESMI */
+/* ============================================================== */
+@page {
+  size: A4 portrait;
+  margin: 10mm 10mm 12mm 10mm;
+}
+
+@media print {
+  /* Dasar Dokumen Cetak */
+  html, body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 8.5pt !important;
+    line-height: 1.35 !important;
+    width: 100% !important;
+    height: auto !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .app-frame {
+    box-shadow: none !important;
+    border: none !important;
+    background: #FFFFFF !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .main-workspace {
+    background: #FFFFFF !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  /* Sembunyikan Seluruh Elemen Navigasi, Tombol, Modal, & Kontrol Web */
+  .app-sidebar,
+  .topbar-header,
+  .mobile-bottom-nav,
+  .mobile-topbar,
+  .tool-btn,
+  .sidebar-status-box,
+  .no-print,
+  .btn-del-row,
+  .btn-del-mini,
+  .b1-drop-del,
+  .b1-add-product-wrap,
+  .b1-card-actions,
+  .collapsible-cards-container,
+  .card-view-header-bar,
+  .buku1-save-action-bar,
+  .kuitansi-nav-card,
+  .kuitansi-filter-bar,
+  .date-stepper-container,
+  .date-display-trigger,
+  .laporan-status-pill,
+  .master-bahan-toolbar,
+  .search-input-wrap,
+  .stok-toolbar,
+  .app-modal-overlay,
+  #appLoadingOverlay,
+  .cloud-sync-pill,
+  .btn-pwa-install,
+  .btn-pwa-install-mobile,
+  .menu-toggle-btn,
+  .slate-card-header,
+  .laporan-harian-action-bar {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Tampilkan Tab Aktif Saja */
+  .app-tab-panel {
+    display: none !important;
+  }
+  .app-tab-panel.active {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Tampilkan Kop Resmi Dokumen Cetak */
+  .lh-print-kop,
+  .b3-print-kop,
+  .buku1-print-kop {
+    display: block !important;
+    width: 100% !important;
+    margin-bottom: 12px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Tampilkan Lembar Tanda Tangan Resmi di Akhir */
+  .lh-print-signatures,
+  .b3-print-signatures,
+  .kuitansi-signatures-wrap {
+    display: block !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-top: 20px !important;
+  }
+
+  /* Kartu & Container Laporan Harian */
+  .laporan-harian-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    gap: 10px !important;
+  }
+
+  /* Sembunyikan Kop Interaktif Web Layar karena sudah digantikan .lh-print-kop */
+  .laporan-harian-header-card {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 12px !important;
+  }
+  .laporan-header-top {
+    display: none !important;
+  }
+
+  /* 3 Kartu Ringkasan KPI di Formulir Harian */
+  .financial-kpi-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin: 0 0 10px 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .financial-kpi-card {
+    background: #F8FAFC !important;
+    border: 1px solid #000000 !important;
+    border-left-width: 4px !important;
+    box-shadow: none !important;
+    padding: 6px 10px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .financial-kpi-card .kpi-label {
+    color: #334155 !important;
+    font-size: 7pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+  }
+  .financial-kpi-card .kpi-val {
+    color: #000000 !important;
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+    margin: 2px 0 !important;
+  }
+  .financial-kpi-card .kpi-sub {
+    color: #475569 !important;
+    font-size: 6.5pt !important;
+  }
+
+  /* Setiap Blok Formulir Harian Tidak Boleh Terpotong Cacat di Tengah Halaman */
+  .sheet-section-card {
+    background: #FFFFFF !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    padding: 10px 12px !important;
+    color: #000000 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    margin-bottom: 10px !important;
+  }
+  .sheet-section-header {
+    border-bottom: 1px solid #CBD5E1 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+  }
+  .sheet-section-number {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+    font-weight: 800 !important;
+  }
+  .sheet-section-title {
+    color: #000000 !important;
+    font-size: 9.5pt !important;
+    font-weight: 800 !important;
+  }
+  .sheet-section-desc {
+    color: #334155 !important;
+    font-size: 7.5pt !important;
+  }
+
+  /* Strip Arus Kas & Kotak Laba Bersih di Blok 4 */
+  .lh-cashflow-strip {
+    background: #F8FAFC !important;
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    padding: 8px 12px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .lh-cf-item .lh-cf-label {
+    color: #334155 !important;
+    font-size: 7.5pt !important;
+  }
+  .lh-cf-item .lh-cf-val {
+    color: #000000 !important;
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+  }
+  .lh-cf-item.highlight {
+    background: #F1F5F9 !important;
+    border: 1px solid #000000 !important;
+  }
+
+  /* Tab Buku 3: BEP Card Wrap & Stat Pills */
+  .bep-card-wrap {
+    background: #FFFFFF !important;
+    border: 1px solid #000000 !important;
+    box-shadow: none !important;
+    padding: 10px 12px !important;
+    margin-bottom: 12px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .bep-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+  .bep-stat-pill {
+    background: #F8FAFC !important;
+    border: 1px solid #000000 !important;
+    padding: 6px 10px !important;
+  }
+  .bep-stat-pill span {
+    color: #334155 !important;
+    font-size: 7pt !important;
+    font-weight: 800 !important;
+  }
+  .bep-stat-pill strong {
+    color: #000000 !important;
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+  }
+
+  /* FORMAT TABEL CETAK PROFESIONAL DENGAN PAGE-BREAK CONTROL */
+  .table-responsive-wrapper {
+    display: block !important;
+    width: 100% !important;
+    overflow: visible !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .slate-table,
+  .sheet-grid-table {
+    display: table !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1.5px solid #000000 !important;
+  }
+
+  .slate-table thead,
+  .sheet-grid-table thead {
+    display: table-header-group !important;
+  }
+
+  .slate-table tbody,
+  .sheet-grid-table tbody {
+    display: table-row-group !important;
+  }
+
+  .slate-table tfoot,
+  .sheet-grid-table tfoot {
+    display: table-footer-group !important;
+  }
+
+  .slate-table tr,
+  .sheet-grid-table tr {
+    display: table-row !important;
+    background: #FFFFFF !important;
+    border: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .slate-table th,
+  .slate-table td,
+  .sheet-grid-table th,
+  .sheet-grid-table td {
+    display: table-cell !important;
+    color: #000000 !important;
+    border: 1px solid #334155 !important;
+    font-size: 8pt !important;
+    padding: 4px 6px !important;
+    background: transparent !important;
+  }
+
+  .slate-table th,
+  .sheet-grid-table th {
+    background: #F1F5F9 !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .slate-table tfoot td,
+  .sheet-grid-table tfoot td {
+    background: #F8FAFC !important;
+    font-weight: 800 !important;
+    border-top: 2px solid #000000 !important;
+  }
+
+  /* Hilangkan Tampilan Kotak Input Form Saat Dicetak */
+  .sheet-input,
+  .slate-table input {
+    background: transparent !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    font-weight: inherit !important;
+    font-size: inherit !important;
+    text-align: inherit !important;
+  }
+
+  .slate-table th.no-print,
+  .slate-table td.no-print {
+    display: none !important;
   }
 }

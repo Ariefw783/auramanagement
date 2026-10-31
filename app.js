@@ -4,16 +4,17 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.3.7';
-const APP_BUILD_TIME = '30/10/2026 22:00 WIB';
-const FIRESTORE_DOC_PATH = 'production_data_v9';
-const FIRESTORE_META_PATH = 'meta_sync_v9';
+const APP_VERSION = 'v7.3.8';
+const APP_BUILD_TIME = '31/10/2026 16:00 WIB';
+const FIRESTORE_DOC_PATH = 'production_data_v10';
+const FIRESTORE_META_PATH = 'meta_sync_v10';
 
-const AURA_DB_KEY = 'dapur_mom_fitri_db_v9_fresh';
+const AURA_DB_KEY = 'dapur_mom_fitri_db_v10_clean';
 
 // Bersihkan seluruh database lama di browser (Reset total ke akar)
 try {
   const legacyStorageKeys = [
+    'dapur_mom_fitri_db_v9_fresh',
     'dapur_mom_fitri_db_v8_fresh',
     'dapur_mom_fitri_db_v7_clean',
     'dapur_mom_fitri_db_v6_clean',
@@ -678,7 +679,7 @@ const OPERATIONAL_DAYS_CONFIG = (function() {
 
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
 const REAL_TODAY_ISO = getRealTodayIso();
-const DEFAULT_CYCLE_START_ISO = '2026-10-29'; // Data baru mulai hari ini (Kamis, 29 Oktober 2026)
+const DEFAULT_CYCLE_START_ISO = '2026-10-31'; // Data baru bersih mulai hari ini (Sabtu, 31 Oktober 2026)
 const REAL_TODAY_META = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === REAL_TODAY_ISO) || buildDayMetaFromIso(REAL_TODAY_ISO, 1);
 const REAL_TODAY_B2KEY = REAL_TODAY_META.b2Key;
 
@@ -696,19 +697,36 @@ const INITIAL_AURA_DATA = {
   ],
 
   buku1Detail: [],
-  buku1History: {},
+  buku1History: {
+    '2026-10-31': [
+      { id: 'tara', nama: 'Warung Sayur Tara', admin: 'Ibu Tara', kirim: 125, retur: 0, laku: 125, hargaSetor: 800, marginRate: 200, setor: 100000, setorManual: true, status: 'done', checked: true }
+    ]
+  },
+  buku1Committed: {
+    '2026-10-31': [
+      { id: 'tara', nama: 'Warung Sayur Tara', admin: 'Ibu Tara', kirim: 125, retur: 0, laku: 125, hargaSetor: 800, marginRate: 200, setor: 100000, setorManual: true, status: 'done', checked: true }
+    ]
+  },
   buku1RencanaHistory: {},
-  buku1SavedDates: {},
-  buku1KirimSavedDates: {},
-  buku1TarikSavedDates: {},
+  buku1SavedDates: {
+    '2026-10-31': true
+  },
+  buku1KirimSavedDates: {
+    '2026-10-31': true
+  },
+  buku1TarikSavedDates: {
+    '2026-10-31': true
+  },
   buku1CustomDays: [],
   masterBahan: INITIAL_MASTER_BAHAN,
   masterResep: DEFAULT_MASTER_RESEP,
 
   buku2Belanja: [],
+  buku2Committed: [],
+  buku2SavedDates: {},
 
   buku3Kas: [
-    { tgl: 29, hari: 'Kam', isoDate: '2026-10-29', b2Key: '29/10', kirim: 0, retur: 0, laku: 0, setor: 0, modal: 0, gaji: 0, realBelanja: 0, endapan: 0 }
+    { tgl: 31, hari: 'Sab', isoDate: '2026-10-31', b2Key: '31/10', kirim: 125, retur: 0, laku: 125, setor: 100000, modal: 0, gaji: 100000, realBelanja: 0, endapan: 100000 }
   ],
 
   stokBahan: [
@@ -1341,7 +1359,7 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
   // 1. Modal Awal Kas Dapur (Saldo Kas Fisik yang mengendap dari hari sebelumnya)
   // Tidak ada modal awal luar (modal awal = 0); kas operasional murni bersumber dari hasil penarikan harian
   let modalAwal = (prevRollingEndapan !== undefined) ? prevRollingEndapan : (cfg.modal || 0);
-  if (cfg.isoDate === '2026-10-25' || cfg.isoDate === '2026-10-29') {
+  if (cfg.isoDate === '2026-10-25' || cfg.isoDate === '2026-10-29' || cfg.isoDate === '2026-10-31') {
     modalAwal = 0;
   }
 
@@ -2277,6 +2295,23 @@ window.printBuku1 = function() {
 };
 
 window.printBuku3 = function() {
+  const tsEl = document.getElementById('b3PrintTimestamp');
+  if (tsEl) {
+    tsEl.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+  window.print();
+};
+
+window.printLaporanHarian = function() {
+  const tsEl = document.getElementById('lhPrintTimestamp');
+  const dEl = document.getElementById('lhPrintDateDisplay');
+  const srcDate = document.getElementById('laporanHarianDateText');
+  if (tsEl) {
+    tsEl.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+  if (dEl && srcDate) {
+    dEl.innerText = srcDate.innerText || 'Sabtu, 31 Oktober 2026';
+  }
   window.print();
 };
 
@@ -7530,6 +7565,15 @@ window.saveLaporanHarianMaster = function() {
 };
 
 window.printLaporanHarian = function() {
+  const tsEl = document.getElementById('lhPrintTimestamp');
+  const dEl = document.getElementById('lhPrintDateDisplay');
+  const srcDate = document.getElementById('laporanHarianDateText');
+  if (tsEl) {
+    tsEl.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+  if (dEl) {
+    dEl.innerText = (srcDate && srcDate.innerText && srcDate.innerText.trim().length > 0) ? srcDate.innerText : 'Sabtu, 31 Oktober 2026';
+  }
   window.print();
 };
 
@@ -8014,7 +8058,7 @@ const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
-  const timeDisplay = buildTime || APP_BUILD_TIME;
+  const timeDisplay = buildTime || APP_BUILD_TIME || (new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB');
   const overlay = document.getElementById('appModalOverlay');
   const icon = document.getElementById('appModalIcon');
   const titleEl = document.getElementById('appModalTitle');
