@@ -5,7 +5,7 @@
 // ==============================================================
 
 const APP_VERSION = 'v7.4.4';
-const APP_BUILD_TIME = '01/11/2026 15:18 WIB';
+const APP_BUILD_TIME = '01/11/2026 15:37 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -759,6 +759,8 @@ if (!auraData.masterBahan || !Array.isArray(auraData.masterBahan) || auraData.ma
 if ('stokBahan' in auraData) delete auraData.stokBahan;
 if ('stokCommitted' in auraData) delete auraData.stokCommitted;
 if ('stokLastSaved' in auraData) delete auraData.stokLastSaved;
+if ('slipBox' in auraData) delete auraData.slipBox;
+if ('labelBox' in auraData) delete auraData.labelBox;
 
 if (!auraData.buku1SavedDates) {
   auraData.buku1SavedDates = {
@@ -1746,7 +1748,7 @@ window.saveKirimPagi = async function() {
       window.showSuccessModal(
         'Kiriman Pagi Berhasil Disimpan',
         'Drop produk konsinyasi untuk hari <strong>' + namaHari + '</strong> (' + totalKirim + ' pcs) telah tersimpan & terkunci.<br><br>' +
-        'Label Box siap dicetak. Sistem kini dalam status <strong>Menunggu Penarikan Sore</strong>.'
+        'Sistem kini dalam status <strong>Menunggu Penarikan Sore</strong>.'
       );
     }
   } catch (err) {
@@ -5619,192 +5621,8 @@ function renderBuku1View() {
   }
 }
 
-function renderSlipBoxView() {
-  const slipContainer = document.getElementById('slipBoxContainer');
-  if (!slipContainer) return;
-
-  const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
-  const dateLabel = curCfg.namaHari || activeDate;
-
-  const dateBadge = document.getElementById('slipBoxDateBadge');
-  if (dateBadge) {
-    dateBadge.innerText = dateLabel;
-  }
-
-  slipContainer.innerHTML = '';
-
-  // 1. Ambil baris mitra konsinyasi tanggal aktif (Laporan Harian Blok 1 atau buku1History)
-  const mitraRows = (lhActiveDateCache === activeDate && lhMitraRows && lhMitraRows.length > 0)
-    ? lhMitraRows
-    : ((auraData.buku1History && auraData.buku1History[activeDate]) || getActiveBuku1Rows());
-
-  // 2. Ambil baris rencana produksi & titip esok (Laporan Harian Blok 3 atau buku1RencanaHistory)
-  const rencanaRows = (lhActiveDateCache === activeDate && lhRencanaRows && lhRencanaRows.length > 0)
-    ? lhRencanaRows
-    : ((auraData.buku1RencanaHistory && auraData.buku1RencanaHistory[activeDate]) || []);
-
-  const activeRecipes = getActiveMasterResep();
-
-  // Saring hanya mitra nyata pengiriman (kecuali konsumsi pribadi rumah tangga)
-  const validPartners = (mitraRows || []).filter(m => {
-    if (!m || !m.nama) return false;
-    if (m.isSpecial) return false;
-    const n = m.nama.toLowerCase();
-    return !n.includes('konsumsi rumah') && !n.includes('bonus dapur');
-  });
-
-  if (validPartners.length === 0) {
-    slipContainer.innerHTML =
-      '<div style="grid-column: 1 / -1; text-align: center; padding: 36px 16px; background: rgba(15, 23, 42, 0.4); border: 1px dashed var(--card-border); border-radius: 10px; color: #94A3B8;">' +
-        '<div style="font-size: 1.1rem; font-weight: 700; color: #F1F5F9; margin-bottom: 6px;">Belum Ada Mitra Pengiriman untuk ' + dateLabel + '</div>' +
-        '<div style="font-size: 0.85rem;">Silakan isi alokasi di menu <strong>Laporan Harian</strong> (Blok 1 &amp; Blok 3).</div>' +
-      '</div>';
-    return;
-  }
-
-  validPartners.forEach((m, idx) => {
-    const card = document.createElement('div');
-    card.className = 'slip-box-card';
-
-    // Cari keselarasan data rencana di Blok 3 berdasarkan nama mitra
-    const mNameClean = (m.nama || '').trim().toLowerCase();
-    const rMatch = (rencanaRows || []).find(r => {
-      const rName = (r.nama || '').trim().toLowerCase();
-      return rName === mNameClean || (rName.length > 3 && (mNameClean.includes(rName) || rName.includes(mNameClean)));
-    });
-
-    // Kumpulkan rincian produk yang dikirim
-    const productItems = [];
-    let totalPlanPcs = 0;
-
-    activeRecipes.forEach((p, pIdx) => {
-      let qty = 0;
-      // Prioritas 1: Dari rencana drop Blok 3
-      if (rMatch) {
-        qty = getLhRencanaProdQty(rMatch, p.id);
-      }
-      // Prioritas 2: Dari properti drops langsung
-      if (qty <= 0 && m.drops && m.drops[p.id]) {
-        qty = Number(m.drops[p.id]) || 0;
-      }
-      if (qty <= 0 && m[p.id] !== undefined) {
-        qty = Number(m[p.id]) || 0;
-      }
-      // Prioritas 3: Legacy per-menu matching
-      if (qty <= 0) {
-        if (p.id === 'prod_ubi' && m.ubi) qty = Number(m.ubi) || 0;
-        if ((p.id === 'prod_sayur' || p.id === 'prod_sosis') && (m.sayur || m.sosis)) qty = Number(m.sayur || m.sosis) || 0;
-        if (p.id === 'prod_roti' && m.roti) qty = Number(m.roti) || 0;
-      }
-
-      if (qty > 0) {
-        productItems.push({
-          name: p.nama,
-          shortName: p.shortName || p.nama,
-          color: getProductColor(p, pIdx),
-          qty: qty
-        });
-        totalPlanPcs += qty;
-      }
-    });
-
-    const kirimPcs = Number(m.kirim) || 0;
-    const bonusPcs = Number(m.bonus) || 0;
-    // Jika rincian produk tidak ada namun kirimPcs di Blok 1 sudah diisi
-    const effectiveKirim = totalPlanPcs > 0 ? totalPlanPcs : kirimPcs;
-    const totalIsiBox = effectiveKirim + bonusPcs;
-
-    if (productItems.length === 0 && effectiveKirim > 0) {
-      productItems.push({
-        name: 'Gorengan Aneka Varian (Campur)',
-        shortName: 'Gorengan Campur',
-        color: '#38BDF8',
-        qty: effectiveKirim
-      });
-    }
-
-    let itemsHtml = '';
-    if (productItems.length === 0) {
-      itemsHtml = '<div style="color: var(--text-muted); font-size: 0.78rem; font-style: italic; padding: 6px 0;">(Belum ada rincian produk untuk titik ini)</div>';
-    } else {
-      itemsHtml = productItems.map(it => 
-        '<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">' +
-          '<span style="font-weight: 600; color: #F1F5F9; font-size: 0.85rem;">• ' + it.name + '</span>' +
-          '<strong style="color: ' + it.color + '; font-family: var(--font-mono); font-size: 0.95rem;">' + it.qty + ' pcs</strong>' +
-        '</div>'
-      ).join('');
-    }
-
-    if (bonusPcs > 0) {
-      itemsHtml += 
-        '<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); color: #818CF8;">' +
-          '<span style="font-weight: 700; font-size: 0.85rem;">• Bonus Gratis Mitra</span>' +
-          '<strong style="font-family: var(--font-mono); font-size: 0.95rem;">+' + bonusPcs + ' pcs</strong>' +
-        '</div>';
-    }
-
-    const hargaSetor = m.hargaSetor !== undefined ? Number(m.hargaSetor) : (m.nama.includes('Ragil') ? 1000 : 800);
-    const marginMitra = m.marginMitra !== undefined ? Number(m.marginMitra) : 200;
-    const estSetorRupiah = effectiveKirim * hargaSetor;
-
-    const isBoxReady = totalIsiBox > 0;
-    const statusPill = isBoxReady
-      ? '<span class="badge-status done" style="font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;">SIAP KIRIM</span>'
-      : '<span class="badge-status progress" style="font-size: 0.7rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;">KOSONG</span>';
-
-    card.innerHTML = 
-      '<div class="slip-box-header" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 12px; border-bottom: 2px solid rgba(56, 189, 248, 0.35); padding-bottom: 8px;">' +
-        '<div>' +
-          '<div style="font-size: 0.65rem; font-weight: 800; color: #38BDF8; letter-spacing: 0.08em; text-transform: uppercase;">DAPUR MOM FITRI • LABEL KOTAK</div>' +
-          '<div class="slip-box-title" style="font-size: 1.1rem; font-weight: 800; color: #FFFFFF; margin-top: 2px;">' + m.nama + '</div>' +
-          '<div style="font-size: 0.76rem; color: #94A3B8; margin-top: 3px;">📅 ' + dateLabel + '</div>' +
-        '</div>' +
-        '<div>' + statusPill + '</div>' +
-      '</div>' +
-      '<div class="slip-box-body" style="margin-bottom: 12px;">' +
-        '<div style="font-size: 0.72rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">Rincian Gorengan Box:</div>' +
-        itemsHtml +
-        '<div style="margin-top: 10px; padding: 8px 12px; background: rgba(15, 23, 42, 0.7); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(56, 189, 248, 0.3);">' +
-          '<span style="font-weight: 800; color: #E2E8F0; font-size: 0.86rem;">TOTAL ISI BOX:</span>' +
-          '<strong style="color: #38BDF8; font-family: var(--font-mono); font-size: 1.15rem; font-weight: 900;">' + totalIsiBox + ' PCS</strong>' +
-        '</div>' +
-      '</div>' +
-      '<div class="slip-box-footer" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--card-border-subtle); padding: 8px 10px; border-radius: 6px; flex-wrap: wrap; gap: 8px;">' +
-        '<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">' +
-          '<div class="slip-rate-group" style="display: flex; align-items: center; gap: 3px; font-size: 0.76rem;">' +
-            '<span style="color: #94A3B8;">Setor: Rp</span>' +
-            '<input type="number" inputmode="numeric" class="slip-rate-input" style="width: 62px; text-align: center; font-weight: 800; color: #34D399;" value="' + hargaSetor + '" onchange="window.updateSlipRate(' + idx + ', \'hargaSetor\', this.value)" title="Ubah tarif setor per pcs">' +
-            '<span style="color: #64748B;">/pcs</span>' +
-          '</div>' +
-          '<div class="slip-rate-group" style="display: flex; align-items: center; gap: 3px; font-size: 0.76rem;">' +
-            '<span style="color: #94A3B8;">Margin: Rp</span>' +
-            '<input type="number" inputmode="numeric" class="slip-rate-input margin" style="width: 55px; text-align: center; font-weight: 800; color: #FBBF24;" value="' + marginMitra + '" onchange="window.updateSlipRate(' + idx + ', \'marginMitra\', this.value)" title="Ubah margin mitra per pcs">' +
-            '<span style="color: #64748B;">/pcs</span>' +
-          '</div>' +
-        '</div>' +
-        '<div style="text-align: right; font-family: var(--font-mono); font-size: 0.8rem;">' +
-          '<span style="color: #94A3B8;">Est. Setor: </span><strong style="color: #34D399; font-size: 0.9rem;">Rp ' + estSetorRupiah.toLocaleString('id-ID') + '</strong>' +
-        '</div>' +
-      '</div>';
-
-    slipContainer.appendChild(card);
-  });
-}
-
-window.stepSlipBoxDate = function(delta) {
-  const curIdx = OPERATIONAL_DAYS_CONFIG.findIndex(c => c.isoDate === activeDate);
-  if (curIdx !== -1) {
-    const nextIdx = curIdx + delta;
-    if (nextIdx >= 0 && nextIdx < OPERATIONAL_DAYS_CONFIG.length) {
-      window.switchDate(OPERATIONAL_DAYS_CONFIG[nextIdx].isoDate);
-      return;
-    }
-  }
-  const d = new Date(activeDate);
-  d.setDate(d.getDate() + delta);
-  const nextIso = d.toISOString().slice(0, 10);
-  window.switchDate(nextIso);
-};
+function renderSlipBoxView() { /* deprecated - modul label box pengiriman dihapus permanen */ }
+window.stepSlipBoxDate = function() {};
 
 function renderKuitansiView() {
   populateKuitansiMasterSelect();
