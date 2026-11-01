@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.2';
-const APP_BUILD_TIME = '01/11/2026 14:36 WIB';
+const APP_VERSION = 'v7.4.3';
+const APP_BUILD_TIME = '01/11/2026 14:46 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
