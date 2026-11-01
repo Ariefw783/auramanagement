@@ -950,27 +950,8 @@ if (!auraData.buku2Belanja) {
   auraData.buku2Belanja = [];
 }
 
-if (!auraData.masterResep || !Array.isArray(auraData.masterResep) || auraData.masterResep.length === 0) {
+if (!auraData.masterResep || !Array.isArray(auraData.masterResep)) {
   auraData.masterResep = JSON.parse(JSON.stringify(DEFAULT_MASTER_RESEP));
-} else {
-  // Kalibrasi otomatis jika formula standar (Ubi, Sayur, Roti, Sosis) di LocalStorage mengandung anomali takaran (> Rp 1.500)
-  ['prod_ubi', 'prod_sayur', 'prod_roti', 'prod_sosis'].forEach(stdId => {
-    const cur = auraData.masterResep.find(r => r.id === stdId);
-    const def = DEFAULT_MASTER_RESEP.find(d => d.id === stdId);
-    if (!cur && def) {
-      auraData.masterResep.push(JSON.parse(JSON.stringify(def)));
-      return;
-    }
-    const hasOldGramUnits = cur && cur.komposisi && cur.komposisi.some(k => (k.bahanKey === 'Telur' || k.bahanKey === 'Sosis') && k.isGram);
-    if (cur && def && (!cur.isUserModified || getProductUnitHPP(cur) > 1500 || hasOldGramUnits)) {
-      const idx = auraData.masterResep.findIndex(r => r.id === stdId);
-      const wasActive = cur.isActive;
-      auraData.masterResep[idx] = JSON.parse(JSON.stringify(def));
-      if (typeof wasActive !== 'undefined') {
-        auraData.masterResep[idx].isActive = wasActive;
-      }
-    }
-  });
 }
 if (Array.isArray(auraData.masterResep)) {
   auraData.masterResep.forEach(r => {
@@ -6676,7 +6657,7 @@ function triggerLhDraftAutoSave() {
 const PRODUCT_COLOR_PALETTE = ['#818CF8', '#F59E0B', '#FB7185', '#34D399', '#38BDF8', '#A78BFA', '#F472B6', '#FBBF24', '#4ADE80', '#E879F9'];
 
 function getActiveMasterResep() {
-  const recipes = (auraData && auraData.masterResep && Array.isArray(auraData.masterResep) && auraData.masterResep.length > 0)
+  const recipes = (auraData && auraData.masterResep && Array.isArray(auraData.masterResep))
     ? auraData.masterResep
     : DEFAULT_MASTER_RESEP;
   return recipes.filter(r => r.isActive !== false);
