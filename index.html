@@ -153,7 +153,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.6</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.7</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -237,7 +237,7 @@
               <div>
                 <div class="laporan-badge-tag">FORMULIR OPERASIONAL HARIAN</div>
                 <h2 class="laporan-main-title">DAPUR MOM FITRI</h2>
-                <div class="laporan-sub-title">Sistem Pencatatan Terpadu Konsinyasi, Belanja Pasar, Rencana Produksi &amp; Arus Kas (5 Pos Keuangan)</div>
+                <div class="laporan-sub-title">Pencatatan Terpadu Operasional, Distribusi Konsinyasi &amp; Arus Kas</div>
               </div>
 
               <!-- Date Selector & Stepper -->
@@ -281,7 +281,7 @@
               <div class="financial-kpi-card" style="border-left: 4px solid #34D399;">
                 <span class="kpi-label">Laba Bersih Hari Ini</span>
                 <strong class="kpi-val" id="lhKpiLabaBersih" style="color: #34D399;">Rp 0</strong>
-                <span class="kpi-sub" id="lhKpiLabaBersihSub">Akumulasi otomatis siap ditarik Jumat</span>
+                <span class="kpi-sub" id="lhKpiLabaBersihSub">Laba operasional harian</span>
               </div>
             </div>
           </div>
@@ -292,8 +292,8 @@
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">1</span>
                 <div>
-                  <h3 class="sheet-section-title">Laporan Penarikan &amp; Distribusi Konsinyasi Mitra (Buku 1)</h3>
-                  <p class="sheet-section-desc">Ketik Kirim dan Retur sisa sore per warung. Laku dan setoran terhitung otomatis.</p>
+                  <h3 class="sheet-section-title">1. Distribusi &amp; Setoran Konsinyasi</h3>
+                  <p class="sheet-section-desc">Rekap pengiriman, retur fisik, dan setoran mitra titipan.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print" style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -343,8 +343,8 @@
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">2</span>
                 <div>
-                  <h3 class="sheet-section-title">Form Pengeluaran Belanja Bahan &amp; Operasional Harian (Buku 2)</h3>
-                  <p class="sheet-section-desc">Catat pembelian langsung seperti nota pasar: nama barang, satuan beli, toko, dan nominal rupiah.</p>
+                  <h3 class="sheet-section-title">2. Belanja Bahan &amp; Operasional Harian</h3>
+                  <p class="sheet-section-desc">Rincian pembelian bahan baku dan pengeluaran kas dapur.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -392,8 +392,8 @@
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">3</span>
                 <div>
-                  <h3 class="sheet-section-title">Rencana Produksi &amp; Titip Esok Hari (SOP Dapur)</h3>
-                  <p class="sheet-section-desc">Rincian alokasi per varian produk per titik titipan serta bonus &amp; konsumsi dapur (kolom produk dinamis mengikuti menu aktif).</p>
+                  <h3 class="sheet-section-title">3. Rencana Produksi &amp; Distribusi Esok Hari</h3>
+                  <p class="sheet-section-desc">Alokasi target produksi per varian menu dan titik distribusi.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -447,8 +447,8 @@
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">4</span>
                 <div>
-                  <h3 class="sheet-section-title">Form Arus Kas &amp; Laba Bersih (Akumulasi Tarik Jumat)</h3>
-                  <p class="sheet-section-desc">Omzet Kotor - Belanja Hari Ini = Laba Bersih Hari Ini. Diakumulasikan otomatis setiap hari dan siap ditarik pada hari Jumat sore.</p>
+                  <h3 class="sheet-section-title">4. Ringkasan Arus Kas &amp; Laba Bersih</h3>
+                  <p class="sheet-section-desc">Ikhtisar posisi kas masuk, belanja harian, dan estimasi laba bersih.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -481,15 +481,15 @@
                   💰
                 </div>
                 <div>
-                  <h4 style="margin: 0; color: #FFFFFF; font-size: 0.95rem; font-weight: 700;">Laba Bersih &amp; Penarikan Pemilik (Prive)</h4>
+                  <h4 style="margin: 0; color: #FFFFFF; font-size: 0.95rem; font-weight: 700;">Penarikan Laba Pemilik (Prive)</h4>
                   <p style="margin: 4px 0 0; color: #94A3B8; font-size: 0.8rem; line-height: 1.4;">
-                    Laba Bersih = Omzet - Belanja. Penarikan kas ke rekening/dompet pribadi wajib dicatat agar saldo kas terpotong nyata dan tidak menumpuk semu.
+                    Pencatatan penarikan laba ke rekening pribadi untuk sinkronisasi saldo kas riil.
                   </p>
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                 <div style="text-align: right; min-width: 140px;">
-                  <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Sisa Laba Siap Tarik</span>
+                  <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Saldo Laba Tersedia</span>
                   <strong id="lhBlok4LabaDisplay" style="display: block; font-size: 1.35rem; color: #34D399; font-family: var(--font-mono); font-weight: 900;">Rp 0</strong>
                 </div>
                 <button type="button" class="tool-btn tool-btn-success no-print" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; padding: 9px 15px; font-size: 0.82rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" title="Catat penarikan laba kas dapur ke kantong pribadi">
@@ -1044,10 +1044,10 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Arus Kas &amp; Rekap Laba Bersih</span>
-                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">Tarik Jumat Sore</span>
+                <span>Rekapitulasi Arus Kas &amp; Laba Bersih</span>
+                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">Akumulasi Kas</span>
               </div>
-              <div class="slate-card-subtitle">Rekapitulasi omzet konsinyasi, seluruh pengeluaran belanja bahan, dan akumulasi laba bersih siap tarik.</div>
+              <div class="slate-card-subtitle">Pemantauan omzet penjualan, belanja operasional, dan akumulasi laba berjalan.</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn tool-btn-success" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; background: rgba(52, 211, 153, 0.2); border-color: #34D399; color: #34D399;">+ Catat Tarik Laba (Prive)</button>
@@ -1059,8 +1059,8 @@
           <div class="bep-card-wrap" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <strong style="color: #FFFFFF; font-size: 0.95rem;">Rekapitulasi Arus Kas &amp; Saldo Laba Bersih Pemilik</strong>
-                <div style="font-size: 0.75rem; color: #94A3B8;">Laba Bersih = Omzet - Belanja. Penarikan keuntungan ke rekening/dompet pribadi (Prive) otomatis mengurangi saldo kas.</div>
+                <strong style="color: #FFFFFF; font-size: 0.95rem;">Posisi Saldo Kas &amp; Laba Bersih</strong>
+                <div style="font-size: 0.75rem; color: #94A3B8;">Ringkasan akumulasi saldo laba bersih dan mutasi penarikan kas pemilik.</div>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                 <button type="button" class="tool-btn" id="btnTarikGajiJumat" onclick="window.openPenarikanLabaModal()" style="display: none; padding: 5px 12px; font-size: 0.75rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6); font-weight: 800;">+ Catat Tarik Laba</button>
@@ -1118,8 +1118,8 @@
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number" style="background: #A855F7; color: #FFF;">P</span>
                 <div>
-                  <h3 class="sheet-section-title">Riwayat Mutasi Penarikan Laba Pemilik (Buku Prive)</h3>
-                  <p class="sheet-section-desc">Pencatatan resmi setiap penarikan keuntungan dapur ke dompet/rekening pribadi. Saldo kas langsung terpotong akurat.</p>
+                  <h3 class="sheet-section-title">Riwayat Penarikan Laba (Prive)</h3>
+                  <p class="sheet-section-desc">Daftar transaksi penarikan laba dapur ke rekening pribadi.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
@@ -1176,9 +1176,9 @@
             <div>
               <div class="slate-card-title">
                 <span>Katalog Bahan Baku & Pemasok</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Harga Acuan Belanja</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Harga Acuan</span>
               </div>
-              <div class="slate-card-subtitle">Basis data harga acuan bahan baku, rasio takaran dapur, dan toko pemasok langganan.</div>
+              <div class="slate-card-subtitle">Daftar harga acuan belanja bahan baku dan direktori pemasok langganan.</div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">Simpan Katalog</button>
@@ -1187,9 +1187,8 @@
           </div>
 
           <!-- PANDUAN PENGGUNA: PERAN MENU KATALOG -->
-          <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38BDF8; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
-            <strong style="color: #38BDF8;">Panduan Katalog:</strong>
-            Basis data harga acuan bahan baku, rasio konversi takaran resep dapur, dan toko pemasok belanja langganan. Perubahan harga atau penambahan bahan baru tersimpan permanen dan otomatis sinkron ke kalkulator takaran serta kuitansi belanja.
+          <div style="background: rgba(56, 189, 248, 0.06); border-left: 3px solid #38BDF8; padding: 8px 12px; border-radius: 6px; margin-bottom: 14px; font-size: 0.78rem; color: #94A3B8; line-height: 1.4;">
+            <strong style="color: #38BDF8;">Informasi Katalog:</strong> Harga acuan tersinkronisasi otomatis dengan estimasi takaran resep dan pengeluaran belanja.
           </div>
 
           <!-- Filter & Search Toolbar -->
@@ -1244,10 +1243,10 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Formula Resep &amp; Standar Gramasi Presisi</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Dapur &amp; SOP</span>
+                <span>Formula &amp; Standar Resep Menu</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Standar Gramasi</span>
               </div>
-              <div class="slate-card-subtitle">Daftar formula resep menu jajanan, standar gramasi bahan baku presisi, dan SOP penggorengan dapur (mode simpel tanpa foto).</div>
+              <div class="slate-card-subtitle">Standar formula resep, gramasi bahan baku, dan prosedur produksi dapur.</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
               <button type="button" class="tool-btn" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>

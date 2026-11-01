@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.6';
-const APP_BUILD_TIME = '01/11/2026 16:35 WIB';
+const APP_VERSION = 'v7.4.7';
+const APP_BUILD_TIME = '01/11/2026 23:40 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -2481,7 +2481,7 @@ function renderExecutiveFinancials() {
 
       let badgeStatusHtml = '<span class="mini-tag" style="background: rgba(16, 185, 129, 0.2); color: #34D399; font-weight: 800;">Lengkap Terverifikasi</span>';
       let amplop2Subtext = 'Cadangan sosis, minyak, collins, gas (aman di dapur)';
-      let amplop3Subtext = 'Laba bersih hak pemilik (Diambil Jumat sore)';
+      let amplop3Subtext = 'Laba bersih operasional hak pemilik';
 
       if (curDay.status3Amplop === 'DEFISIT_KAS') {
         badgeStatusHtml = '<span class="mini-tag" style="background: rgba(239, 68, 68, 0.2); color: #EF4444; font-weight: 800;">Defisit Kas Belanja</span>';
@@ -5320,7 +5320,7 @@ function renderBuku3Cards(kasList, totKirim, totRetur, totLaku, totSetor, totBel
     '<div class="card-summary-grid">' +
       '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>1. TOTAL OMZET TERVERIFIKASI:</span><strong style="color:#38BDF8;">Rp ' + totSetor.toLocaleString('id-ID') + '</strong></div>' +
       '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>2. TOTAL BELANJA (SEMUA BAHAN):</span><strong style="color:#FB7185;">Rp ' + totBelanja.toLocaleString('id-ID') + '</strong></div>' +
-      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>3. AKUMULASI LABA BERSIH (SIAP TARIK JUMAT):</span><strong style="color:#34D399; font-size: 1.15rem;">' + totLabaFmt + '</strong></div>' +
+      '<div class="card-stat-pill highlight" style="grid-column: span 2;"><span>3. AKUMULASI LABA BERSIH:</span><strong style="color:#34D399; font-size: 1.15rem;">' + totLabaFmt + '</strong></div>' +
     '</div>';
   container.appendChild(summary);
 }
@@ -5761,7 +5761,7 @@ window.openPenarikanLabaModal = function() {
     icon.innerHTML = '<span style="font-size: 1.3rem;">💰</span>';
     icon.style.display = 'inline-flex';
   }
-  if (titleEl) titleEl.innerText = 'Catat Penarikan Laba Pemilik (Prive)';
+  if (titleEl) titleEl.innerText = 'Penarikan Laba Pemilik (Prive)';
 
   // Hitung total laba dihasilkan dan total ditarik
   const allDays = getAllDaysAccounting();
@@ -5779,15 +5779,15 @@ window.openPenarikanLabaModal = function() {
     '<form id="formPenarikanLaba" onsubmit="window.submitPenarikanLaba(event)">' +
       '<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 14px;">' +
         '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">' +
-          '<span style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">1. Total Laba Bersih Dihasilkan:</span>' +
+          '<span style="font-size: 0.78rem; color: #94A3B8; font-weight: 700;">Total Akumulasi Laba:</span>' +
           '<strong style="font-size: 0.95rem; color: #FBBF24; font-family: var(--font-mono);">Rp ' + totLabaBersih.toLocaleString('id-ID') + '</strong>' +
         '</div>' +
         '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">' +
-          '<span style="font-size: 0.78rem; color: #94A3B8; text-transform: uppercase; font-weight: 700;">2. Sudah Ditarik Sebelumnya (Prive):</span>' +
+          '<span style="font-size: 0.78rem; color: #94A3B8; font-weight: 700;">Total Telah Ditarik:</span>' +
           '<span style="font-size: 0.95rem; color: #A855F7; font-weight: 700; font-family: var(--font-mono);">-Rp ' + totalDitarik.toLocaleString('id-ID') + '</span>' +
         '</div>' +
         '<div style="border-top: 1px dashed rgba(52, 211, 153, 0.3); padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">' +
-          '<span style="font-size: 0.82rem; color: #FFFFFF; font-weight: 800;">3. SISA SALDO SIAP DITARIK:</span>' +
+          '<span style="font-size: 0.82rem; color: #FFFFFF; font-weight: 800;">Sisa Saldo Laba Tersedia:</span>' +
           '<strong style="font-size: 1.15rem; color: #34D399; font-weight: 900; font-family: var(--font-mono);">Rp ' + sisaTersedia.toLocaleString('id-ID') + '</strong>' +
         '</div>' +
       '</div>' +
@@ -7538,7 +7538,7 @@ ${belanjaLines.length > 0 ? belanjaLines.join('\n') : '- Belum ada pengeluaran b
 *3. ARUS KAS & LABA BERSIH:*
 - Total Omzet Kotor: Rp ${totSetoran.toLocaleString('id-ID')}
 - Total Belanja Bahan (Termasuk Minyak & Gas): Rp ${totBelanja.toLocaleString('id-ID')}
-- Laba Bersih Hari Ini (Siap Tarik Jumat): Rp ${(totSetoran - totBelanja).toLocaleString('id-ID')}
+- Laba Bersih Hari Ini: Rp ${(totSetoran - totBelanja).toLocaleString('id-ID')}
 
 *4. RENCANA PRODUKSI & TITIP ESOK (SOP DAPUR):*
 ${rencanaLines.join('\n')}
