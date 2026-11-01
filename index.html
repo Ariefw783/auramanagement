@@ -177,7 +177,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.3</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.4</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -844,15 +844,23 @@
         <div class="slate-card">
           <div class="slate-card-header">
             <div>
-              <div class="slate-card-title">
+              <div class="slate-card-title" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span>Label Box Pengiriman</span>
+                <span class="mini-tag" id="slipBoxDateBadge" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Memuat tanggal...</span>
               </div>
-              <div class="slate-card-subtitle">Slip rincian produk per kotak pengiriman untuk kurir dan mitra konsinyasi.</div>
+              <div class="slate-card-subtitle">Slip rincian produk per kotak pengiriman untuk kurir dan mitra konsinyasi. Sinkron otomatis dengan Laporan Harian &amp; Rencana Menu.</div>
             </div>
-            <button class="tool-btn" onclick="window.print()">Cetak Label Box</button>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;" class="no-print">
+              <button type="button" class="tool-btn" onclick="window.stepSlipBoxDate(-1)" title="Hari Sebelumnya">◀ Kemarin</button>
+              <button type="button" class="tool-btn" onclick="window.stepSlipBoxDate(1)" title="Hari Berikutnya">Besok ▶</button>
+              <button type="button" class="tool-btn tool-btn-success" style="font-weight: 800; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" onclick="window.print()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: -2px; margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                Cetak Label Box
+              </button>
+            </div>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;" id="slipBoxContainer">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 14px;" id="slipBoxContainer">
             <!-- Dynamic Slip Boxes -->
           </div>
         </div>

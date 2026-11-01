@@ -5671,28 +5671,51 @@ body {
 
   .slip-box-card {
     background: #FFFFFF !important;
-    border: 2px dashed #333333 !important;
+    border: 2px dashed #000000 !important;
     color: #000000 !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     padding: 14px !important;
   }
 
-  .slip-box-title,
-  .slip-box-body,
-  .slip-box-body strong {
+  .slip-box-card * {
+    color: #000000 !important;
+    text-shadow: none !important;
+  }
+
+  .slip-box-title {
+    color: #000000 !important;
+    font-size: 1.15rem !important;
+  }
+
+  .slip-box-body {
     color: #000000 !important;
   }
 
+  .slip-box-body div {
+    background: transparent !important;
+    border-color: #333333 !important;
+  }
+
   .slip-box-footer {
-    background: #F1F5F9 !important;
-    border: 1px solid #CBD5E1 !important;
+    background: #F8FAFC !important;
+    border: 1px solid #000000 !important;
     color: #000000 !important;
   }
 
   .slip-rate-group,
   .slip-rate-input {
     color: #000000 !important;
+    background: transparent !important;
+    border: none !important;
+    font-weight: 800 !important;
+  }
+
+  .slip-box-card .badge-status {
+    border: 1px solid #000000 !important;
+    background: transparent !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
   }
 }
 
