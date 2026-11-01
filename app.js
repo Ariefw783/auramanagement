@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.1';
-const APP_BUILD_TIME = '31/10/2026 16:45 WIB';
+const APP_VERSION = 'v7.4.2';
+const APP_BUILD_TIME = '01/11/2026 14:36 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -8001,7 +8001,13 @@ const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
 const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
-  const timeDisplay = buildTime || APP_BUILD_TIME || (new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB');
+  const now = new Date();
+  const realTimeNow = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                      now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  let timeDisplay = buildTime;
+  if (!timeDisplay || timeDisplay.includes('31/10/2026')) {
+    timeDisplay = (APP_BUILD_TIME && !APP_BUILD_TIME.includes('31/10/2026')) ? APP_BUILD_TIME : realTimeNow;
+  }
   const overlay = document.getElementById('appModalOverlay');
   const icon = document.getElementById('appModalIcon');
   const titleEl = document.getElementById('appModalTitle');
@@ -8071,8 +8077,11 @@ function checkAppVersionOnBoot() {
   const currentToken = APP_VERSION + '_' + APP_BUILD_TIME;
   const lastAck = localStorage.getItem(LAST_BUILD_KEY);
   if (lastAck !== currentToken) {
+    const now = new Date();
+    const dynamicUpdateTime = now.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+                              now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
     setTimeout(() => {
-      window.showAppUpdateConfirmationModal(APP_BUILD_TIME, false);
+      window.showAppUpdateConfirmationModal(APP_BUILD_TIME || dynamicUpdateTime, false);
       localStorage.setItem(LAST_BUILD_KEY, currentToken);
       localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
     }, 700);
