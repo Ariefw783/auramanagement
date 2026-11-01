@@ -4419,7 +4419,10 @@ function renderRecipeVisualGrid() {
   recipes.forEach((p, idx) => {
     const card = document.createElement('div');
     const isActive = (p.isActive !== false);
+    const pColor = p.badgeColor || '#38BDF8';
     card.className = 'recipe-visual-card' + (isActive ? '' : ' inactive');
+    card.style.borderTop = '3px solid ' + pColor;
+    card.style.background = 'var(--card-surface)';
 
     const hpp = getProductUnitHPP(p);
     const hargaSetor = p.hargaSetorDefault || 800;
@@ -4427,46 +4430,50 @@ function renderRecipeVisualGrid() {
     const marginColor = margin >= 0 ? '#34D399' : '#FB7185';
     const marginSign = margin >= 0 ? '+' : '';
 
-    const defaultImg = p.imgSrc || './Panduan_Visual_Trio_Gorengan_Lengkap.jpg';
     const videoHtml = p.videoRef
-      ? '<li><strong>Referensi Video:</strong> <a href="' + p.videoRef.url + '" target="_blank" rel="noopener" style="color: ' + (p.badgeColor || '#38BDF8') + '; text-decoration: underline;">TikTok ' + p.videoRef.author + '</a></li>'
+      ? '<li><strong>Referensi Video:</strong> <a href="' + p.videoRef.url + '" target="_blank" rel="noopener" style="color: ' + pColor + '; text-decoration: underline;">TikTok ' + p.videoRef.author + '</a></li>'
       : '';
 
-    // Rincian komposisi ringkas dengan Tbsp / Tsp / unit
+    // Rincian komposisi ringkas dengan chip elegan
     const bahanSummary = (p.komposisi || []).map(k => {
       const u = k.unit || (k.isGram ? 'g' : 'unit');
-      return '<span>' + k.nama + ': <strong>' + k.qtyPerPcs + ' ' + u + '</strong></span>';
-    }).join(' • ');
+      return '<span style="display: inline-block; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 4px; margin: 2px 3px 2px 0; border: 1px solid rgba(255,255,255,0.08);">' + k.nama + ': <strong style="color: #FFFFFF;">' + k.qtyPerPcs + ' ' + u + '</strong></span>';
+    }).join(' ');
 
     const statusPill = isActive
-      ? '<button type="button" class="tool-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #34D399; font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk menonaktifkan menu ini dari kalkulator subuh"><span style="width: 6px; height: 6px; border-radius: 50%; background: #34D399;"></span> AKTIF</button>'
-      : '<button type="button" class="tool-btn" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); color: #94A3B8; font-weight: 800; font-size: 0.7rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk mengaktifkan menu ini di kalkulator subuh"><span style="width: 6px; height: 6px; border-radius: 50%; background: #64748B;"></span> NONAKTIF</button>';
+      ? '<button type="button" class="tool-btn" style="background: rgba(16, 185, 129, 0.15); border: 1px solid #10B981; color: #34D399; font-weight: 800; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk menonaktifkan menu ini dari rencana produksi"><span style="width: 6px; height: 6px; border-radius: 50%; background: #34D399;"></span> AKTIF</button>'
+      : '<button type="button" class="tool-btn" style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); color: #94A3B8; font-weight: 800; font-size: 0.68rem; padding: 2px 8px; border-radius: 999px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="window.toggleProductActiveStatus(\'' + p.id + '\')" title="Klik untuk mengaktifkan menu ini di rencana produksi"><span style="width: 6px; height: 6px; border-radius: 50%; background: #64748B;"></span> NONAKTIF</button>';
 
     card.innerHTML =
-      '<div class="recipe-visual-img-wrap">' +
-        '<img src="' + defaultImg + '" alt="' + p.nama + '" onerror="this.src=\'./Panduan_Visual_Trio_Gorengan_Lengkap.jpg\'">' +
-        '<div class="recipe-badge-tag" style="background: ' + (p.badgeColor || '#38BDF8') + 'ee;">' + (p.badgeTag || p.lipatModel || 'Varian Mom Fitri') + '</div>' +
-      '</div>' +
-      '<div class="recipe-visual-body">' +
-        '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">' +
+      '<div class="recipe-visual-body" style="padding: 16px 18px;">' +
+        '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">' +
           '<div>' +
-            '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">' +
-              '<h4 style="color: ' + (p.badgeColor || '#38BDF8') + '; margin: 0;">' + (idx + 1) + '. ' + p.nama + '</h4>' +
+            '<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">' +
+              '<h4 style="color: ' + pColor + '; margin: 0; font-size: 1.05rem; font-weight: 800;">' + (idx + 1) + '. ' + p.nama + '</h4>' +
               statusPill +
             '</div>' +
+            '<div style="margin-top: 4px;">' +
+              '<span class="mini-tag" style="background: rgba(56, 189, 248, 0.12); color: ' + pColor + '; font-weight: 700; border: 1px solid ' + pColor + '44;">' + (p.badgeTag || p.lipatModel || 'Varian Mom Fitri') + '</span>' +
+            '</div>' +
           '</div>' +
-          '<span class="mini-tag" style="background: rgba(255,255,255,0.06); color: ' + marginColor + '; font-weight: 800; font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 6px;">HPP Rp ' + hpp.toLocaleString('id-ID') + ' (' + marginSign + 'Rp ' + margin.toLocaleString('id-ID') + ')</span>' +
+          '<div style="text-align: right;">' +
+            '<span class="mini-tag" style="background: rgba(255,255,255,0.06); color: ' + marginColor + '; font-weight: 800; font-family: var(--font-mono); font-size: 0.78rem; padding: 3px 8px; border: 1px solid rgba(255,255,255,0.1);">' +
+              'HPP Rp ' + hpp.toLocaleString('id-ID') + ' (' + marginSign + 'Rp ' + margin.toLocaleString('id-ID') + ')' +
+            '</span>' +
+          '</div>' +
         '</div>' +
-        '<ul class="sop-detail-list" style="margin-top: 10px;">' +
-          '<li><strong>Teknik &amp; SOP Penggorengan:</strong> ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '</li>' +
-          '<li><strong>Standar Takaran &amp; Metode:</strong> ' + (p.catatanSOP || '-') + '</li>' +
-          '<li><strong>Rincian Formula Takaran / Pcs:</strong> <div style="font-size: 0.73rem; color: #94A3B8; margin-top: 3px; line-height: 1.4;">' + bahanSummary + '</div></li>' +
+        '<ul class="sop-detail-list" style="margin-top: 6px;">' +
+          '<li><strong>SOP Suhu &amp; Waktu Goreng:</strong> ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '</li>' +
+          '<li><strong>Standar Takaran &amp; Catatan Metode:</strong> ' + (p.catatanSOP || '-') + '</li>' +
+          '<li><strong>Rincian Standar Formula / Pcs:</strong> <div style="font-size: 0.73rem; color: #94A3B8; margin-top: 5px; line-height: 1.5; background: rgba(15, 23, 42, 0.5); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' + (bahanSummary || 'Belum ada komposisi') + '</div></li>' +
           videoHtml +
         '</ul>' +
-        '<div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap;">' +
-          '<button type="button" class="tool-btn" style="padding: 4px 8px; font-size: 0.72rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">Salin Resep</button>' +
-          '<button type="button" class="tool-btn tool-btn-success" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Takaran Bahan</button>' +
-          '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; padding: 4px 8px; font-size: 0.72rem;" onclick="window.deleteProduct(\'' + p.id + '\')">Hapus Menu</button>' +
+        '<div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">' +
+          '<div style="display: flex; gap: 6px; flex-wrap: wrap;">' +
+            '<button type="button" class="tool-btn" style="padding: 5px 10px; font-size: 0.74rem; color: #38BDF8;" onclick="window.copyRecipeToClipboard(\'' + p.id + '\')">Salin Resep</button>' +
+            '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; padding: 5px 10px; font-size: 0.74rem;" onclick="window.deleteProduct(\'' + p.id + '\')">Hapus Menu</button>' +
+          '</div>' +
+          '<button type="button" class="tool-btn tool-btn-success" style="padding: 6px 14px; font-size: 0.76rem; font-weight: 700;" onclick="window.openManageFormulaModal(\'' + p.id + '\')">Edit Takaran Bahan</button>' +
         '</div>' +
       '</div>';
 
