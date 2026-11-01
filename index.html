@@ -126,7 +126,7 @@
               </svg>
             </button>
 
-            <button type="button" class="nav-item-btn" data-tab="tab-stok" onclick="window.switchTab('tab-stok')">
+            <button type="button" class="nav-item-btn" data-tab="tab-master-bahan" onclick="window.switchTab('tab-master-bahan')">
               <div class="nav-item-left">
                 <span class="nav-item-icon">
                   <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -135,7 +135,7 @@
                     <polyline points="2 12 12 17 22 12"></polyline>
                   </svg>
                 </span>
-                <span class="nav-item-label">Stok &amp; Katalog Bahan</span>
+                <span class="nav-item-label">Katalog Bahan &amp; Pemasok</span>
               </div>
               <svg class="nav-item-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -177,7 +177,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.0</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.1</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -1224,7 +1224,6 @@
               <div class="slate-card-subtitle">Basis data harga acuan bahan baku, rasio takaran dapur, dan toko pemasok langganan.</div>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.switchTab('tab-stok')" style="background: rgba(52, 211, 153, 0.15); border-color: rgba(52, 211, 153, 0.5); color: #34D399; font-weight: 700;">Kembali ke Stok Fisik</button>
               <button type="button" class="tool-btn tool-btn-primary" onclick="window.saveAndSyncModule('master')" title="Simpan katalog harga dan sinkronkan ke cloud">Simpan Katalog</button>
               <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddMasterBahanModal()">+ Tambah Bahan Baru</button>
             </div>
@@ -1233,7 +1232,7 @@
           <!-- PANDUAN PENGGUNA: PERAN MENU KATALOG -->
           <div style="background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38BDF8; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 0.8rem; color: #CBD5E1; line-height: 1.5;">
             <strong style="color: #38BDF8;">Panduan Katalog:</strong>
-            Basis data harga acuan dan toko pemasok belanja. Untuk pemantauan fisik sisa dapur harian dan rekomendasi belanja malam, gunakan menu <strong>Inventaris Stok Dapur</strong>.
+            Basis data harga acuan bahan baku, rasio konversi takaran resep dapur, dan toko pemasok belanja langganan. Perubahan harga atau penambahan bahan baru tersimpan permanen dan otomatis sinkron ke kalkulator takaran serta kuitansi belanja.
           </div>
 
           <!-- Filter & Search Toolbar -->
@@ -1278,135 +1277,7 @@
         </div>
       </section>
 
-      <!-- ============================================================== -->
-      <!-- TAB 6: INVENTARIS STOK DAPUR                                   -->
-      <!-- ============================================================== -->
-      <section id="tab-stok" class="app-tab-panel">
-        <div class="slate-card">
-          <div class="slate-card-header">
-            <div>
-              <div class="slate-card-title">
-                <span>Inventaris Stok Dapur</span>
-                <span class="mini-tag" style="background: rgba(52, 211, 153, 0.2); color: #34D399; font-weight: 800;">Monitoring Fisik</span>
-              </div>
-              <div class="slate-card-subtitle">Pemantauan sisa stok fisik dapur dan rekomendasi daftar belanja malam untuk produksi esok.</div>
-            </div>
-            <div class="stok-action-btns">
-              <button type="button" class="tool-btn tool-btn-primary btn-save-stok" onclick="window.saveAndSyncModule('stok')" title="Simpan sisa stok dapur dan sinkronkan ke cloud">Simpan Stok Dapur</button>
-              <div class="stok-copy-group">
-                <button type="button" class="tool-btn" onclick="window.switchTab('tab-master-bahan')" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8; font-weight: 700;">Katalog &amp; Pemasok</button>
-                <button type="button" class="tool-btn" id="btnCopyCekStok" onclick="window.openCopyStokModal()" style="background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.4); color: #38BDF8;" title="Salin form cek fisik stok dapur untuk dikirim ke WhatsApp">Salin Form Cek Stok</button>
-                <button type="button" class="tool-btn tool-btn-success" id="btnTransferStokBelanja" onclick="window.transferStokBelanjaToKuitansi()" style="background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.6); color: #34D399; font-weight: 800;" title="Pindahkan seluruh bahan habis / menipis langsung ke Lembar Kuitansi Belanja hari ini">+ Transfer Belanja ke Kuitansi</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- PANDUAN PENGGUNA (MINIMALIS COLLAPSIBLE) -->
-          <details class="stok-guide-collapsible">
-            <summary class="stok-guide-summary">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34D399" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <strong>Panduan Inventaris Fisik &amp; Satuan</strong>
-              </span>
-              <span class="guide-toggle-hint">Klik info</span>
-            </summary>
-            <div class="stok-guide-content">
-              Pemeriksaan sisa fisik bahan baku di dapur setiap sore. Nilai dapat diisi dalam <strong>satuan fisik</strong> (buah, bungkus) atau <strong>gram (g)</strong>. Sistem otomatis mendeteksi bahan yang menipis dan menyusun rekomendasi belanja malam.
-            </div>
-          </details>
-
-          <!-- RINGKASAN STATUS STOK (TANPA EMOJI) -->
-          <div class="stock-kpi-grid">
-            <div class="stock-kpi-card stock-aman">
-              <div class="stock-kpi-info">
-                <span>Stok Aman</span>
-                <strong id="stockCountAman">9 Bahan</strong>
-              </div>
-            </div>
-            <div class="stock-kpi-card stock-menipis">
-              <div class="stock-kpi-info">
-                <span>Stok Menipis</span>
-                <strong id="stockCountMenipis">2 Bahan</strong>
-              </div>
-            </div>
-            <div class="stock-kpi-card stock-kritis">
-              <div class="stock-kpi-info">
-                <span>Habis / Wajib Beli</span>
-                <strong id="stockCountKritis">3 Bahan</strong>
-              </div>
-            </div>
-            <div class="stock-kpi-card stock-anggaran">
-              <div class="stock-kpi-info">
-                <span>Estimasi Kebutuhan Belanja</span>
-                <strong id="stockEstBelanja">Rp 57.500</strong>
-              </div>
-            </div>
-          </div>
-
-          <!-- SAKELAR TAB BELANJA MALAM (MOBILE OPTIMIZED) -->
-          <div class="dispatch-tabs-bar">
-            <button type="button" class="dispatch-tab-btn active" id="btnDispatchTabPasar" onclick="window.switchDispatchTab('pasar')">
-              Pesanan Pasar Subuh (<span id="dispatchCountPasar">0</span>)
-            </button>
-            <button type="button" class="dispatch-tab-btn" id="btnDispatchTabToko" onclick="window.switchDispatchTab('toko')">
-              Belanja Toko (<span id="dispatchCountToko">0</span>)
-            </button>
-          </div>
-
-          <!-- BANNER STRIP TRANSFER CEPAT KE KUITANSI -->
-          <div style="margin: 10px 0 14px 0; padding: 10px 14px; background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.4); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-            <div style="font-size: 0.8rem; color: #E2E8F0;">
-              <strong style="color: #34D399;">Kebutuhan Restock Dapur:</strong> Pindahkan otomatis bahan yang habis &amp; menipis ke lembar kuitansi belanja hari ini.
-            </div>
-            <button type="button" class="tool-btn tool-btn-success" onclick="window.transferStokBelanjaToKuitansi()" style="font-size: 0.78rem; font-weight: 800; padding: 6px 14px; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);">
-              + Transfer ke Kuitansi Hari Ini
-            </button>
-          </div>
-
-          <!-- RINGKASAN DAFTAR BELANJA TERPISAH -->
-          <div class="dispatch-grid">
-            <div class="dispatch-card pasar active-mobile">
-              <div class="dispatch-card-head">
-                <h4>Pesanan Pasar Subuh (Siklus L+2)</h4>
-                <span class="dispatch-meta">Pesan malam ini untuk stok produksi lusa</span>
-              </div>
-              <ul class="dispatch-list" id="dispatchPasarList">
-                <li class="dispatch-empty">Memuat daftar pesanan pasar...</li>
-              </ul>
-            </div>
-
-            <div class="dispatch-card toko">
-              <div class="dispatch-card-head">
-                <h4>Belanja Toko &amp; Minimarket (Malam Ini)</h4>
-                <span class="dispatch-meta">Dibeli malam ini untuk produksi besok subuh</span>
-              </div>
-              <ul class="dispatch-list" id="dispatchTokoList">
-                <li class="dispatch-empty">Memuat daftar belanja toko...</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- TABEL STOK FISIK DENGAN SATUAN EKSPLISIT -->
-          <div class="table-responsive-wrapper">
-            <table class="slate-table stok-table">
-              <thead>
-                <tr>
-                  <th style="width: 30px; text-align: center;">No</th>
-                  <th>Nama Bahan Baku</th>
-                  <th style="width: 100px;">Jalur Pengadaan</th>
-                  <th style="width: 155px; text-align: center;">Stok Fisik &amp; Gram</th>
-                  <th style="width: 75px; text-align: center;">Status</th>
-                  <th style="width: 110px;">Catatan Restock</th>
-                </tr>
-              </thead>
-              <tbody id="stokTableBody"></tbody>
-            </table>
-          </div>
-
-          <!-- TAMPILAN KARTU INVENTARIS DENGAN FITUR SEMBUNYIKAN (MOBILE OPTIMIZED) -->
-          <div id="stokCardsContainer" class="collapsible-cards-container"></div>
-        </div>
-      </section>
+      
 
       <!-- ============================================================== -->
       <!-- TAB 7: DAFTAR MENU & KALKULATOR TAKARAN DAPUR                  -->

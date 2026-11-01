@@ -4,7 +4,7 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.0';
+const APP_VERSION = 'v7.4.1';
 const APP_BUILD_TIME = '31/10/2026 16:45 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
@@ -228,9 +228,9 @@ function pushToFirestoreCloud(immediate = false) {
 
   const performPush = () => {
     return new Promise((resolve, reject) => {
-      if (!navigator.onLine) {
-        setCloudStatusUI('offline', 'Mode Offline');
-        reject(new Error('Perangkat sedang offline'));
+      if (!navigator.onLine || !firestoreDb) {
+        if (!navigator.onLine) setCloudStatusUI('offline', 'Mode Offline');
+        resolve(auraData);
         return;
       }
 
@@ -729,33 +729,6 @@ const INITIAL_AURA_DATA = {
 
   buku3Kas: [
     { tgl: 31, hari: 'Sab', isoDate: '2026-10-31', b2Key: '31/10', kirim: 125, retur: 0, laku: 125, setor: 100000, modal: 0, gaji: 100000, realBelanja: 0, endapan: 100000 }
-  ],
-
-  stokBahan: [
-    { no: 1, nama: 'Kulit Lumpia Segar', kategori: 'Bahan Segar', satuan: 'bungkus', stok: 0, stokGram: 0, gramPerUnit: 252, minTrigger: 3, jalur: 'B', orderQty: '4 bungkus (isi 36 lbr)', status: 'Habis', action: 'Pesan pasar: 4 bungkus (isi 36 lbr)' },
-    { no: 2, nama: 'Ubi Ungu Segar', kategori: 'Bahan Segar', satuan: 'buah', stok: 3.25, stokGram: 650, gramPerUnit: 200, minTrigger: 4, jalur: 'B', orderQty: '1 kg (≈ 5 buah)', status: 'Menipis', action: 'Titip pasar: 1 kg (≈ 5 buah)' },
-    { no: 3, nama: 'Wortel Segar Pasar', kategori: 'Sayuran', satuan: 'buah', stok: 1.6, stokGram: 200, gramPerUnit: 125, minTrigger: 1.5, jalur: 'B', orderQty: '500 gram (≈ 4 buah)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 4, nama: 'Jagung Manis', kategori: 'Sayuran', satuan: 'tongkol', stok: 2, stokGram: 260, gramPerUnit: 130, minTrigger: 1, jalur: 'B', orderQty: '1 paket (3 tongkol)', status: 'Aman', action: '2 tongkol (260g) cukup subuh' },
-    { no: 5, nama: 'Telur Ayam Ras', kategori: 'Bahan Segar', satuan: 'butir', stok: 2, stokGram: 110, gramPerUnit: 55, minTrigger: 2, jalur: 'B', orderQty: '1 paket (4 butir / Rp 5.000)', status: 'Menipis', action: 'Titip pasar: 1 paket (4 butir / Rp 5.000)' },
-    { no: 6, nama: 'Daun Bawang & Seledri', kategori: 'Sayuran', satuan: 'ikat', stok: 1, stokGram: 100, gramPerUnit: 100, minTrigger: 1, jalur: 'B', orderQty: '1 ikat kecil segar (≈ 100g)', status: 'Menipis', action: 'Titip pasar: 1 ikat kecil segar (≈ 100g)' },
-    { no: 7, nama: 'Sosis Ayam/Sapi Ekonomis', kategori: 'Olahan Dingin', satuan: 'batang', stok: 19, stokGram: 418, gramPerUnit: 22, minTrigger: 8, jalur: 'C', orderQty: '1 pak isi 40 batang', status: 'Aman', action: 'Cukup 4-5 hari' },
-    { no: 8, nama: 'Keju Prochiz Spready', kategori: 'Bahan Dingin', satuan: 'box', stok: 0.53, stokGram: 85, gramPerUnit: 160, minTrigger: 0.4, jalur: 'A', orderQty: '1 box (160g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 9, nama: 'Roti Tawar Kupas', kategori: 'Bahan Baku', satuan: 'bungkus', stok: 0, stokGram: 0, gramPerUnit: 490, minTrigger: 2, jalur: 'A', orderQty: '2 bungkus (@ Rp 10.000)', status: 'Habis', action: 'Beli malam ini: 2 bungkus (@ Rp 10.000)' },
-    { no: 10, nama: 'Selai Collins Choco Crunch', kategori: 'Bahan Awet', satuan: 'ember', stok: 0.4, stokGram: 400, gramPerUnit: 1000, minTrigger: 0.1, jalur: 'C', orderQty: '1 ember (1.000g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 11, nama: 'Bawang Putih', kategori: 'Bumbu Awet', satuan: 'siung', stok: 37, stokGram: 185, gramPerUnit: 5, minTrigger: 10, jalur: 'C', orderQty: '250 gram (≈ 50 siung)', status: 'Aman', action: 'Tahan 3 minggu' },
-    { no: 12, nama: 'Tepung Panir Super Krispi', kategori: 'Bahan Kering', satuan: 'kg', stok: 0.33, stokGram: 330, gramPerUnit: 1000, minTrigger: 0.15, jalur: 'C', orderQty: '1 kg super krispi', status: 'Aman', action: 'Sisa 330g (cukup subuh)' },
-    { no: 13, nama: 'Tepung Terigu Curah', kategori: 'Bahan Kering', satuan: 'bungkus', stok: 1.42, stokGram: 710, gramPerUnit: 500, minTrigger: 0.5, jalur: 'C', orderQty: '1 bungkus (500g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 14, nama: 'Susu Kental Manis (SKM) Putih', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 0.4, stokGram: 80, gramPerUnit: 200, minTrigger: 0.3, jalur: 'A', orderQty: '1 pouch (200g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 15, nama: 'Margarin Serbaguna', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.24, stokGram: 48, gramPerUnit: 200, minTrigger: 0.1, jalur: 'C', orderQty: '1 bungkus (200g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 16, nama: 'Garam Dapur Halus', kategori: 'Bumbu Awet', satuan: 'bungkus', stok: 0.6, stokGram: 150, gramPerUnit: 250, minTrigger: 0.2, jalur: 'C', orderQty: '1 bungkus (250g)', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 17, nama: 'Minyak Goreng Sawit', kategori: 'Minyak/Gas', satuan: 'liter', stok: 0.12, stokGram: 115, gramPerUnit: 1000, minTrigger: 0.5, jalur: 'A', orderQty: '1 pouch (1L / 1.000g)', status: 'Menipis', action: 'Siapkan belanja: 1 pouch (1L / 1.000g)' },
-    { no: 18, nama: 'Gula Pasir Kristal', kategori: 'Bahan Awet', satuan: 'kg', stok: 0.65, stokGram: 650, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 kg kristal', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 19, nama: 'Royco Kaldu Ayam', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 18, gramPerUnit: 9, minTrigger: 2, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Menipis', action: 'Siapkan belanja: 1 renteng / 5 sachet' },
-    { no: 20, nama: 'Vanili Bubuk', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 3, stokGram: 6, gramPerUnit: 2, minTrigger: 2, jalur: 'C', orderQty: '1 pak vanili', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 21, nama: 'Gas LPG 3kg', kategori: 'Minyak/Gas', satuan: 'tabung', stok: 0.83, stokGram: 2500, gramPerUnit: 3000, minTrigger: 1, jalur: 'C', orderQty: '1 tabung baru (3.000g)', status: 'Menipis', action: 'Titip pasar: 1 tabung baru (3.000g)' },
-    { no: 22, nama: 'Saus Tomat Ekstra Sedap', kategori: 'Bahan Dingin', satuan: 'pouch', stok: 1, stokGram: 1000, gramPerUnit: 1000, minTrigger: 0.2, jalur: 'C', orderQty: '1 pouch (1 kg)', status: 'Aman', action: 'Stok awal 1 kg' },
-    { no: 23, nama: 'Saus Tiram Saori', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 2, stokGram: 46, gramPerUnit: 23, minTrigger: 1, jalur: 'A', orderQty: '1 renteng / 5 sachet', status: 'Aman', action: 'Stok mencukupi untuk produksi' },
-    { no: 24, nama: 'Lada Bubuk (Ladaku)', kategori: 'Bumbu Awet', satuan: 'sachet', stok: 3, stokGram: 12, gramPerUnit: 4, minTrigger: 1, jalur: 'C', orderQty: '1 renteng Ladaku', status: 'Aman', action: 'Stok mencukupi untuk produksi' }
   ]
 };
 
@@ -777,131 +750,16 @@ let currentMasterBahanFilterCat = 'all';
 let currentTakaranUnitMode = 'all';
 let buku1EditModeDates = {};
 
-// Sinkronisasi Schema Database Baru (Stage 1 - 5) & Kalibrasi Data Historis
-if (!auraData.masterBahan || auraData.masterBahan.length === 0) {
+// Inisialisasi Master Bahan (hanya jika data belum pernah ada)
+if (!auraData.masterBahan || !Array.isArray(auraData.masterBahan) || auraData.masterBahan.length === 0) {
   auraData.masterBahan = JSON.parse(JSON.stringify(INITIAL_MASTER_BAHAN));
-} else {
-  // Kalibrasi properti konversi gram (unitFisik, qtyPerBeli, gramPerUnit, totalGram)
-  // Cocokkan berdasarkan NAMA bahan baku (bukan ID) untuk mencegah tabrakan ID lama di LocalStorage
-  auraData.masterBahan.forEach(item => {
-    const itemNamaLower = (item.nama || '').toLowerCase();
-    const def = INITIAL_MASTER_BAHAN.find(d => {
-      const dNamaLower = d.nama.toLowerCase();
-      if (dNamaLower === itemNamaLower) return true;
-      if (itemNamaLower.includes('collins') && dNamaLower.includes('collins')) return true;
-      if (itemNamaLower.includes('panir') && dNamaLower.includes('panir')) return true;
-      if (itemNamaLower.includes('minyak') && dNamaLower.includes('minyak')) return true;
-      if (itemNamaLower.includes('gas') && dNamaLower.includes('gas')) return true;
-      if (itemNamaLower.includes('roti') && dNamaLower.includes('roti')) return true;
-      if (itemNamaLower.includes('terigu') && dNamaLower.includes('terigu')) return true;
-      if (itemNamaLower.includes('kulit') && dNamaLower.includes('kulit')) return true;
-      if (itemNamaLower.includes('ubi') && dNamaLower.includes('ubi')) return true;
-      if (itemNamaLower.includes('wortel') && dNamaLower.includes('wortel')) return true;
-      if (itemNamaLower.includes('jagung') && dNamaLower.includes('jagung')) return true;
-      if (itemNamaLower.includes('sosis') && dNamaLower.includes('sosis')) return true;
-      if (itemNamaLower.includes('telur') && dNamaLower.includes('telur')) return true;
-      if (itemNamaLower.includes('keju') && dNamaLower.includes('keju')) return true;
-      if (itemNamaLower.includes('kental manis') && dNamaLower.includes('kental manis')) return true;
-      if (itemNamaLower.includes('bawang putih') && dNamaLower.includes('bawang putih')) return true;
-      if (itemNamaLower.includes('daun bawang') && dNamaLower.includes('daun bawang')) return true;
-      return false;
-    });
-
-    if (def) {
-      item.id = def.id;
-      item.nama = def.nama;
-      item.kategori = def.kategori;
-      item.tipeHitung = def.tipeHitung;
-      item.satuan = def.satuan;
-      item.unitFisik = def.unitFisik;
-      item.gramPerUnit = def.gramPerUnit;
-      item.qtyPerBeli = def.qtyPerBeli;
-      item.totalGram = def.totalGram;
-      item.harga = def.harga; // Kalibrasi ke harga beli riil catatan terkini
-    }
-  });
-
-  // Pastikan bahan baku yang belum ada di database lama terdaftarkan
-  INITIAL_MASTER_BAHAN.forEach(def => {
-    const exists = auraData.masterBahan.some(m => {
-      const mn = (m.nama || '').toLowerCase();
-      const dn = def.nama.toLowerCase();
-      if (mn === dn) return true;
-      if (dn.includes('terigu') && mn.includes('terigu')) return true;
-      if (dn.includes('panir') && mn.includes('panir')) return true;
-      if (dn.includes('collins') && mn.includes('collins')) return true;
-      if (dn.includes('roti') && mn.includes('roti')) return true;
-      if (dn.includes('minyak') && mn.includes('minyak')) return true;
-      if (dn.includes('gas') && mn.includes('gas')) return true;
-      if (dn.includes('kulit') && mn.includes('kulit')) return true;
-      if (dn.includes('ubi') && mn.includes('ubi')) return true;
-      if (dn.includes('wortel') && mn.includes('wortel')) return true;
-      if (dn.includes('jagung') && mn.includes('jagung')) return true;
-      if (dn.includes('sosis') && mn.includes('sosis')) return true;
-      if (dn.includes('telur') && mn.includes('telur')) return true;
-      if (dn.includes('keju') && mn.includes('keju')) return true;
-      if (dn.includes('kental manis') && mn.includes('kental manis')) return true;
-      if (dn.includes('susu bubuk') && mn.includes('susu bubuk')) return true;
-      if (dn.includes('bawang putih') && mn.includes('bawang putih')) return true;
-      if (dn.includes('daun bawang') && mn.includes('daun bawang')) return true;
-      if (dn.includes('margarin') && mn.includes('margarin')) return true;
-      if (dn.includes('garam') && mn.includes('garam')) return true;
-      if (dn.includes('gula') && mn.includes('gula')) return true;
-      if (dn.includes('royco') && mn.includes('royco')) return true;
-      if (dn.includes('vanili') && mn.includes('vanili')) return true;
-      if (dn.includes('saori') && mn.includes('saori')) return true;
-      if (dn.includes('mika') && mn.includes('mika')) return true;
-      if (dn.includes('kertas') && mn.includes('kertas')) return true;
-      return false;
-    });
-    if (!exists) {
-      auraData.masterBahan.push(JSON.parse(JSON.stringify(def)));
-    }
-  });
-
-  // Sinkronkan sisa stok aktual dapur sesuai catatan fisik terkini
-  INITIAL_AURA_DATA.stokBahan.forEach(defStok => {
-    const cur = (auraData.stokBahan || []).find(s => {
-      const sn = (s.nama || '').toLowerCase();
-      const dn = defStok.nama.toLowerCase();
-      if (sn === dn) return true;
-      if (dn.includes('collins') && sn.includes('collins')) return true;
-      if (dn.includes('panir') && sn.includes('panir')) return true;
-      if (dn.includes('minyak') && sn.includes('minyak')) return true;
-      if (dn.includes('gas') && sn.includes('gas')) return true;
-      if (dn.includes('roti') && sn.includes('roti')) return true;
-      if (dn.includes('terigu') && sn.includes('terigu')) return true;
-      if (dn.includes('kulit') && sn.includes('kulit')) return true;
-      if (dn.includes('ubi') && sn.includes('ubi')) return true;
-      if (dn.includes('wortel') && sn.includes('wortel')) return true;
-      if (dn.includes('jagung') && sn.includes('jagung')) return true;
-      if (dn.includes('sosis') && sn.includes('sosis')) return true;
-      if (dn.includes('telur') && sn.includes('telur')) return true;
-      if (dn.includes('keju') && sn.includes('keju')) return true;
-      if (dn.includes('kental manis') && sn.includes('kental manis')) return true;
-      if (dn.includes('bawang putih') && sn.includes('bawang putih')) return true;
-      if (dn.includes('daun bawang') && sn.includes('daun bawang')) return true;
-      if (dn.includes('margarin') && sn.includes('margarin')) return true;
-      if (dn.includes('garam') && sn.includes('garam')) return true;
-      if (dn.includes('gula') && sn.includes('gula')) return true;
-      if (dn.includes('royco') && sn.includes('royco')) return true;
-      if (dn.includes('vanili') && sn.includes('vanili')) return true;
-      return false;
-    });
-
-    if (cur) {
-      // JANGAN PERNAH menimpa 'cur.stok' dan 'cur.stokGram' hasil input aktual pengguna!
-      cur.gramPerUnit = defStok.gramPerUnit || cur.gramPerUnit;
-      cur.satuan = defStok.satuan || cur.satuan;
-      cur.orderQty = defStok.orderQty || cur.orderQty;
-      cur.jalur = defStok.jalur || cur.jalur;
-      applyStokStatusAndAction(cur);
-    } else {
-      if (!auraData.stokBahan) auraData.stokBahan = [];
-      auraData.stokBahan.push(JSON.parse(JSON.stringify(defStok)));
-    }
-  });
 }
+
+// Purge legacy stokBahan dan stokCommitted secara permanen sampai ke akar
+if ('stokBahan' in auraData) delete auraData.stokBahan;
+if ('stokCommitted' in auraData) delete auraData.stokCommitted;
+if ('stokLastSaved' in auraData) delete auraData.stokLastSaved;
+
 if (!auraData.buku1SavedDates) {
   auraData.buku1SavedDates = {
     '2026-10-19': true,
@@ -1094,62 +952,10 @@ function getStokGramRatio(stokItem) {
   return stokItem.gramPerUnit || 100;
 }
 
-if (auraData.stokBahan) {
-  auraData.stokBahan.forEach((s, idx) => {
-    const def = INITIAL_AURA_DATA.stokBahan[idx];
-    const ratio = getStokGramRatio(s);
-    s.gramPerUnit = ratio;
-
-    // Migrasi satuan lama 'gram' atau 'kg' menjadi satuan fisik alami (buah / siung / ember / bungkus) + stokGram
-    if (s.nama.includes('Ubi') && s.satuan === 'kg') {
-      s.stokGram = Math.round((s.stok || 0) * 1000);
-      s.satuan = 'buah';
-      s.stok = +(s.stokGram / ratio).toFixed(1);
-      s.minTrigger = 5;
-    } else if (s.nama.includes('Wortel') && s.satuan === 'gram') {
-      s.stokGram = Math.round(s.stok || 0);
-      s.satuan = 'buah';
-      s.stok = +(s.stokGram / ratio).toFixed(1);
-      s.minTrigger = 1.5;
-    } else if (s.nama.includes('Bawang Putih') && s.satuan === 'gram') {
-      s.stokGram = Math.round(s.stok || 0);
-      s.satuan = 'siung';
-      s.stok = Math.round(s.stokGram / ratio);
-      s.minTrigger = 10;
-    } else if (s.nama.includes('Collins') && s.satuan === 'gram') {
-      s.stokGram = Math.round(s.stok || 0);
-      s.satuan = 'ember';
-      s.stok = +(s.stokGram / ratio).toFixed(2);
-      s.minTrigger = 0.2;
-    } else if (s.nama.includes('Panir') && s.satuan === 'gram') {
-      s.stokGram = Math.round(s.stok || 0);
-      s.satuan = 'bungkus';
-      s.stok = +(s.stokGram / ratio).toFixed(2);
-      s.minTrigger = 0.25;
-    } else {
-      if (!s.satuan && def) s.satuan = def.satuan;
-      s.stokGram = Math.round((s.stok || 0) * ratio);
-    }
-  });
-}
-localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-
 function saveLocal() {
   window._hasUnsavedLocalChanges = true;
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-  renderAllViews();
-}
-
-function saveBuku1Draft() {
-  window._hasUnsavedLocalChanges = true;
-  if (auraData) auraData._lastUpdated = Date.now();
-  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-  if (typeof renderBuku1View === 'function') renderBuku1View();
-  if (typeof renderSlipBoxView === 'function') renderSlipBoxView();
-  if (typeof window.syncRecipeFromBuku1 === 'function') {
-    window.syncRecipeFromBuku1(false);
-  }
 }
 
 function saveKuitansiDraft() {
@@ -1159,12 +965,7 @@ function saveKuitansiDraft() {
   if (typeof renderKuitansiView === 'function') renderKuitansiView();
 }
 
-function saveStokDraft() {
-  window._hasUnsavedLocalChanges = true;
-  if (auraData) auraData._lastUpdated = Date.now();
-  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-  if (typeof renderStokView === 'function') renderStokView();
-}
+function saveStokDraft() { /* deprecated */ }
 
 // Ambil baris data Buku 1 untuk tanggal aktif
 function getActiveBuku1Rows() {
@@ -2941,9 +2742,10 @@ window.renderMasterBahanTable = function() {
   filtered.forEach((item, idx) => {
     const globalIdx = auraData.masterBahan.findIndex(m => m === item);
     let catBadgeClass = 'badge-toko';
-    if (item.kategori.includes('Pasar')) catBadgeClass = 'badge-pasar';
-    else if (item.kategori.includes('Gas') || item.kategori.includes('Operasional')) catBadgeClass = 'badge-gas';
-    else if (item.kategori.includes('Kemasan')) catBadgeClass = 'mini-tag';
+    const kat = item.kategori || 'Toko / Minimarket';
+    if (kat.includes('Pasar')) catBadgeClass = 'badge-pasar';
+    else if (kat.includes('Gas') || kat.includes('Operasional')) catBadgeClass = 'badge-gas';
+    else if (kat.includes('Kemasan')) catBadgeClass = 'mini-tag';
 
     const unitFisik = item.unitFisik || 'pcs';
     const qtyPerBeli = item.qtyPerBeli || 1;
@@ -3163,7 +2965,9 @@ window.openAddMasterBahanModal = function() {
       });
 
       saveLocal();
+      pushToFirestoreCloud(true);
       window.closeAppModal();
+      renderAllViews();
       window.showSuccessModal("Bahan Ditambahkan", 'Bahan "' + nama + '" berhasil disimpan ke katalog!');
     };
   }
@@ -3326,15 +3130,10 @@ window.openEditMasterBahanModal = function(idx) {
       item.vendor = vendor;
       item.tglUpdate = new Date().toISOString().slice(0, 10);
 
-      // Sinkronkan ulang rasio di stokBahan
-      if (auraData.stokBahan) {
-        auraData.stokBahan.forEach(s => {
-          s.gramPerUnit = getStokGramRatio(s);
-        });
-      }
-
       saveLocal();
+      pushToFirestoreCloud(true);
       window.closeAppModal();
+      renderAllViews();
       window.showSuccessModal("Perubahan Disimpan", 'Data "' + nama + '" berhasil diperbarui!');
     };
   }
@@ -3352,6 +3151,8 @@ window.handleDeleteMasterBahan = function(idx) {
     () => {
       auraData.masterBahan.splice(idx, 1);
       saveLocal();
+      pushToFirestoreCloud(true);
+      renderAllViews();
       window.showSuccessModal("Terhapus", "Bahan baku berhasil dihapus dari Master Katalog.");
     }
   );
@@ -5552,9 +5353,10 @@ function renderMasterBahanCards(list) {
     card.id = 'masterCard_' + idx;
 
     let catBadgeClass = 'badge-toko';
-    if (item.kategori.includes('Pasar')) catBadgeClass = 'badge-pasar';
-    else if (item.kategori.includes('Gas') || item.kategori.includes('Operasional')) catBadgeClass = 'badge-gas';
-    else if (item.kategori.includes('Kemasan')) catBadgeClass = 'mini-tag';
+    const kat = item.kategori || 'Toko / Minimarket';
+    if (kat.includes('Pasar')) catBadgeClass = 'badge-pasar';
+    else if (kat.includes('Gas') || kat.includes('Operasional')) catBadgeClass = 'badge-gas';
+    else if (kat.includes('Kemasan')) catBadgeClass = 'mini-tag';
 
     const unitFisik = item.unitFisik || 'pcs';
     const qtyPerBeli = item.qtyPerBeli || 1;
@@ -5611,86 +5413,7 @@ function renderMasterBahanCards(list) {
   });
 }
 
-function renderStokCards(list) {
-  const container = document.getElementById('stokCardsContainer');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const topBar = document.createElement('div');
-  topBar.className = 'card-view-header-bar';
-  topBar.innerHTML = 
-    '<div class="card-view-header-title">' +
-      '<span>INVENTARIS STOK DAPUR</span>' +
-    '</div>' +
-    '<div class="card-view-header-actions">' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.saveAndSyncModule(\'stok\')" style="background: rgba(56, 189, 248, 0.25); color: #38BDF8; border-color: rgba(56, 189, 248, 0.5); font-weight: 800;">Simpan</button>' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.openCopyStokModal()" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; border-color: rgba(56, 189, 248, 0.4); font-weight: 700;">Salin Form WA</button>' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', true)">Buka Semua</button>' +
-      '<button type="button" class="btn-card-toggle-all" onclick="window.toggleAllCardsInGroup(\'stok\', false)">Sembunyikan</button>' +
-    '</div>';
-  container.appendChild(topBar);
-
-  if (list.length === 0) {
-    container.innerHTML += '<div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 0.85rem; font-style: italic; background: #151F2E; border-radius: 8px;">Tidak ada stok bahan yang terdaftar.</div>';
-    return;
-  }
-
-  list.forEach((s, idx) => {
-    const isCollapsed = (window.cardsCollapsedState.stok && window.cardsCollapsedState.stok[idx] !== undefined) ? !!window.cardsCollapsedState.stok[idx] : true;
-    const card = document.createElement('div');
-    card.className = 'expandable-record-card' + (isCollapsed ? ' collapsed' : '');
-    card.id = 'stokCard_' + idx;
-
-    const min = s.minTrigger !== undefined ? s.minTrigger : 1;
-    const isCritical = s.stok <= 0;
-    const isLow = s.stok <= min;
-    let statusBadge = '<span class="badge-status done">Aman</span>';
-    if (isCritical) statusBadge = '<span class="badge-status alert">Habis</span>';
-    else if (isLow) statusBadge = '<span class="badge-status progress">Menipis</span>';
-
-    const meta = getStokItemMeta(s);
-    const isCount = meta.tipe === 'count';
-    const isFixed = meta.tipe === 'fixed';
-    const ratio = meta.ratio;
-    s.gramPerUnit = ratio;
-    const unitLabel = meta.unitBeli;
-    const subUnitLabel = meta.unitPakai;
-    const curSubUnitVal = isCount
-      ? (s.stokFisik !== undefined ? s.stokFisik : Math.round((s.stok || 0) * ratio))
-      : (s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio));
-
-    card.innerHTML = 
-      '<div class="record-card-header" onclick="window.toggleCardItem(\'stok\', ' + idx + ')">' +
-        '<div class="record-title-wrap">' +
-          '<span class="record-num-tag">#' + (idx + 1) + '</span>' +
-          '<strong class="record-title-name">' + s.nama + '</strong>' +
-        '</div>' +
-        '<div class="record-header-meta">' +
-          statusBadge +
-          '<span class="record-chip accent">' + s.stok + ' ' + unitLabel + '</span>' +
-          '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="record-card-body">' +
-        '<div class="record-meta-row"><span class="label">Jalur Pengadaan:</span><span class="val">' + (s.jalur === 'A' ? 'Toko / Minimarket' : 'Pasar Subuh') + '</span></div>' +
-        '<div class="record-meta-row"><span class="label">Rekomendasi Restock:</span><span class="val" style="color:#FBBF24;">' + (s.action || '-') + '</span></div>' +
-        '<div class="record-field-block" style="margin-top: 4px;">' +
-          '<div class="record-field-label">UPDATE SISA STOK FISIK:</div>' +
-          (isFixed
-            ? ('<div style="display: flex; gap: 8px; align-items: center;">' +
-                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Kemasan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
-              '</div>')
-            : ('<div style="display: flex; gap: 8px; align-items: center;">' +
-                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#94A3B8;">Satuan (' + unitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; font-weight:700;"></div>' +
-                '<span style="color:#94A3B8; font-weight:700; padding-top:14px;">≈</span>' +
-                '<div style="flex: 1;"><span style="font-size:0.68rem; color:#38BDF8;">Isi (' + subUnitLabel + '):</span><input type="number" step="any" min="0" class="dark-input" value="' + curSubUnitVal + '" onchange="window.updateStokFromSubUnit(' + idx + ', this.value)" style="width:100%; text-align:center; padding:6px; color:#38BDF8; font-weight:700;"></div>' +
-              '</div>')
-          ) +
-        '</div>' +
-      '</div>';
-    container.appendChild(card);
-  });
-}
+function renderStokCards(list) { /* deprecated */ }
 
 // ==============================================================
 // MODULAR VIEW RENDERERS (DRAFT VS COMMITTED ISOLATION)
@@ -6418,146 +6141,7 @@ function renderBuku3View() {
   }
 }
 
-function renderStokView() {
-  const stokBody = document.getElementById('stokTableBody');
-  if (stokBody) {
-    stokBody.innerHTML = '';
-    let countAman = 0, countMenipis = 0, countKritis = 0, estBelanjaMalam = 0;
-    const pasarItems = [];
-    const tokoItems = [];
-
-    auraData.stokBahan.forEach((s, idx) => {
-      const min = s.minTrigger !== undefined ? s.minTrigger : 1;
-      const isCritical = s.stok <= 0;
-      const isLow = s.stok <= min;
-
-      if (isCritical) {
-        countKritis++;
-      } else if (isLow) {
-        countMenipis++;
-      } else {
-        countAman++;
-      }
-
-      if (isLow || isCritical) {
-        const nLow = (s.nama || '').toLowerCase();
-        const orderPackagesMatch = String(s.orderQty || '1').match(/(\d+)/);
-        const orderPackages = orderPackagesMatch ? parseInt(orderPackagesMatch[1], 10) : 1;
-        let itemRestockCost = 0;
-        if (nLow.includes('roti')) itemRestockCost = getMasterItemMeta('Roti Tawar', 10000, 14, false).harga * orderPackages;
-        else if (nLow.includes('keju')) itemRestockCost = getMasterItemMeta('Keju', 11500, 160, true).harga * orderPackages;
-        else if (nLow.includes('minyak')) itemRestockCost = getMasterItemMeta('Minyak Goreng', 17000, 900, true).harga * orderPackages;
-        else if (nLow.includes('kulit')) itemRestockCost = getMasterItemMeta('Kulit Lumpia', 10000, 36, false).harga * orderPackages;
-        else if (nLow.includes('ubi')) itemRestockCost = getMasterItemMeta('Ubi Ungu', 11000, 1000, true).harga * orderPackages;
-        else if (nLow.includes('wortel')) itemRestockCost = getMasterItemMeta('Wortel', 7000, 500, true).harga;
-        else if (nLow.includes('jagung')) itemRestockCost = getMasterItemMeta('Jagung', 5000, 3, false).harga;
-        else if (nLow.includes('telur')) itemRestockCost = getMasterItemMeta('Telur', 5000, 4, false).harga;
-        else if (nLow.includes('daun bawang')) itemRestockCost = getMasterItemMeta('Daun Bawang', 2000, 100, true).harga;
-        else if (nLow.includes('sosis')) itemRestockCost = getMasterItemMeta('Sosis', 18000, 40, false).harga;
-        else if (nLow.includes('collins')) itemRestockCost = getMasterItemMeta('Collins', 48000, 1000, true).harga;
-        else if (nLow.includes('panir')) itemRestockCost = getMasterItemMeta('Panir', 16000, 1000, true).harga;
-
-        if (s.jalur === 'A' && isCritical) {
-          estBelanjaMalam += itemRestockCost;
-        }
-        if (s.jalur === 'B') pasarItems.push({ nama: s.nama, qty: s.orderQty + (itemRestockCost > 0 ? ' (~Rp ' + itemRestockCost.toLocaleString('id-ID') + ')' : '') });
-        if (s.jalur === 'A') tokoItems.push({ nama: s.nama, qty: s.orderQty + (itemRestockCost > 0 ? ' (~Rp ' + itemRestockCost.toLocaleString('id-ID') + ')' : '') });
-      }
-
-      let statusBadge = '<span class="badge-status done">Aman</span>';
-      if (isCritical) {
-        statusBadge = '<span class="badge-status alert">Habis</span>';
-      } else if (isLow) {
-        statusBadge = '<span class="badge-status progress" style="background: rgba(245, 158, 11, 0.14); border-color: rgba(245, 158, 11, 0.35); color: #FBBF24;">Menipis</span>';
-      }
-
-      const jalurText = s.jalur === 'A'
-        ? 'Toko / Minimarket'
-        : (s.jalur === 'B' ? 'Pasar Subuh' : 'Stok Dapur');
-
-      const cleanAction = isCritical
-        ? (s.jalur === 'A' ? 'Beli malam ini: ' + s.orderQty : 'Pesan pasar: ' + s.orderQty)
-        : (isLow
-          ? (s.jalur === 'A' ? 'Siapkan belanja: ' + s.orderQty : 'Titip pasar: ' + s.orderQty)
-          : s.action);
-
-      const actionStyle = isCritical
-        ? 'color: #FCA5A5; font-weight: 600;'
-        : (isLow ? 'color: #FCD34D;' : 'color: var(--text-secondary);');
-
-      const meta = getStokItemMeta(s);
-      const isCount = meta.tipe === 'count';
-      const isFixed = meta.tipe === 'fixed';
-      const ratio = meta.ratio;
-      s.gramPerUnit = ratio;
-      const unitLabel = meta.unitBeli;
-      const subUnitLabel = meta.unitPakai;
-      const curSubUnitVal = isCount
-        ? (s.stokFisik !== undefined ? s.stokFisik : Math.round((s.stok || 0) * ratio))
-        : (s.stokGram !== undefined ? s.stokGram : Math.round((s.stok || 0) * ratio));
-
-      const tr = document.createElement('tr');
-      tr.innerHTML = 
-        '<td data-label="No" style="text-align: center; font-family: var(--font-mono); color: var(--text-muted);">' + (idx + 1) + '</td>' +
-        '<td data-label="Bahan Baku">' +
-          '<span style="color: #F8FAFC; font-weight: 600; display: block;">' + s.nama + '</span>' +
-          (isFixed
-            ? '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">Kemasan Utuh (' + unitLabel + ')</span>'
-            : '<span style="font-size: 0.68rem; color: #38BDF8; font-family: var(--font-mono);">1 ' + unitLabel + ' = ' + ratio.toLocaleString('id-ID') + ' ' + subUnitLabel + '</span>'
-          ) +
-        '</td>' +
-        '<td data-label="Jalur" style="color: var(--text-secondary); font-size: 0.8rem;">' + jalurText + '</td>' +
-        '<td data-label="Sisa Stok" style="text-align: center;">' +
-          (isFixed
-            ? ('<div class="stok-input-wrap" style="margin: 0; justify-content: center;">' +
-                '<input type="number" step="any" min="0" class="dark-input" style="width: 65px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
-                '<span class="stok-unit-tag">' + unitLabel + '</span>' +
-              '</div>')
-            : ('<div style="display: inline-flex; align-items: center; gap: 5px; flex-wrap: nowrap; justify-content: center;">' +
-                '<div class="stok-input-wrap" style="margin: 0;">' +
-                  '<input type="number" step="any" min="0" class="dark-input" style="width: 58px; color: ' + (isCritical ? '#F87171' : '#F8FAFC') + '; font-weight: 700; padding: 4px 6px;" value="' + s.stok + '" onchange="window.updateStokVal(' + idx + ', this.value)" title="Ketik sisa dalam satuan ' + unitLabel + '">' +
-                  '<span class="stok-unit-tag">' + unitLabel + '</span>' +
-                '</div>' +
-                '<span style="color: var(--text-muted); font-size: 0.75rem; font-weight: 700;">≈</span>' +
-                '<div class="stok-input-wrap" style="margin: 0;">' +
-                  '<input type="number" step="any" min="0" class="dark-input" style="width: 66px; color: #38BDF8; font-weight: 700; padding: 4px 6px;" value="' + curSubUnitVal + '" onchange="window.updateStokFromSubUnit(' + idx + ', this.value)" title="Ketik sisa langsung dalam ' + subUnitLabel + '">' +
-                  '<span class="stok-unit-tag" style="color: #38BDF8;">' + subUnitLabel + '</span>' +
-                '</div>' +
-              '</div>')
-          ) +
-        '</td>' +
-        '<td data-label="Status" style="text-align: center;">' + statusBadge + '</td>' +
-        '<td data-label="Tindakan" style="font-size: 0.82rem; ' + actionStyle + '">' + cleanAction + '</td>';
-      stokBody.appendChild(tr);
-    });
-
-    const pasarListEl = document.getElementById('dispatchPasarList');
-    if (pasarListEl) {
-      pasarListEl.innerHTML = pasarItems.length > 0
-        ? pasarItems.map(i => '<li><span>' + i.nama + '</span><strong>' + i.qty + '</strong></li>').join('')
-        : '<li class="dispatch-empty">Seluruh stok bahan Pasar Subuh masih mencukupi.</li>';
-    }
-
-    const tokoListEl = document.getElementById('dispatchTokoList');
-    if (tokoListEl) {
-      tokoListEl.innerHTML = tokoItems.length > 0
-        ? tokoItems.map(i => '<li><span>' + i.nama + '</span><strong>' + i.qty + '</strong></li>').join('')
-        : '<li class="dispatch-empty">Seluruh stok bahan Toko & Minimarket masih mencukupi.</li>';
-    }
-
-    const cntAmanEl = document.getElementById('stockCountAman');
-    const cntMenipisEl = document.getElementById('stockCountMenipis');
-    const cntKritisEl = document.getElementById('stockCountKritis');
-    const estBelanjaEl = document.getElementById('stockEstBelanja');
-
-    if (cntAmanEl) cntAmanEl.innerText = countAman + ' Bahan';
-    if (cntMenipisEl) cntMenipisEl.innerText = countMenipis + ' Bahan';
-    if (cntKritisEl) cntKritisEl.innerText = countKritis + ' Bahan';
-    if (estBelanjaEl) estBelanjaEl.innerText = 'Rp ' + (estBelanjaMalam > 0 ? estBelanjaMalam.toLocaleString('id-ID') : '0');
-
-    renderStokCards(auraData.stokBahan);
-  }
-}
+function renderStokView() { /* deprecated */ }
 
 // ==============================================================
 // MODUL LAPORAN HARIAN SATU LAYAR (DAILY OPS SHEET SPREADSHEET ENGINE)
@@ -6916,7 +6500,6 @@ function renderLaporanHarianView() {
   if (datalistEl) {
     const bahanNames = new Set();
     (auraData.masterBahan || []).forEach(b => { if (b.nama) bahanNames.add(b.nama); });
-    (auraData.stokBahan || []).forEach(s => { if (s.nama) bahanNames.add(s.nama); });
     datalistEl.innerHTML = Array.from(bahanNames)
       .map(name => `<option value="${name}">`)
       .join('');
@@ -8049,7 +7632,6 @@ function renderAllViews() {
   renderKuitansiView();
   renderBuku3View();
   if (typeof window.renderMasterBahanTable === 'function') window.renderMasterBahanTable();
-  renderStokView();
 
   // 3. KALKULATOR TAKARAN RESEP & VISUAL SOP FORMULA
   if (typeof window.calculateTakaran === 'function') window.calculateTakaran();
@@ -8693,10 +8275,7 @@ window.saveAndSyncModule = async function(moduleName) {
     auraData.buku2Committed = JSON.parse(JSON.stringify(auraData.buku2Belanja || []));
     if (!auraData.buku2SavedDates) auraData.buku2SavedDates = {};
     auraData.buku2SavedDates[selectedBuku2Date] = true;
-  } else if (moduleName === 'stok') {
-    auraData.stokCommitted = JSON.parse(JSON.stringify(auraData.stokBahan || []));
-    auraData.stokLastSaved = Date.now();
-  }
+}
 
   if (auraData) auraData._lastUpdated = Date.now();
   localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
@@ -8706,7 +8285,6 @@ window.saveAndSyncModule = async function(moduleName) {
     buku1: 'Distribusi Konsinyasi Mitra',
     kuitansi: 'Pengeluaran Kas & Belanja Bahan',
     buku3: 'Arus Kas & Alokasi Laba (3 Amplop)',
-    stok: 'Inventaris Stok Dapur',
     master: 'Katalog Bahan Baku & Pemasok'
   };
 
