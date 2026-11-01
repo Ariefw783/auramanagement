@@ -4534,6 +4534,20 @@ window.restoreDefaultRecipes = function() {
   );
 };
 
+window.saveMasterResepChanges = function() {
+  saveLocal();
+  pushToFirestoreCloud(true);
+  renderAllViews();
+  if (typeof window.showSuccessModal === 'function') {
+    window.showSuccessModal(
+      "Perubahan Menu Tersimpan",
+      "Seluruh formula resep, status aktif/nonaktif, dan standar gramasi menu berhasil disimpan & disinkronkan ke Cloud Firestore."
+    );
+  } else if (typeof window.showToast === 'function') {
+    window.showToast("Formula resep berhasil disimpan");
+  }
+};
+
 window.formulaModalBatchSize = 50;
 window.formulaModalActiveStatus = true;
 

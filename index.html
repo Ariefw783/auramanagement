@@ -1416,30 +1416,30 @@
           <div class="slate-card-header">
             <div>
               <div class="slate-card-title">
-                <span>Formula Resep & Standar Gramasi Presisi</span>
-                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Dapur & SOP</span>
+                <span>Formula Resep &amp; Standar Gramasi Presisi</span>
+                <span class="mini-tag" style="background: rgba(56, 189, 248, 0.2); color: #38BDF8; font-weight: 800;">Dapur &amp; SOP</span>
               </div>
               <div class="slate-card-subtitle">Daftar formula resep menu jajanan, standar gramasi bahan baku presisi, dan SOP penggorengan dapur (mode simpel tanpa foto).</div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="tool-btn" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>
-              <button type="button" class="tool-btn tool-btn-success" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>
+              <button type="button" class="tool-btn" onclick="window.restoreDefaultRecipes()" title="Pulihkan daftar menu standar awal">Pulihkan Menu Standar</button>
+              <button type="button" class="tool-btn" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>
+              <button type="button" class="tool-btn tool-btn-success" style="font-weight: 800; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" onclick="window.saveMasterResepChanges()">Simpan Perubahan</button>
             </div>
           </div>
 
-          <!-- ZONE 2: SIMETRIS VISUAL RECIPE & SOP CARDS (DYNAMIC) -->
-          <div style="margin-top: 24px;">
-            <div class="form-card-title" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-              <span>Daftar Menu Jajanan & SOP Penggorengan</span>
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.restoreDefaultRecipes()">Pulihkan Menu Standar</button>
-                <button type="button" class="tool-btn" style="font-size: 0.75rem;" onclick="window.openManageFormulaModal()">Edit Takaran Bahan</button>
-                <button type="button" class="tool-btn tool-btn-success" style="font-size: 0.75rem;" onclick="window.openAddProductModal()">+ Tambah Menu Baru</button>
-              </div>
-            </div>
-
+          <!-- DAFTAR KARTU FORMULA RESEP SIMPEL -->
+          <div style="margin-top: 18px;">
             <div class="recipe-visual-grid" id="recipeVisualGridContainer">
               <!-- Rendered Dynamically via app.js -->
+            </div>
+
+            <!-- ACTION BAR SIMPAN PERUBAHAN RESEP (BAWAH) -->
+            <div class="recipe-save-action-bar no-print" style="margin-top: 20px; padding: 14px 18px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+              <div style="font-size: 0.82rem; color: #94A3B8;">
+                Selesai mengatur formula atau status aktif menu? Simpan seluruh perubahan menu &amp; takaran:
+              </div>
+              <button type="button" class="tool-btn tool-btn-success" style="padding: 10px 22px; font-weight: 800; font-size: 0.88rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" onclick="window.saveMasterResepChanges()">Simpan Perubahan Menu &amp; Formula</button>
             </div>
           </div>
         </div>
