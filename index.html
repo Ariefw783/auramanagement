@@ -153,7 +153,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.7</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.4.8</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -1034,7 +1034,7 @@
                 <div style="font-size: 9.5pt; font-weight: 700; color: #000; margin-top: 4px;">LAPORAN REKAPITULASI ARUS KAS &amp; LABA BERSIH (TARIK JUMAT)</div>
               </div>
               <div style="text-align: right; font-size: 8.5pt; color: #000;">
-                <div><strong>Periode Operasional:</strong> <span>Oktober - November 2026</span></div>
+                <div><strong>Periode Operasional:</strong> <span id="b3PrintPeriodeText">Semua Periode Tercatat</span></div>
                 <div style="font-size: 7.5pt; color: #555; margin-top: 3px;">Waktu Cetak: <span id="b3PrintTimestamp">01/11/2026 14:36 WIB</span></div>
                 <div style="font-size: 7.5pt; color: #555;">Sistem Akumulasi Mingguan</div>
               </div>
@@ -1054,12 +1054,43 @@
               <button type="button" class="tool-btn" onclick="window.printBuku3()" title="Cetak laporan arus kas dan laba bersih ke format A4">Cetak Laporan</button>
             </div>
           </div>
+          <!-- TOOLBAR FILTER RENTANG TANGGAL (HANYA LAYAR / NO-PRINT) -->
+          <div class="b3-filter-toolbar no-print">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Filter Periode:
+              </span>
+              <button type="button" class="filter-pill b3-preset-btn active" id="btnB3Preset_all" onclick="window.setBuku3FilterPreset('all')">Semua</button>
+              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_7d" onclick="window.setBuku3FilterPreset('7d')">7 Hari Terakhir</button>
+              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-this" onclick="window.setBuku3FilterPreset('month-this')">Bulan Ini</button>
+              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-prev" onclick="window.setBuku3FilterPreset('month-prev')">Bulan Lalu</button>
+              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_custom" onclick="window.setBuku3FilterPreset('custom')">Kustom</button>
+            </div>
+
+            <!-- Custom Date Inputs -->
+            <div id="b3CustomDateWrap" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.75rem; color: #94A3B8;">Dari:</span>
+                <input type="date" id="b3FilterStartDate" class="form-control-slate" style="padding: 5px 8px; font-size: 0.78rem; background: #0F172A; color: #FFF; border: 1px solid var(--card-border); border-radius: 6px;" onchange="window.handleBuku3CustomDateChange()">
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.75rem; color: #94A3B8;">s/d:</span>
+                <input type="date" id="b3FilterEndDate" class="form-control-slate" style="padding: 5px 8px; font-size: 0.78rem; background: #0F172A; color: #FFF; border: 1px solid var(--card-border); border-radius: 6px;" onchange="window.handleBuku3CustomDateChange()">
+              </div>
+              <button type="button" class="tool-btn tool-btn-primary" onclick="window.applyBuku3CustomDateFilter()" style="padding: 5px 12px; font-size: 0.75rem; font-weight: 700;">Terapkan</button>
+              <button type="button" class="tool-btn" onclick="window.setBuku3FilterPreset('all')" style="padding: 5px 10px; font-size: 0.75rem;">Reset</button>
+            </div>
+          </div>
 
           <!-- BEP Progress Card -->
           <div class="bep-card-wrap" style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--card-border); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
               <div>
-                <strong style="color: #FFFFFF; font-size: 0.95rem;">Posisi Saldo Kas &amp; Laba Bersih</strong>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                  <strong style="color: #FFFFFF; font-size: 0.95rem;">Posisi Saldo Kas &amp; Laba Bersih</strong>
+                  <span id="b3ActiveFilterBadge" class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-weight: 700; font-size: 0.7rem; border: 1px solid rgba(56, 189, 248, 0.3);">Semua Periode</span>
+                </div>
                 <div style="font-size: 0.75rem; color: #94A3B8;">Ringkasan akumulasi saldo laba bersih dan mutasi penarikan kas pemilik.</div>
               </div>
               <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">

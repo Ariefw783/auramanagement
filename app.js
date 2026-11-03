@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.7';
-const APP_BUILD_TIME = '01/11/2026 23:40 WIB';
+const APP_VERSION = 'v7.4.8';
+const APP_BUILD_TIME = '03/11/2026 12:40 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -2088,6 +2088,10 @@ window.printBuku3 = function() {
   const tsEl = document.getElementById('b3PrintTimestamp');
   if (tsEl) {
     tsEl.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+  const pEl = document.getElementById('b3PrintPeriodeText');
+  if (pEl && typeof getBuku3FilterPeriodLabel === 'function') {
+    pEl.innerText = getBuku3FilterPeriodLabel();
   }
   window.print();
 };
@@ -5912,19 +5916,19 @@ window.deletePenarikanLaba = function(id) {
   }
 };
 
-function renderPenarikanLabaTable() {
+function renderPenarikanLabaTable(customList) {
   const tbody = document.getElementById('penarikanLabaTableBody');
   const tfoot = document.getElementById('penarikanLabaTableFoot');
   if (!tbody) return;
 
-  const list = auraData.penarikanLaba || [];
+  const list = customList !== undefined ? customList : (auraData.penarikanLaba || []);
   tbody.innerHTML = '';
 
   if (list.length === 0) {
     tbody.innerHTML = 
       '<tr>' +
         '<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px 10px; font-style: italic;">' +
-          'Belum ada riwayat penarikan laba (prive). Klik tombol "+ Catat Tarik Laba" untuk mencatat penarikan kas ke rekening/dompet pribadi.' +
+          (b3FilterPreset !== 'all' ? 'Tidak ada riwayat penarikan laba pada rentang tanggal yang dipilih.' : 'Belum ada riwayat penarikan laba (prive). Klik tombol "+ Catat Tarik Laba" untuk mencatat penarikan kas ke rekening/dompet pribadi.') +
         '</td>' +
       '</tr>';
     if (tfoot) tfoot.innerHTML = '';
@@ -5960,6 +5964,148 @@ function renderPenarikanLabaTable() {
   }
 }
 
+
+// ==============================================================
+// MODUL REKAP KAS & LABA: FILTER RENTANG TANGGAL CONTROLLER
+// ==============================================================
+let b3FilterPreset = 'all'; // 'all', '7d', 'month-this', 'month-prev', 'custom'
+let b3FilterStartDate = null; // 'YYYY-MM-DD'
+let b3FilterEndDate = null; // 'YYYY-MM-DD'
+
+function formatIndoDateShort(isoDate) {
+  if (!isoDate) return '';
+  const parts = isoDate.split('-');
+  if (parts.length !== 3) return isoDate;
+  const d = parseInt(parts[2], 10);
+  const m = parseInt(parts[1], 10);
+  const y = parts[0];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  return d + ' ' + months[m - 1] + ' ' + y;
+}
+
+function formatIndoMonthYear(isoDate) {
+  if (!isoDate) return '';
+  const parts = isoDate.split('-');
+  const m = parseInt(parts[1], 10);
+  const y = parts[0];
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  return months[m - 1] + ' ' + y;
+}
+
+function getBuku3FilterPeriodLabel() {
+  if (b3FilterPreset === 'all' || (!b3FilterStartDate && !b3FilterEndDate)) {
+    return 'Semua Periode Tercatat';
+  }
+  if (b3FilterPreset === '7d' && b3FilterStartDate && b3FilterEndDate) {
+    return '7 Hari Terakhir (' + formatIndoDateShort(b3FilterStartDate) + ' - ' + formatIndoDateShort(b3FilterEndDate) + ')';
+  }
+  if (b3FilterPreset === 'month-this' && b3FilterStartDate) {
+    return 'Bulan Ini (' + formatIndoMonthYear(b3FilterStartDate) + ')';
+  }
+  if (b3FilterPreset === 'month-prev' && b3FilterStartDate) {
+    return 'Bulan Lalu (' + formatIndoMonthYear(b3FilterStartDate) + ')';
+  }
+  if (b3FilterStartDate && b3FilterEndDate) {
+    if (b3FilterStartDate === b3FilterEndDate) {
+      return formatIndoDateShort(b3FilterStartDate);
+    }
+    return formatIndoDateShort(b3FilterStartDate) + ' s/d ' + formatIndoDateShort(b3FilterEndDate);
+  }
+  if (b3FilterStartDate) {
+    return 'Mulai ' + formatIndoDateShort(b3FilterStartDate);
+  }
+  if (b3FilterEndDate) {
+    return 'Hingga ' + formatIndoDateShort(b3FilterEndDate);
+  }
+  return 'Semua Periode';
+}
+
+function updateBuku3FilterButtonUI() {
+  const presets = ['all', '7d', 'month-this', 'month-prev', 'custom'];
+  presets.forEach(p => {
+    const btn = document.getElementById('btnB3Preset_' + p);
+    if (btn) {
+      if (p === b3FilterPreset) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    }
+  });
+}
+
+window.setBuku3FilterPreset = function(preset) {
+  b3FilterPreset = preset;
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
+
+  const pad = n => String(n).padStart(2, '0');
+  const todayIso = y + '-' + pad(m + 1) + '-' + pad(d);
+
+  const elStart = document.getElementById('b3FilterStartDate');
+  const elEnd = document.getElementById('b3FilterEndDate');
+
+  if (preset === 'all') {
+    b3FilterStartDate = null;
+    b3FilterEndDate = null;
+    if (elStart) elStart.value = '';
+    if (elEnd) elEnd.value = '';
+  } else if (preset === '7d') {
+    const past7 = new Date(y, m, d - 6);
+    b3FilterStartDate = past7.getFullYear() + '-' + pad(past7.getMonth() + 1) + '-' + pad(past7.getDate());
+    b3FilterEndDate = todayIso;
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+  } else if (preset === 'month-this') {
+    const lastDayThisMonth = new Date(y, m + 1, 0).getDate();
+    b3FilterStartDate = y + '-' + pad(m + 1) + '-01';
+    b3FilterEndDate = y + '-' + pad(m + 1) + '-' + pad(lastDayThisMonth);
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+  } else if (preset === 'month-prev') {
+    const prevMonthDate = new Date(y, m - 1, 1);
+    const prevY = prevMonthDate.getFullYear();
+    const prevM = prevMonthDate.getMonth();
+    const lastDayPrevMonth = new Date(prevY, prevM + 1, 0).getDate();
+    b3FilterStartDate = prevY + '-' + pad(prevM + 1) + '-01';
+    b3FilterEndDate = prevY + '-' + pad(prevM + 1) + '-' + pad(lastDayPrevMonth);
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+  } else if (preset === 'custom') {
+    if (elStart && elStart.value) b3FilterStartDate = elStart.value;
+    if (elEnd && elEnd.value) b3FilterEndDate = elEnd.value;
+    if (elStart && !elStart.value) elStart.focus();
+  }
+
+  updateBuku3FilterButtonUI();
+  renderBuku3View();
+};
+
+window.handleBuku3CustomDateChange = function() {
+  const elStart = document.getElementById('b3FilterStartDate');
+  const elEnd = document.getElementById('b3FilterEndDate');
+  if (elStart && elStart.value) b3FilterStartDate = elStart.value;
+  if (elEnd && elEnd.value) b3FilterEndDate = elEnd.value;
+  b3FilterPreset = 'custom';
+  updateBuku3FilterButtonUI();
+};
+
+window.applyBuku3CustomDateFilter = function() {
+  const elStart = document.getElementById('b3FilterStartDate');
+  const elEnd = document.getElementById('b3FilterEndDate');
+  b3FilterStartDate = elStart && elStart.value ? elStart.value : null;
+  b3FilterEndDate = elEnd && elEnd.value ? elEnd.value : null;
+  b3FilterPreset = 'custom';
+  updateBuku3FilterButtonUI();
+  renderBuku3View();
+};
+
+window.resetBuku3DateFilter = function() {
+  window.setBuku3FilterPreset('all');
+};
+
 function renderBuku3View() {
   const b3Body = document.getElementById('buku3TableBody');
   const b3Foot = document.getElementById('buku3TableFoot');
@@ -5987,22 +6133,33 @@ function renderBuku3View() {
   if (b3Body) {
     b3Body.innerHTML = '';
 
-    // Hanya rekap hari-hari yang sah terverifikasi secara stabil (TIDAK terpengaruh posisi activeDate)
+    // Hanya rekap hari-hari yang sah terverifikasi secara stabil
     const verifiedList = auraData.buku3Kas.filter(k => !k.isTarget || k.isSavedDay || (k.setor > 0 || k.realBelanja > 0));
-    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalModalAll = 0, totalGajiAll = 0, totalBelanjaAll = 0, totalBelanjaUlangAll = 0, totalGasMinyakAll = 0;
 
-    verifiedList.forEach(k => {
+    // Filter berdasarkan rentang tanggal aktif
+    const filteredList = verifiedList.filter(k => {
+      const iso = k.isoDate;
+      if (!iso) return true;
+      if (b3FilterStartDate && iso < b3FilterStartDate) return false;
+      if (b3FilterEndDate && iso > b3FilterEndDate) return false;
+      return true;
+    });
+
+    let totalKirimAll = 0, totalReturAll = 0, totalLakuAll = 0, totalSetorAll = 0, totalBelanjaAll = 0;
+
+    filteredList.forEach(k => {
       totalKirimAll += (k.kirim || 0);
       totalReturAll += (k.retur || 0);
       totalLakuAll += (k.laku || 0);
       totalSetorAll += (k.setor || 0);
       totalBelanjaAll += (k.realBelanja || 0);
-      totalGajiAll += (k.gaji || 0);
-      totalBelanjaUlangAll += (k.modalBelanjaUlang !== undefined ? k.modalBelanjaUlang : (k.alokasiBelanjaHarian || 0));
-      totalGasMinyakAll += (k.modalGasMinyak !== undefined ? k.modalGasMinyak : (k.tabunganBahanAwet || 0));
     });
 
-    verifiedList.forEach(k => {
+    if (filteredList.length === 0) {
+      b3Body.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 22px 10px; font-style: italic;">Tidak ada catatan transaksi pada rentang tanggal yang dipilih.</td></tr>';
+    }
+
+    filteredList.forEach(k => {
       const hariLabel = k.isTarget
         ? '<strong>' + k.hari + '</strong> <span class="mini-tag" style="font-size: 0.62rem; padding: 1px 5px; background: rgba(251, 191, 36, 0.15); color: #FBBF24;">Target</span>'
         : '<strong>' + k.hari + '</strong>';
@@ -6034,7 +6191,7 @@ function renderBuku3View() {
     if (b3Foot) {
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-          '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL TERVERIFIKASI:</td>' +
+          '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">' + (b3FilterPreset !== 'all' ? 'TOTAL TERFILTER:' : 'TOTAL TERVERIFIKASI:') + '</td>' +
           '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalKirimAll + '</td>' +
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalReturAll + '</td>' +
           '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + totalLakuAll + '</td>' +
@@ -6044,10 +6201,19 @@ function renderBuku3View() {
         '</tr>';
     }
 
-    renderBuku3Cards(verifiedList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalBelanjaAll);
+    renderBuku3Cards(filteredList, totalKirimAll, totalReturAll, totalLakuAll, totalSetorAll, totalBelanjaAll);
 
-    const totalDitarikAll = (auraData.penarikanLaba || []).reduce((sum, p) => sum + (Number(p.nominal) || 0), 0);
-    const sisaLabaTersedia = totalLabaBersihAll - totalDitarikAll;
+    // Filter penarikan laba (prive) sesuai periode aktif
+    const filteredPrive = (auraData.penarikanLaba || []).filter(p => {
+      const iso = p.isoDate;
+      if (!iso) return true;
+      if (b3FilterStartDate && iso < b3FilterStartDate) return false;
+      if (b3FilterEndDate && iso > b3FilterEndDate) return false;
+      return true;
+    });
+
+    const totalDitarikFiltered = filteredPrive.reduce((sum, p) => sum + (Number(p.nominal) || 0), 0);
+    const sisaLabaTersedia = totalLabaBersihAll - totalDitarikFiltered;
     const sisaLabaColor = sisaLabaTersedia <= 0 ? '#94A3B8' : '#34D399';
     const sisaLabaFmt = (sisaLabaTersedia < 0 ? '-Rp ' : 'Rp ') + Math.abs(sisaLabaTersedia).toLocaleString('id-ID');
 
@@ -6061,13 +6227,20 @@ function renderBuku3View() {
     if (b3OmzetEl) b3OmzetEl.innerText = 'Rp ' + totalSetorAll.toLocaleString('id-ID');
     if (b3BelanjaEl) b3BelanjaEl.innerText = 'Rp ' + totalBelanjaAll.toLocaleString('id-ID');
     if (b3LabaKotorEl) b3LabaKotorEl.innerText = 'Rp ' + Math.max(0, totalLabaBersihAll).toLocaleString('id-ID');
-    if (b3PriveEl) b3PriveEl.innerText = '-Rp ' + totalDitarikAll.toLocaleString('id-ID');
+    if (b3PriveEl) b3PriveEl.innerText = '-Rp ' + totalDitarikFiltered.toLocaleString('id-ID');
     if (accEl) {
       accEl.innerText = sisaLabaFmt;
       accEl.style.color = sisaLabaColor;
     }
 
-    renderPenarikanLabaTable();
+    // Update label periode di layar dan cetak
+    const filterLabel = getBuku3FilterPeriodLabel();
+    const badgeEl = document.getElementById('b3ActiveFilterBadge');
+    if (badgeEl) badgeEl.innerText = filterLabel;
+    const printPeriodeEl = document.getElementById('b3PrintPeriodeText');
+    if (printPeriodeEl) printPeriodeEl.innerText = filterLabel;
+
+    renderPenarikanLabaTable(filteredPrive);
 
     // Tombol Tarik Gaji Jumat Sore
     const dayOfWeek = (activeDate ? new Date(activeDate.replace(/-/g, '/')).getDay() : new Date().getDay());

@@ -7215,3 +7215,45 @@ body {
   }
 }
 
+
+/* Toolbar Filter Tanggal di Modul Rekap Kas & Laba */
+.b3-filter-toolbar {
+  margin: 12px 0 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.b3-filter-toolbar .filter-pill {
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  transition: all 0.2s ease;
+}
+
+.b3-filter-toolbar .filter-pill.active {
+  background: #38BDF8 !important;
+  color: #0F172A !important;
+  border-color: #38BDF8 !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 768px) {
+  .b3-filter-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  #b3CustomDateWrap {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
