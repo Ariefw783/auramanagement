@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.7.1';
-const APP_BUILD_TIME = '2026-11-19 18:10';
+const APP_VERSION = 'v7.7.2';
+const APP_BUILD_TIME = '2026-11-19 19:15';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -81,7 +81,11 @@ function applyCloudPayloadAndRender(cloudPayload, lastUpdated) {
   if (typeof lhActiveDateCache !== 'undefined') {
     lhActiveDateCache = null;
   }
-  renderAllViews();
+  try {
+    renderAllViews();
+  } catch (err) {
+    console.error('[CloudRender] Error during renderAllViews:', err);
+  }
 }
 
 function setCloudStatusUI(status, label) {
@@ -792,6 +796,8 @@ const OPERATIONAL_DAYS_CONFIG = (function() {
   const dates = generateIsoDateRange('2026-10-25', getRealTodayIso());
   return dates.map((iso, idx) => buildDayMetaFromIso(iso, idx + 1));
 })();
+
+var KUITANSI_DATE_CONFIG = {};
 
 function syncOperationalDaysConfig() {
   const existingMap = new Map();
@@ -3414,16 +3420,14 @@ window.handleDeleteMasterBahan = function(idx) {
 // ==============================================================
 // STAGE 3: BUKU 2 KUITANSI PENGELUARAN KAS & EDIT ACTION
 // ==============================================================
-const KUITANSI_DATE_CONFIG = (function() {
-  const cfg = {};
+(function() {
   OPERATIONAL_DAYS_CONFIG.forEach(c => {
-    cfg[c.b2Key] = {
+    KUITANSI_DATE_CONFIG[c.b2Key] = {
       namaHari: c.namaHari,
       noBkk: c.noBkk,
       modal: c.modal || 0
     };
   });
-  return cfg;
 })();
 // Kuitansi hanya melayani siklus operasional resmi
 
@@ -6298,9 +6302,9 @@ function renderPenarikanLabaTable(customList) {
 // ==============================================================
 // MODUL REKAP KAS & LABA: FILTER RENTANG TANGGAL CONTROLLER
 // ==============================================================
-let b3FilterPreset = 'all'; // 'all', '7d', 'month-this', 'month-prev', 'custom'
-let b3FilterStartDate = null; // 'YYYY-MM-DD'
-let b3FilterEndDate = null; // 'YYYY-MM-DD'
+var b3FilterPreset = 'all'; // 'all', '7d', 'month-this', 'month-prev', 'custom'
+var b3FilterStartDate = null; // 'YYYY-MM-DD'
+var b3FilterEndDate = null; // 'YYYY-MM-DD'
 
 function formatIndoDateShort(isoDate) {
   if (!isoDate) return '';
@@ -6602,12 +6606,12 @@ function renderStokView() { /* deprecated */ }
 // Meniru kemudahan & kesederhanaan alur Template Manual Excel
 // ==============================================================
 
-let lhMitraRows = [];
-let lhBelanjaRows = [];
-let lhRencanaRows = [];
-let lhAmplop1Manual = null;
-let lhAmplopGasManual = null;
-let lhActiveDateCache = null;
+var lhMitraRows = [];
+var lhBelanjaRows = [];
+var lhRencanaRows = [];
+var lhAmplop1Manual = null;
+var lhAmplopGasManual = null;
+var lhActiveDateCache = null;
 
 // ==============================================================
 // GLOBAL HELPER: AUTO-CLEAR & AUTO-SELECT ON ZERO FOCUS
@@ -8516,26 +8520,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   bootDapurApp();
 });
-let _dapurAppBooted = false;
+var _dapurAppBooted = false;
 function bootDapurApp() {
   if (_dapurAppBooted) return;
   _dapurAppBooted = true;
-  if (typeof syncOperationalDaysConfig === 'function') syncOperationalDaysConfig();
-  renderAllViews();
-  initSidebarDrawer();
+  try {
+    if (typeof initAppTheme === 'function') initAppTheme();
+  } catch (e) { console.warn('[Boot] Theme init warning:', e); }
+  try {
+    if (typeof syncOperationalDaysConfig === 'function') syncOperationalDaysConfig();
+    renderAllViews();
+  } catch (e) { console.error('[Boot] Initial render error:', e); }
+  try {
+    initSidebarDrawer();
+  } catch (e) {}
   initFirestoreSync(0, true);
 }
-if (document.readyState !== 'loading') {
-  bootDapurApp();
-}
+// bootDapurApp dipanggil di akhir file setelah seluruh variabel & fungsi siap
 
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
 // ==============================================================
 // APP_VERSION hoisted to top
 // APP_BUILD_TIME hoisted to top
-const LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
-const LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
+var LAST_VERSION_KEY = 'dapur_mom_fitri_last_version';
+var LAST_BUILD_KEY = 'dapur_mom_fitri_last_build_ack';
 
 window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) {
   const now = new Date();
@@ -8928,7 +8937,7 @@ if (typeof document !== 'undefined') {
 // ==============================================================
 // THEME CONTROLLER (MODE GELAP / TERANG PERSISTEN)
 // ==============================================================
-const THEME_STORAGE_KEY = 'dapur_mom_fitri_theme';
+var THEME_STORAGE_KEY = 'dapur_mom_fitri_theme';
 
 function updateThemeToggleUI(theme) {
   const isLight = theme === 'light';
@@ -8968,4 +8977,9 @@ function initAppTheme() {
     saved = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
   } catch (e) {}
   applyAppTheme(saved);
+}
+
+// Jalankan boot aplikasi setelah seluruh fungsi & konstanta selesai dideklarasikan
+if (document.readyState !== 'loading') {
+  bootDapurApp();
 }

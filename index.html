@@ -163,7 +163,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.7.1</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.7.2</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -1361,9 +1361,22 @@
     </div>
   </div>
 
+  <!-- Pengaman Global Anti-Stuck Modal Loading -->
+  <script>
+    (function() {
+      function forceHideLoadingOverlay() {
+        var ov = document.getElementById('appLoadingOverlay');
+        if (ov) ov.style.display = 'none';
+      }
+      window.addEventListener('error', function() {
+        setTimeout(forceHideLoadingOverlay, 300);
+      });
+      setTimeout(forceHideLoadingOverlay, 10000);
+    })();
+  </script>
   <!-- Firebase Compat App & Firestore SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="./app.js"></script>
+  <script src="./app.js?v=7.7.2"></script>
 </body>
 </html>

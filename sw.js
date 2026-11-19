@@ -1,8 +1,8 @@
 // ==============================================================
 // DAPUR MOM FITRI - SERVICE WORKER (NETWORK-FIRST STRATEGY)
 // ==============================================================
-const CACHE_NAME = 'dapur-mom-fitri-v7.7.1';
-const APP_BUILD_TIME = '2026-11-19 18:10';
+const CACHE_NAME = 'dapur-mom-fitri-v7.7.2';
+const APP_BUILD_TIME = '2026-11-19 19:15';
 
 const ASSETS = [
   './',
@@ -89,7 +89,7 @@ self.addEventListener('fetch', (e) => {
         return networkRes;
       })
       .catch(() => {
-        return caches.match(e.request).then((cachedRes) => {
+        return caches.match(e.request, { ignoreSearch: true }).then((cachedRes) => {
           return cachedRes || caches.match('./index.html');
         });
       })
