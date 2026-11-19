@@ -3989,20 +3989,25 @@ body {
     font-weight: 800 !important;
   }
 
-  /* 5. Executive Dashboard Financial KPI Grid (Compact 2-Column Grid) */
+  /* 5. Executive Dashboard Financial KPI Grid (Mobile Single-Column Stack) */
   .financial-kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    display: flex !important;
+    flex-direction: column !important;
     gap: 8px !important;
-    margin-bottom: 14px !important;
+    margin-bottom: 12px !important;
   }
 
-  .financial-kpi-card {
-    padding: 10px 10px !important;
-    gap: 4px !important;
-  }
-
+  .financial-kpi-card,
   .financial-kpi-card:last-child {
-    grid-column: span 2 !important;
+    grid-column: auto !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
   }
 
   .financial-kpi-card .kpi-label {
@@ -6994,16 +6999,22 @@ body {
     }
 
     .financial-kpi-grid {
-      grid-template-columns: 1fr !important;
+      display: flex !important;
+      flex-direction: column !important;
       gap: 8px !important;
     }
 
-    .financial-kpi-card {
+    .financial-kpi-card,
+    .financial-kpi-card:last-child {
+      grid-column: auto !important;
+      width: 100% !important;
+      display: flex !important;
       flex-direction: row !important;
       align-items: center !important;
       justify-content: space-between !important;
       flex-wrap: wrap !important;
-      padding: 10px 12px !important;
+      padding: 10px 14px !important;
+      box-sizing: border-box !important;
     }
 
     .financial-kpi-card .kpi-sub {
@@ -7893,5 +7904,353 @@ body {
   #b3CustomDateWrap {
     justify-content: space-between;
     width: 100%;
+  }
+}
+
+/* ==============================================================
+   V7.7.0 REFINED LAYOUT, PRIVE CARD, B3 TOOLBAR & PRINT RENCANA
+   ============================================================== */
+
+/* Kotak Penarikan Laba (Prive) Profesional */
+.lh-prive-summary-card {
+  margin-top: 14px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(52, 211, 153, 0.25);
+  border-left: 4px solid #10B981 !important;
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+[data-theme="light"] .lh-prive-summary-card {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  border-left: 4px solid #059669 !important;
+}
+
+.lh-prive-info-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.lh-prive-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+[data-theme="light"] .lh-prive-icon-wrap {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+}
+
+.lh-prive-text-col h4 {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+[data-theme="light"] .lh-prive-text-col h4 {
+  color: #0F172A !important;
+}
+
+.lh-prive-text-col p {
+  margin: 3px 0 0;
+  color: #94A3B8;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+[data-theme="light"] .lh-prive-text-col p {
+  color: #475569 !important;
+}
+
+.lh-prive-action-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.lh-prive-balance-box {
+  text-align: right;
+  min-width: 130px;
+}
+
+.lh-prive-balance-label {
+  display: block;
+  font-size: 0.7rem;
+  color: #94A3B8;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+[data-theme="light"] .lh-prive-balance-label {
+  color: #64748B !important;
+}
+
+.lh-prive-balance-val {
+  display: block;
+  font-size: 1.3rem;
+  color: #34D399;
+  font-family: var(--font-mono);
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+
+[data-theme="light"] .lh-prive-balance-val {
+  color: #059669 !important;
+}
+
+.lh-prive-btn-action {
+  font-weight: 800;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  background: rgba(16, 185, 129, 0.2);
+  color: #34D399;
+  border-color: rgba(16, 185, 129, 0.6);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="light"] .lh-prive-btn-action {
+  background: #10B981 !important;
+  color: #FFFFFF !important;
+  border-color: #059669 !important;
+}
+
+@media (max-width: 768px) {
+  .lh-prive-summary-card {
+    padding: 12px 14px !important;
+    gap: 12px !important;
+  }
+  .lh-prive-action-wrap {
+    width: 100% !important;
+    justify-content: space-between !important;
+    padding-top: 10px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+  [data-theme="light"] .lh-prive-action-wrap {
+    border-top-color: #E2E8F0 !important;
+  }
+  .lh-prive-balance-box {
+    text-align: left !important;
+  }
+  .lh-prive-btn-action {
+    flex: 1 !important;
+    max-width: 160px !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+}
+
+/* Symmetrical B3 Date Filter Toolbar */
+.b3-filter-toolbar {
+  margin: 12px 0 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.b3-filter-presets-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.b3-filter-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94A3B8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+[data-theme="light"] .b3-filter-label {
+  color: #475569 !important;
+}
+
+.b3-filter-pills-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.b3-custom-date-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.b3-date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.b3-date-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.b3-date-label {
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+[data-theme="light"] .b3-date-label {
+  color: #64748B !important;
+}
+
+.b3-date-input {
+  padding: 5px 8px;
+  font-size: 0.78rem;
+  background: #0F172A;
+  color: #FFF;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+}
+
+[data-theme="light"] .b3-date-input {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+.b3-date-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.b3-btn-apply {
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.b3-btn-reset {
+  padding: 6px 10px;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 768px) {
+  .b3-filter-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  .b3-filter-presets-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .b3-filter-pills-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .b3-filter-pills-row .filter-pill {
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 7px 4px !important;
+    font-size: 0.74rem !important;
+    margin: 0 !important;
+  }
+  .b3-custom-date-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .b3-date-inputs {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .b3-date-field {
+    width: 100% !important;
+  }
+  .b3-date-input {
+    flex: 1 !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    padding: 6px 8px !important;
+    font-size: 0.8rem !important;
+    box-sizing: border-box !important;
+  }
+  .b3-date-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .b3-btn-apply,
+  .b3-btn-reset {
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.82rem !important;
+    font-weight: 700 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* Modus Cetak Khusus Rencana Produksi & Distribusi Esok Hari */
+@media print {
+  body.print-mode-rencana #lhBlok1,
+  body.print-mode-rencana #lhBlok2,
+  body.print-mode-rencana #lhBlok4,
+  body.print-mode-rencana .financial-kpi-grid,
+  body.print-mode-rencana .lh-cf-grid,
+  body.print-mode-rencana .lh-prive-summary-card,
+  body.print-mode-rencana .lh-print-signatures {
+    display: none !important;
+  }
+
+  body.print-mode-rencana #lhBlok3 {
+    display: block !important;
+    margin-top: 0 !important;
+    border: 1.5px solid #000000 !important;
+    page-break-inside: avoid !important;
+  }
+
+  body.print-mode-rencana .lh-print-kop .lh-print-brand-loc {
+    color: #000000 !important;
   }
 }

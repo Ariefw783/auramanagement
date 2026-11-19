@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.6.0';
-const APP_BUILD_TIME = '19/11/2026 11:55 WIB';
+const APP_VERSION = 'v7.7.0';
+const APP_BUILD_TIME = '2026-11-19 12:50';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -2146,6 +2146,28 @@ window.printBuku3 = function() {
   window.print();
 };
 
+window.printRencanaProduksi = function() {
+  const tsEl = document.getElementById('lhPrintTimestamp');
+  const dEl = document.getElementById('lhPrintDateDisplay');
+  const srcDate = document.getElementById('laporanHarianDateText');
+  if (tsEl) {
+    tsEl.innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB';
+  }
+  if (dEl) {
+    dEl.innerText = (srcDate && srcDate.innerText && srcDate.innerText.trim().length > 0) ? srcDate.innerText : 'Hari Ini';
+  }
+  document.body.classList.add('print-mode-rencana');
+  const cleanup = () => {
+    document.body.classList.remove('print-mode-rencana');
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  setTimeout(() => {
+    window.print();
+    setTimeout(cleanup, 1000);
+  }, 100);
+};
+
 window.printLaporanHarian = function() {
   const tsEl = document.getElementById('lhPrintTimestamp');
   const dEl = document.getElementById('lhPrintDateDisplay');
@@ -2784,9 +2806,8 @@ window.renderMasterBahanTable = function() {
   const list = auraData.masterBahan || [];
 
   const filtered = list.filter(item => {
-    const matchCat = (currentMasterBahanFilterCat === 'all') || (item.kategori === currentMasterBahanFilterCat);
     const matchQuery = !query || item.nama.toLowerCase().includes(query) || (item.vendor && item.vendor.toLowerCase().includes(query));
-    return matchCat && matchQuery;
+    return matchQuery;
   });
 
   tbody.innerHTML = '';
@@ -2836,7 +2857,6 @@ window.renderMasterBahanTable = function() {
     tr.innerHTML = 
       '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
       '<td data-label="Bahan"><strong style="color: #FFFFFF;">' + item.nama + '</strong></td>' +
-      '<td data-label="Kategori"><span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span></td>' +
       '<td data-label="Satuan & Takaran">' +
         '<div style="font-size: 0.82rem; color: #F8FAFC; font-weight: 600;">' + item.satuan + '</div>' +
         '<div style="font-size: 0.71rem; color: #38BDF8; font-family: var(--font-mono); margin-top: 2px;">' + unitInfoText + '</div>' +
@@ -5535,7 +5555,6 @@ function renderMasterBahanCards(list) {
           '<strong class="record-title-name">' + item.nama + '</strong>' +
         '</div>' +
         '<div class="record-header-meta">' +
-          '<span class="badge-kategori ' + catBadgeClass + '">' + item.kategori + '</span>' +
           '<span class="record-chip success">Rp ' + (item.harga || 0).toLocaleString('id-ID') + '</span>' +
           '<span class="btn-record-expand-toggle">' + (isCollapsed ? '▼ Buka' : '▲ Sembunyikan') + '</span>' +
         '</div>' +
@@ -6614,14 +6633,7 @@ function getProductEstText(p, totalPcs, rencanaRows) {
       });
 
       const formatted = isianTot >= 10 ? Math.ceil(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
-      const ovList = Object.values(ovBuckets).filter(b => b.pcs > 0);
-      if (ovList.length > 0) {
-        const detailParts = ovList.map(b => b.key + ' ' + b.pcs + '×' + b.qty + unitSuffix);
-        if (stdPcs > 0) detailParts.push('Lain ' + stdPcs + '×' + baseQty + unitSuffix);
-        parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian') + ' (' + detailParts.join(', ') + ')');
-      } else {
-        parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian'));
-      }
+      parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian'));
     } else {
       const isianTot = tot * baseQty;
       const formatted = isianTot >= 10 ? Math.ceil(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
@@ -6934,9 +6946,6 @@ function renderLaporanHarianView() {
           <input type="text" class="sheet-input" placeholder="1 pouch / 2 bks" value="${row.qty || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'qty', this.value)">
         </td>
         <td>
-          <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${row.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
-        </td>
-        <td>
           <input type="number" id="lhBelanjaTableBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" onfocus="window.handleNumFocus(this)" onblur="window.handleNumBlur(this)" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
         </td>
         <td style="text-align: center;" class="no-print">
@@ -7210,14 +7219,9 @@ function renderLhBelanjaCards(rows, totBelanja) {
             <input type="text" class="sheet-input" placeholder="1 pouch / 2 bks" value="${r.qty || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'qty', this.value)">
           </div>
           <div>
-            <label style="font-size: 0.68rem; color: #94A3B8; font-weight: 700; display: block; margin-bottom: 4px;">TEMPAT / TOKO:</label>
-            <input type="text" class="sheet-input" placeholder="Pasar / Toko" value="${r.toko || ''}" onchange="window.handleLhBelanjaInputChange(${idx}, 'toko', this.value)">
+            <label style="font-size: 0.68rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 4px;">NOMINAL HARGA (RP):</label>
+            <input type="number" id="lhBelanjaCardBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
           </div>
-        </div>
-
-        <div style="margin-bottom: 8px;">
-          <label style="font-size: 0.68rem; color: #FB7185; font-weight: 700; display: block; margin-bottom: 4px;">NOMINAL HARGA RIIL (RP):</label>
-          <input type="number" id="lhBelanjaCardBiayaInput_${idx}" class="sheet-input price-input" placeholder="0" value="${biaya > 0 ? biaya : ''}" min="0" step="500" oninput="window.handleLhBelanjaInputChange(${idx}, 'biaya', this.value)">
         </div>
 
         <div style="display: flex; justify-content: flex-end;">
@@ -7873,7 +7877,7 @@ window.copyLaporanHarianWhatsApp = function() {
     const cost = Number(b.biaya) || 0;
     if ((b.nama && b.nama.trim().length > 0) || cost > 0) {
       totBelanja += cost;
-      belanjaLines.push(`- ${b.nama || 'Barang'} (${b.qty || '-'} @ ${b.toko || 'Toko'}): Rp ${cost.toLocaleString('id-ID')}`);
+      belanjaLines.push(`- ${b.nama || 'Barang'} (${b.qty || '-'}): Rp ${cost.toLocaleString('id-ID')}`);
     }
   });
 

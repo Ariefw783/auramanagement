@@ -163,7 +163,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.6.0</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.7.0</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -309,12 +309,12 @@
           </div>
 
           <!-- 2. BLOK 1: LAPORAN PENARIKAN & DISTRIBUSI KONSINYASI MITRA (BUKU 1) -->
-          <div class="sheet-section-card">
+          <div class="sheet-section-card" id="lhBlok1">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">1</span>
                 <div>
-                  <h3 class="sheet-section-title">1. Distribusi &amp; Setoran Konsinyasi</h3>
+                  <h3 class="sheet-section-title">Distribusi &amp; Setoran Konsinyasi</h3>
                   <p class="sheet-section-desc">Rekap pengiriman, retur fisik, dan setoran mitra titipan.</p>
                 </div>
               </div>
@@ -360,12 +360,12 @@
           </div>
 
           <!-- 3. BLOK 2: FORM PENGELUARAN BELANJA BAHAN & OPERASIONAL HARIAN (BUKU 2) -->
-          <div class="sheet-section-card">
+          <div class="sheet-section-card" id="lhBlok2">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">2</span>
                 <div>
-                  <h3 class="sheet-section-title">2. Belanja Bahan &amp; Operasional Harian</h3>
+                  <h3 class="sheet-section-title">Belanja Bahan &amp; Operasional Harian</h3>
                   <p class="sheet-section-desc">Rincian pembelian bahan baku dan pengeluaran kas dapur.</p>
                 </div>
               </div>
@@ -381,8 +381,7 @@
                     <th style="width: 44px; text-align: center;">No.</th>
                     <th style="min-width: 200px;">Nama Bahan / Kebutuhan Dapur</th>
                     <th style="min-width: 120px;">Satuan Beli / Qty</th>
-                    <th style="min-width: 140px;">Tempat / Toko</th>
-                    <th style="min-width: 140px; text-align: right;">Nominal Harga (Rp)</th>
+                                        <th style="min-width: 140px; text-align: right;">Nominal Harga (Rp)</th>
                     <th style="width: 60px; text-align: center;" class="no-print">Aksi</th>
                   </tr>
                 </thead>
@@ -391,7 +390,7 @@
                 </tbody>
                 <tfoot>
                   <tr class="sheet-total-row">
-                    <td colspan="4" style="font-weight: 800;">TOTAL JUMLAH BELANJA HARI INI</td>
+                    <td colspan="3" style="font-weight: 800;">TOTAL JUMLAH BELANJA HARI INI</td>
                     <td style="text-align: right; font-weight: 800; color: #FB7185; font-size: 1.05rem;" id="lhBelanjaTotalRp">Rp 0</td>
                     <td class="no-print"></td>
                   </tr>
@@ -409,16 +408,20 @@
           </div>
 
           <!-- 4. BLOK 3: RENCANA PRODUKSI & TITIP ESOK HARI (SOP DAPUR) -->
-          <div class="sheet-section-card">
+          <div class="sheet-section-card" id="lhBlok3">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">3</span>
                 <div>
-                  <h3 class="sheet-section-title">3. Rencana Produksi &amp; Distribusi Esok Hari</h3>
+                  <h3 class="sheet-section-title">Rencana Produksi &amp; Distribusi Esok Hari</h3>
                   <p class="sheet-section-desc">Alokasi target produksi per varian menu dan titik distribusi.</p>
                 </div>
               </div>
               <div class="sheet-header-actions no-print">
+                <button type="button" class="tool-btn" onclick="window.printRencanaProduksi()" title="Cetak rencana produksi dan distribusi esok hari ke lembar dapur">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                  Cetak Rencana
+                </button>
                 <button type="button" class="tool-btn" onclick="window.addLhRencanaRow()">+ Tambah Titik</button>
                 <button type="button" class="tool-btn" onclick="window.switchTab('tab-resep')">Kelola Menu Resep</button>
               </div>
@@ -464,12 +467,12 @@
           </div>
 
           <!-- 5. BLOK 4: FORM ALOKASI ARUS KAS & SALDO LABA (TARIK JUMAT) -->
-          <div class="sheet-section-card">
+          <div class="sheet-section-card" id="lhBlok4">
             <div class="sheet-section-header">
               <div class="sheet-section-title-wrap">
                 <span class="sheet-section-number">4</span>
                 <div>
-                  <h3 class="sheet-section-title">4. Ringkasan Arus Kas &amp; Laba Bersih</h3>
+                  <h3 class="sheet-section-title">Ringkasan Arus Kas &amp; Laba Bersih</h3>
                   <p class="sheet-section-desc">Ikhtisar posisi kas masuk, belanja harian, dan estimasi laba bersih.</p>
                 </div>
               </div>
@@ -497,24 +500,27 @@
             </div>
 
             <!-- Kotak Ringkasan Laba Bersih & Aksi Tarik Laba (Prive) -->
-            <div class="lh-prive-summary-card" style="margin-top: 14px; background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 10px; padding: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
-              <div style="display: flex; align-items: center; gap: 14px;">
-                <div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">
-                  💰
+            <div class="lh-prive-summary-card">
+              <div class="lh-prive-info-wrap">
+                <div class="lh-prive-icon-wrap">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                    <line x1="2" y1="10" x2="22" y2="10"></line>
+                    <path d="M6 16h4"></path>
+                    <path d="M16 16h2"></path>
+                  </svg>
                 </div>
-                <div>
-                  <h4 style="margin: 0; color: #FFFFFF; font-size: 0.95rem; font-weight: 700;">Penarikan Laba Pemilik (Prive)</h4>
-                  <p style="margin: 4px 0 0; color: #94A3B8; font-size: 0.8rem; line-height: 1.4;">
-                    Pencatatan penarikan laba ke rekening pribadi untuk sinkronisasi saldo kas riil.
-                  </p>
+                <div class="lh-prive-text-col">
+                  <h4>Penarikan Laba Pemilik (Prive)</h4>
+                  <p>Pencatatan penarikan kas laba ke rekening pribadi untuk sinkronisasi saldo kas riil.</p>
                 </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                <div style="text-align: right; min-width: 140px;">
-                  <span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Saldo Laba Tersedia</span>
-                  <strong id="lhBlok4LabaDisplay" style="display: block; font-size: 1.35rem; color: #34D399; font-family: var(--font-mono); font-weight: 900;">Rp 0</strong>
+              <div class="lh-prive-action-wrap">
+                <div class="lh-prive-balance-box">
+                  <span class="lh-prive-balance-label">Saldo Laba Tersedia</span>
+                  <strong id="lhBlok4LabaDisplay" class="lh-prive-balance-val">Rp 0</strong>
                 </div>
-                <button type="button" class="tool-btn tool-btn-success no-print" onclick="window.openPenarikanLabaModal()" style="font-weight: 800; padding: 9px 15px; font-size: 0.82rem; background: rgba(16, 185, 129, 0.25); color: #34D399; border-color: rgba(16, 185, 129, 0.6);" title="Catat penarikan laba kas dapur ke kantong pribadi">
+                <button type="button" class="tool-btn tool-btn-success no-print lh-prive-btn-action" onclick="window.openPenarikanLabaModal()" title="Catat penarikan laba kas dapur ke kantong pribadi">
                   + Catat Tarik Laba
                 </button>
               </div>
@@ -1078,30 +1084,36 @@
           </div>
           <!-- TOOLBAR FILTER RENTANG TANGGAL (HANYA LAYAR / NO-PRINT) -->
           <div class="b3-filter-toolbar no-print">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <div class="b3-filter-presets-group">
+              <span class="b3-filter-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 Filter Periode:
               </span>
-              <button type="button" class="filter-pill b3-preset-btn active" id="btnB3Preset_all" onclick="window.setBuku3FilterPreset('all')">Semua</button>
-              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_7d" onclick="window.setBuku3FilterPreset('7d')">7 Hari Terakhir</button>
-              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-this" onclick="window.setBuku3FilterPreset('month-this')">Bulan Ini</button>
-              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-prev" onclick="window.setBuku3FilterPreset('month-prev')">Bulan Lalu</button>
-              <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_custom" onclick="window.setBuku3FilterPreset('custom')">Kustom</button>
+              <div class="b3-filter-pills-row">
+                <button type="button" class="filter-pill b3-preset-btn active" id="btnB3Preset_all" onclick="window.setBuku3FilterPreset('all')">Semua</button>
+                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_7d" onclick="window.setBuku3FilterPreset('7d')">7 Hari</button>
+                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-this" onclick="window.setBuku3FilterPreset('month-this')">Bulan Ini</button>
+                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-prev" onclick="window.setBuku3FilterPreset('month-prev')">Bulan Lalu</button>
+                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_custom" onclick="window.setBuku3FilterPreset('custom')">Kustom</button>
+              </div>
             </div>
 
             <!-- Custom Date Inputs -->
-            <div id="b3CustomDateWrap" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 0.75rem; color: #94A3B8;">Dari:</span>
-                <input type="date" id="b3FilterStartDate" class="form-control-slate" style="padding: 5px 8px; font-size: 0.78rem; background: #0F172A; color: #FFF; border: 1px solid var(--card-border); border-radius: 6px;" onchange="window.handleBuku3CustomDateChange()">
+            <div id="b3CustomDateWrap" class="b3-custom-date-wrap">
+              <div class="b3-date-inputs">
+                <div class="b3-date-field">
+                  <span class="b3-date-label">Dari:</span>
+                  <input type="date" id="b3FilterStartDate" class="form-control-slate b3-date-input" onchange="window.handleBuku3CustomDateChange()">
+                </div>
+                <div class="b3-date-field">
+                  <span class="b3-date-label">s/d:</span>
+                  <input type="date" id="b3FilterEndDate" class="form-control-slate b3-date-input" onchange="window.handleBuku3CustomDateChange()">
+                </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="font-size: 0.75rem; color: #94A3B8;">s/d:</span>
-                <input type="date" id="b3FilterEndDate" class="form-control-slate" style="padding: 5px 8px; font-size: 0.78rem; background: #0F172A; color: #FFF; border: 1px solid var(--card-border); border-radius: 6px;" onchange="window.handleBuku3CustomDateChange()">
+              <div class="b3-date-actions">
+                <button type="button" class="tool-btn tool-btn-primary b3-btn-apply" onclick="window.applyBuku3CustomDateFilter()">Terapkan</button>
+                <button type="button" class="tool-btn b3-btn-reset" onclick="window.setBuku3FilterPreset('all')">Reset</button>
               </div>
-              <button type="button" class="tool-btn tool-btn-primary" onclick="window.applyBuku3CustomDateFilter()" style="padding: 5px 12px; font-size: 0.75rem; font-weight: 700;">Terapkan</button>
-              <button type="button" class="tool-btn" onclick="window.setBuku3FilterPreset('all')" style="padding: 5px 10px; font-size: 0.75rem;">Reset</button>
             </div>
           </div>
 
@@ -1251,13 +1263,7 @@
               <input type="text" id="searchMasterBahan" class="search-input-field" placeholder="Cari bahan baku (contoh: Ubi, Roti, Minyak)..." oninput="window.renderMasterBahanTable()">
             </div>
 
-            <div class="filter-pills-wrap">
-              <button type="button" class="filter-pill active" data-cat="all" onclick="window.filterMasterBahanCat('all')">Semua Kategori</button>
-              <button type="button" class="filter-pill" data-cat="Pasar Subuh" onclick="window.filterMasterBahanCat('Pasar Subuh')">Pasar Subuh</button>
-              <button type="button" class="filter-pill" data-cat="Toko / Minimarket" onclick="window.filterMasterBahanCat('Toko / Minimarket')">Toko / Minimarket</button>
-              <button type="button" class="filter-pill" data-cat="Operasional & Gas" onclick="window.filterMasterBahanCat('Operasional & Gas')">Operasional & Gas</button>
-              <button type="button" class="filter-pill" data-cat="Kemasan" onclick="window.filterMasterBahanCat('Kemasan')">Kemasan</button>
-            </div>
+
           </div>
 
           <!-- Master Table -->
@@ -1267,7 +1273,6 @@
                 <tr>
                   <th style="width: 30px; text-align: center;">No</th>
                   <th>Nama Bahan Baku</th>
-                  <th style="width: 100px;">Kategori</th>
                   <th style="width: 135px;">Satuan &amp; Takaran Pakai</th>
                   <th style="width: 95px; text-align: right;">Harga Acuan (Rp)</th>
                   <th style="width: 100px;">Vendor Langganan</th>
