@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.7.0';
-const APP_BUILD_TIME = '2026-11-19 12:50';
+const APP_VERSION = 'v7.7.1';
+const APP_BUILD_TIME = '2026-11-19 18:10';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -55,11 +55,28 @@ let loadingSafetyTimer = null;
 window._hasUnsavedLocalChanges = false;
 
 function applyCloudPayloadAndRender(cloudPayload, lastUpdated) {
+  if (!cloudPayload || typeof cloudPayload !== 'object') return;
   auraData = cloudPayload;
-  auraData._lastUpdated = lastUpdated;
+  if (lastUpdated) {
+    auraData._lastUpdated = lastUpdated;
+  }
+  if (!auraData.penarikanLaba) auraData.penarikanLaba = [];
+  if (!auraData.buku1SavedDates) auraData.buku1SavedDates = {};
+  if (!auraData.buku1KirimSavedDates) auraData.buku1KirimSavedDates = {};
+  if (!auraData.buku1TarikSavedDates) auraData.buku1TarikSavedDates = {};
+  if (!auraData.buku2SavedDates) auraData.buku2SavedDates = {};
+  if (!auraData.buku1History) auraData.buku1History = {};
+  if (!auraData.buku2Belanja) auraData.buku2Belanja = [];
+
   try {
     localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
   } catch (e) {}
+
+  // KRUSIAL: Sinkronkan seluruh tanggal kalender & histori ke OPERATIONAL_DAYS_CONFIG sebelum render!
+  if (typeof syncOperationalDaysConfig === 'function') {
+    syncOperationalDaysConfig();
+  }
+
   // KRUSIAL: Reset cache baris Laporan Harian agar layar langsung merender data terbaru dari Cloud tanpa perlu refresh!
   if (typeof lhActiveDateCache !== 'undefined') {
     lhActiveDateCache = null;
@@ -105,13 +122,13 @@ function initFirestoreSync(retryCount = 0, showModal = true) {
   if (showModal && typeof window.showLoadingModal === 'function') {
     window.showLoadingModal(
       'Menyinkronkan Data Cloud...',
-      'Sedang mengambil data terbaru dari Cloud Firestore. Mohon tunggu sebentar...'
+      'Sedang mengambil data terbaru dari Cloud Firestore. Mohon tunggu sampai proses selesai...'
     );
   }
 
   if (typeof firebase === 'undefined' || !firebase.firestore) {
-    if (retryCount < 15) {
-      setTimeout(() => initFirestoreSync(retryCount + 1, showModal), 300);
+    if (retryCount < 25) {
+      setTimeout(() => initFirestoreSync(retryCount + 1, showModal), 250);
       return;
     }
     isInitialSyncInProgress = false;
@@ -126,76 +143,106 @@ function initFirestoreSync(retryCount = 0, showModal = true) {
     }
     if (!firestoreDb) {
       firestoreDb = firebase.firestore();
-      // Persistensi IndexedDB yang aman terhadap multi-tab browser HP
-      try {
-        firestoreDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
-          console.warn('[Firestore] Multi-tab persistence note:', err.code);
-        });
-      } catch (e) {}
     }
 
     isFirestoreInitialized = true;
     const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
 
-    // Timeout pengaman 8 detik agar pop-up loading tidak pernah macet jika sinyal lemah
     let syncDone = false;
     const finishInitialLoading = () => {
       if (syncDone) return;
       syncDone = true;
       isInitialSyncInProgress = false;
-      if (showModal && typeof window.hideLoadingModal === 'function') {
-        window.hideLoadingModal();
+      // Pastikan browser telah selesai merender DOM tabel sebelum menutup modal loading
+      const finalizeClose = () => {
+        setTimeout(() => {
+          if (showModal && typeof window.hideLoadingModal === 'function') {
+            window.hideLoadingModal();
+          }
+          if (typeof checkAppVersionOnBoot === 'function') {
+            checkAppVersionOnBoot();
+          }
+        }, 180);
+      };
+      if (typeof window.requestAnimationFrame === 'function') {
+        window.requestAnimationFrame(() => window.requestAnimationFrame(finalizeClose));
+      } else {
+        finalizeClose();
       }
     };
+
+    // Timeout pengaman 15 detik hanya jika jaringan benar-benar mati total
     const fallbackTimeout = setTimeout(() => {
       if (!syncDone) {
-        console.warn('[Firestore] Initial fetch melebihi 8 detik, lanjutkan dengan data lokal + listener realtime.');
+        console.warn('[Firestore] Initial fetch melebihi 15 detik, lanjutkan dengan data lokal + listener realtime.');
         setCloudStatusUI('connected', 'Online (Sinkronisasi Latar)');
         finishInitialLoading();
       }
-    }, 8000);
+    }, 15000);
 
-    // ==============================================================
-    // SINGLE-TRIP SERVER FETCH (LEBIH CEPAT 2x TANPA DOUBLE ROUND-TRIP)
-    // ==============================================================
-    docRef.get({ source: 'server' })
-      .then(doc => {
-        clearTimeout(fallbackTimeout);
-        if (doc && doc.exists) {
-          const cloudDoc = doc.data();
-          if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
-            const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
-              console.log('[Firestore] Sukses memuat data server terbaru:', cloudDoc.lastUpdated);
-              applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
-              const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-              setCloudStatusUI('connected', 'Online • ' + timeStr);
-              finishInitialLoading();
-              return;
-            } else if (localUpdated > cloudDoc.lastUpdated) {
-              console.log('[Firestore] Data lokal lebih baru dari server, sinkronkan ke server...');
-              pushToFirestoreCloud(true).catch(() => {});
+    // Fungsi tarik data langsung dari server dengan auto-retry hingga 3x jika jaringan seluler sempat tersendat
+    const fetchFromServerWithRetry = (attempt = 1) => {
+      if (attempt > 1 && showModal && typeof window.showLoadingModal === 'function') {
+        window.showLoadingModal(
+          'Menyinkronkan Data Cloud...',
+          'Menghubungkan ulang ke server Cloud Firestore (Percobaan ' + attempt + '/3)...'
+        );
+      }
+
+      docRef.get({ source: 'server' })
+        .then(doc => {
+          clearTimeout(fallbackTimeout);
+          if (doc && doc.exists) {
+            const cloudDoc = doc.data();
+            if (cloudDoc && cloudDoc.payload) {
+              const cloudUpdated = Number(cloudDoc.lastUpdated) || Date.now();
+              const localUpdated = (auraData && Number(auraData._lastUpdated)) || 0;
+              const cloudSavedCount = Object.keys((cloudDoc.payload && cloudDoc.payload.buku1SavedDates) || {}).length;
+              const localSavedCount = Object.keys((auraData && auraData.buku1SavedDates) || {}).length;
+
+              // Saat baru memuat halaman (!window._hasUnsavedLocalChanges), selalu prioritaskan data server Cloud
+              if (!window._hasUnsavedLocalChanges || cloudUpdated >= localUpdated || cloudSavedCount >= localSavedCount) {
+                console.log('[Firestore] Sukses memuat & merender data server terbaru:', cloudUpdated);
+                applyCloudPayloadAndRender(cloudDoc.payload, cloudUpdated);
+                const timeStr = new Date(cloudUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                setCloudStatusUI('connected', 'Online • ' + timeStr);
+                finishInitialLoading();
+                return;
+              } else if (window._hasUnsavedLocalChanges && localUpdated > cloudUpdated) {
+                console.log('[Firestore] Ada perubahan lokal yang belum tersimpan ke server, unggah ke server...');
+                pushToFirestoreCloud(true).catch(() => {});
+              }
             }
+          } else {
+            // Dokumen perdana belum ada di cloud, buat perdana
+            pushToFirestoreCloud(true).catch(() => {});
           }
-        } else {
-          // Dokumen perdana belum ada di cloud, buat perdana
-          pushToFirestoreCloud(true).catch(() => {});
-        }
-        setCloudStatusUI('connected', 'Online • Sinkron');
-        finishInitialLoading();
-      })
-      .catch(err => {
-        clearTimeout(fallbackTimeout);
-        console.warn('[Firestore] Initial server fetch note:', err.code, err.message);
-        if (err.code === 'permission-denied') {
-          setCloudStatusUI('error', 'Izin Firestore Ditolak');
-        } else if (!navigator.onLine) {
-          setCloudStatusUI('offline', 'Mode Offline');
-        } else {
-          setCloudStatusUI('connected', 'Online (Cache)');
-        }
-        finishInitialLoading();
-      });
+          if (typeof syncOperationalDaysConfig === 'function') syncOperationalDaysConfig();
+          renderAllViews();
+          setCloudStatusUI('connected', 'Online • Sinkron');
+          finishInitialLoading();
+        })
+        .catch(err => {
+          console.warn('[Firestore] Server fetch attempt ' + attempt + ' error:', err && err.code, err && err.message);
+          if (attempt < 3 && navigator.onLine && (!err || err.code !== 'permission-denied')) {
+            setTimeout(() => fetchFromServerWithRetry(attempt + 1), 800);
+            return;
+          }
+          clearTimeout(fallbackTimeout);
+          if (err && err.code === 'permission-denied') {
+            setCloudStatusUI('error', 'Izin Firestore Ditolak');
+          } else if (!navigator.onLine) {
+            setCloudStatusUI('offline', 'Mode Offline');
+          } else {
+            setCloudStatusUI('connected', 'Online (Lokal)');
+          }
+          if (typeof syncOperationalDaysConfig === 'function') syncOperationalDaysConfig();
+          renderAllViews();
+          finishInitialLoading();
+        });
+    };
+
+    fetchFromServerWithRetry(1);
 
     // ==============================================================
     // REALTIME SNAPSHOT LISTENER (TUNGGAL, ANTI-DUPLIKAT):
@@ -209,12 +256,15 @@ function initFirestoreSync(retryCount = 0, showModal = true) {
       if (doc.exists) {
         const cloudDoc = doc.data();
         if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
-          const localUpdated = (auraData && auraData._lastUpdated) || 0;
-          if (cloudDoc.lastUpdated > localUpdated) {
-            console.log('[Firestore] Realtime snapshot cloud diterima (lebih baru):', cloudDoc.lastUpdated);
+          const localUpdated = (auraData && Number(auraData._lastUpdated)) || 0;
+          const cloudSavedCount = Object.keys((cloudDoc.payload && cloudDoc.payload.buku1SavedDates) || {}).length;
+          const localSavedCount = Object.keys((auraData && auraData.buku1SavedDates) || {}).length;
+          if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudSavedCount > localSavedCount)) {
+            console.log('[Firestore] Realtime snapshot cloud diterima:', cloudDoc.lastUpdated);
             applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
             const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             setCloudStatusUI('connected', 'Online • ' + timeStr);
+            if (!syncDone) finishInitialLoading();
             return;
           }
         }
@@ -707,13 +757,143 @@ function buildDayMetaFromIso(isoDate, idxNum) {
   };
 }
 
-// Konfigurasi Master Hari Operasional & Plafon Amplop 1 (Kalender Penuh 25 Okt - 15 Nov 2026)
+// Helper Pembuat Rentang Tanggal Kalender Kontinu Tanpa Putus (Tidak Berhenti di 15 Nov)
+function generateIsoDateRange(startIso, endIso) {
+  const result = [];
+  const sParts = (startIso || '2026-10-25').split('-').map(Number);
+  const eParts = (endIso || getRealTodayIso()).split('-').map(Number);
+  const cur = new Date(sParts[0], (sParts[1] || 1) - 1, sParts[2] || 1);
+  const end = new Date(eParts[0], (eParts[1] || 1) - 1, eParts[2] || 1);
+  let guard = 0;
+  while (cur <= end && guard < 1095) {
+    const y = cur.getFullYear();
+    const m = String(cur.getMonth() + 1).padStart(2, '0');
+    const d = String(cur.getDate()).padStart(2, '0');
+    result.push(y + '-' + m + '-' + d);
+    cur.setDate(cur.getDate() + 1);
+    guard++;
+  }
+  return result;
+}
+
+function b2KeyToIsoDate(b2Key, fallbackYear = 2026) {
+  if (!b2Key || typeof b2Key !== 'string' || !b2Key.includes('/')) return null;
+  const parts = b2Key.split('/');
+  if (parts.length !== 2) return null;
+  const d = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (!d || !m || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const yr = (m >= 10) ? 2026 : fallbackYear;
+  return yr + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+
+// Konfigurasi Master Hari Operasional Dinamis (Otomatis Menyambung dari 25 Okt 2026 s/d Hari Ini & Seluruh Histori Cloud)
 const OPERATIONAL_DAYS_CONFIG = (function() {
-  const dates = [];
-  for (let d = 25; d <= 31; d++) dates.push('2026-10-' + String(d).padStart(2, '0'));
-  for (let d = 1; d <= 15; d++) dates.push('2026-11-' + String(d).padStart(2, '0'));
+  const dates = generateIsoDateRange('2026-10-25', getRealTodayIso());
   return dates.map((iso, idx) => buildDayMetaFromIso(iso, idx + 1));
 })();
+
+function syncOperationalDaysConfig() {
+  const existingMap = new Map();
+  OPERATIONAL_DAYS_CONFIG.forEach(c => {
+    if (c && c.isoDate) existingMap.set(c.isoDate, c);
+  });
+
+  const allIsoSet = new Set();
+  const todayIso = getRealTodayIso();
+  generateIsoDateRange('2026-10-25', todayIso).forEach(iso => allIsoSet.add(iso));
+
+  if (typeof activeDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(activeDate)) {
+    allIsoSet.add(activeDate);
+  }
+
+  if (typeof auraData === 'object' && auraData) {
+    const dateMaps = [
+      auraData.buku1SavedDates,
+      auraData.buku1KirimSavedDates,
+      auraData.buku1TarikSavedDates,
+      auraData.buku1HolidayDates,
+      auraData.buku1History,
+      auraData.buku1Committed,
+      auraData.buku1RencanaHistory
+    ];
+    dateMaps.forEach(mapObj => {
+      if (mapObj && typeof mapObj === 'object') {
+        Object.keys(mapObj).forEach(k => {
+          if (/^\d{4}-\d{2}-\d{2}$/.test(k)) allIsoSet.add(k);
+        });
+      }
+    });
+
+    if (Array.isArray(auraData.buku1CustomDays)) {
+      auraData.buku1CustomDays.forEach(k => {
+        if (typeof k === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(k)) allIsoSet.add(k);
+      });
+    }
+
+    if (auraData.buku2SavedDates && typeof auraData.buku2SavedDates === 'object') {
+      Object.keys(auraData.buku2SavedDates).forEach(b2k => {
+        const iso = b2KeyToIsoDate(b2k);
+        if (iso) allIsoSet.add(iso);
+      });
+    }
+
+    const belanjaArrays = [auraData.buku2Belanja, auraData.buku2Committed];
+    belanjaArrays.forEach(arr => {
+      if (Array.isArray(arr)) {
+        arr.forEach(item => {
+          if (!item) return;
+          if (item.isoDate && /^\d{4}-\d{2}-\d{2}$/.test(item.isoDate)) {
+            allIsoSet.add(item.isoDate);
+          } else if (item.tgl) {
+            const iso = b2KeyToIsoDate(item.tgl);
+            if (iso) allIsoSet.add(iso);
+          }
+        });
+      }
+    });
+
+    if (Array.isArray(auraData.buku3Kas)) {
+      auraData.buku3Kas.forEach(item => {
+        if (item && item.isoDate && /^\d{4}-\d{2}-\d{2}$/.test(item.isoDate)) {
+          allIsoSet.add(item.isoDate);
+        }
+      });
+    }
+  }
+
+  const prelimSorted = Array.from(allIsoSet).sort();
+  if (prelimSorted.length > 0) {
+    const maxIso = prelimSorted[prelimSorted.length - 1];
+    if (maxIso > todayIso) {
+      generateIsoDateRange('2026-10-25', maxIso).forEach(iso => allIsoSet.add(iso));
+    }
+  }
+
+  const finalSortedIsos = Array.from(allIsoSet).sort();
+  OPERATIONAL_DAYS_CONFIG.length = 0;
+
+  finalSortedIsos.forEach((iso, idx) => {
+    const prev = existingMap.get(iso);
+    const meta = prev || buildDayMetaFromIso(iso, idx + 1);
+    const isSaved = !!(
+      (auraData && auraData.buku1SavedDates && auraData.buku1SavedDates[iso]) ||
+      (auraData && auraData.buku1KirimSavedDates && auraData.buku1KirimSavedDates[iso]) ||
+      (auraData && auraData.buku1TarikSavedDates && auraData.buku1TarikSavedDates[iso]) ||
+      (auraData && auraData.buku2SavedDates && auraData.buku2SavedDates[meta.b2Key])
+    );
+    meta.isTarget = !isSaved;
+    OPERATIONAL_DAYS_CONFIG.push(meta);
+
+    if (typeof KUITANSI_DATE_CONFIG !== 'undefined' && KUITANSI_DATE_CONFIG && !KUITANSI_DATE_CONFIG[meta.b2Key]) {
+      KUITANSI_DATE_CONFIG[meta.b2Key] = {
+        namaHari: meta.namaHari,
+        noBkk: meta.noBkk,
+        modal: meta.modal || 0
+      };
+    }
+  });
+}
 
 // Deteksi Tanggal Kalender Lokal Aktual & Penentuan Tanggal Siklus Aktif
 const REAL_TODAY_ISO = getRealTodayIso();
@@ -834,13 +1014,7 @@ if (!auraData.buku2Committed) {
 if (!auraData.buku1CustomDays) {
   auraData.buku1CustomDays = [];
 }
-auraData.buku1CustomDays.forEach(customIso => {
-  if (!OPERATIONAL_DAYS_CONFIG.some(c => c.isoDate === customIso)) {
-    const meta = buildDayMetaFromIso(customIso, OPERATIONAL_DAYS_CONFIG.length + 1);
-    meta.isTarget = !auraData.buku1SavedDates[customIso];
-    OPERATIONAL_DAYS_CONFIG.push(meta);
-  }
-});
+syncOperationalDaysConfig();
 if (!auraData.buku1History) {
   auraData.buku1History = {};
 }
@@ -1146,12 +1320,12 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     };
   }
 
-  // Data konsinyasi resmi yang masuk ke Buku 3 hanya yang sudah disimpan (committed)
-  const rows = (auraData.buku1Committed && auraData.buku1Committed[isoDate])
-    ? auraData.buku1Committed[isoDate]
-    : ((isDaySaved || isKirimSaved || isTarikSaved) && auraData.buku1History && auraData.buku1History[isoDate])
-      ? auraData.buku1History[isoDate]
-      : [];
+  // Data konsinyasi resmi yang masuk ke Buku 3: utamakan buku1History jika hari tersebut sudah disimpan
+  const histRows = (auraData.buku1History && Array.isArray(auraData.buku1History[isoDate])) ? auraData.buku1History[isoDate] : [];
+  const commRows = (auraData.buku1Committed && Array.isArray(auraData.buku1Committed[isoDate])) ? auraData.buku1Committed[isoDate] : [];
+  const rows = ((isDaySaved || isKirimSaved || isTarikSaved) && histRows.length > 0)
+    ? histRows
+    : (commRows.length > 0 ? commRows : []);
 
   let kirim = 0, bonus = 0, retur = 0, laku = 0, omzet = 0;
   if (isKirimSaved || isTarikSaved || isDaySaved) {
@@ -1167,17 +1341,16 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
     });
   }
 
-  // Belanja resmi yang masuk ke Buku 3 hanya yang sudah tersimpan (committed)
+  // Belanja resmi yang masuk ke Buku 3
   const isSavedBelanja = !!(auraData.buku2SavedDates && auraData.buku2SavedDates[cfg.b2Key]);
-  const belanjaList = (auraData.buku2Committed && auraData.buku2Committed.length > 0)
-    ? auraData.buku2Committed
-    : (isSavedBelanja && auraData.buku2Belanja)
-      ? auraData.buku2Belanja
-      : [];
+  const histBelanjaForDay = (auraData.buku2Belanja || []).filter(b => b && (b.tgl === cfg.b2Key || b.isoDate === cfg.isoDate));
+  const commBelanjaForDay = (auraData.buku2Committed || []).filter(b => b && (b.tgl === cfg.b2Key || b.isoDate === cfg.isoDate));
+  const activeBelanjaForDay = (isSavedBelanja || histBelanjaForDay.length > 0)
+    ? histBelanjaForDay
+    : commBelanjaForDay;
 
-  const belanja = belanjaList
-    .filter(b => b.tgl === cfg.b2Key)
-    .reduce((sum, b) => sum + (b.biaya || 0), 0);
+  const belanja = activeBelanjaForDay
+    .reduce((sum, b) => sum + (Number(b.biaya) || 0), 0);
 
   const isTarget = !isSavedDay && !isKirimSaved && cfg.isTarget && belanja === 0 && retur === 0;
 
@@ -1268,6 +1441,9 @@ function computeDayAccounting(isoDate, prevRollingEndapan) {
 }
 
 function getAllDaysAccounting() {
+  if (typeof syncOperationalDaysConfig === 'function') {
+    syncOperationalDaysConfig();
+  }
   const INITIAL_CAPITAL = 0;
   let rollingEndapan = INITIAL_CAPITAL;
   let cumGaji = 0;
@@ -6271,6 +6447,7 @@ function renderBuku3View() {
     hari: d.hari,
     isoDate: d.isoDate,
     isTarget: d.isTarget,
+    isSavedDay: d.isSavedDay,
     kirim: d.kirim,
     retur: d.retur,
     laku: d.laku,
@@ -6504,7 +6681,7 @@ function triggerLhDraftAutoSave() {
       .filter(b => b.tgl !== currentB2Key && b.isoDate !== activeDate)
       .concat(cleanBelanja);
 
-    auraData._lastUpdated = Date.now();
+    window._hasUnsavedLocalChanges = true;
     try {
       localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
       localStorage.setItem('dapur_mom_fitri_active_date', activeDate);
@@ -7755,6 +7932,12 @@ window.saveLaporanHarianMaster = async function() {
   // 1. Simpan Konsinyasi (Buku 1)
   if (!auraData.buku1History) auraData.buku1History = {};
   auraData.buku1History[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
+  if (!auraData.buku1Committed) auraData.buku1Committed = {};
+  auraData.buku1Committed[activeDate] = JSON.parse(JSON.stringify(lhMitraRows));
+  if (!Array.isArray(auraData.buku1CustomDays)) auraData.buku1CustomDays = [];
+  if (!auraData.buku1CustomDays.includes(activeDate)) {
+    auraData.buku1CustomDays.push(activeDate);
+  }
 
   // Simpan Rencana Produksi Esok (SOP Dapur Multi-Produk)
   if (!auraData.buku1RencanaHistory) auraData.buku1RencanaHistory = {};
@@ -7788,6 +7971,11 @@ window.saveLaporanHarianMaster = async function() {
 
   if (!auraData.buku2SavedDates) auraData.buku2SavedDates = {};
   auraData.buku2SavedDates[currentB2Key] = true;
+  auraData.buku2Committed = JSON.parse(JSON.stringify(auraData.buku2Belanja));
+
+  if (typeof syncOperationalDaysConfig === 'function') {
+    syncOperationalDaysConfig();
+  }
 
   // 3. Simpan dan Hitung Ulang Arus Kas (Buku 3)
   if (typeof getAllDaysAccounting === 'function') {
@@ -8326,14 +8514,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  renderAllViews();
-  initSidebarDrawer();
-  initFirestoreSync(0, true);
+  bootDapurApp();
 });
-if (document.readyState !== 'loading') {
+let _dapurAppBooted = false;
+function bootDapurApp() {
+  if (_dapurAppBooted) return;
+  _dapurAppBooted = true;
+  if (typeof syncOperationalDaysConfig === 'function') syncOperationalDaysConfig();
   renderAllViews();
   initSidebarDrawer();
   initFirestoreSync(0, true);
+}
+if (document.readyState !== 'loading') {
+  bootDapurApp();
 }
 
 // ==============================================================
@@ -8458,7 +8651,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-checkAppVersionOnBoot();
+// checkAppVersionOnBoot dipanggil setelah sinkronisasi awal selesai
 
 // ==============================================================
 // PWA INSTALLATION CONTROLLER (PC & MOBILE)
@@ -8703,36 +8896,31 @@ window.saveAndSyncModule = async function(moduleName) {
 // Otomatis verifikasi pembaruan Cloud saat tab HP/PC aktif kembali (KasirPro Handshake)
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized) {
-      const metaRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_META_PATH);
-      metaRef.get({ source: 'server' }).then(metaDoc => {
-        if (metaDoc.exists) {
-          const metaData = metaDoc.data();
-          const localUpdated = (auraData && auraData._lastUpdated) || 0;
-          if (metaData && metaData.lastUpdated > localUpdated) {
-            console.log('[Firestore] KasirPro Handshake (Tab Aktif): Cloud terdeteksi baru, tarik payload...');
-            const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
-            docRef.get({ source: 'server' }).then(doc => {
-              if (doc.exists) {
-                const cloudDoc = doc.data();
-                if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
-                  auraData = cloudDoc.payload;
-                  auraData._lastUpdated = cloudDoc.lastUpdated;
-                  localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-                  renderAllViews();
-                  const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                  setCloudStatusUI('connected', 'Online • ' + timeStr);
-                }
+    if (document.visibilityState === 'visible' && navigator.onLine && firestoreDb && isFirestoreInitialized && !isInitialSyncInProgress) {
+      const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
+      docRef.get({ source: 'server' }).then(doc => {
+        if (doc.exists) {
+          const cloudDoc = doc.data();
+          if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
+            const localUpdated = (auraData && Number(auraData._lastUpdated)) || 0;
+            const cloudSavedCount = Object.keys((cloudDoc.payload && cloudDoc.payload.buku1SavedDates) || {}).length;
+            const localSavedCount = Object.keys((auraData && auraData.buku1SavedDates) || {}).length;
+            if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudSavedCount > localSavedCount)) {
+              console.log('[Firestore] Tab Aktif: Cloud terdeteksi baru, menerapkan payload...');
+              if (typeof window.showLoadingModal === 'function') {
+                window.showLoadingModal('Memperbarui Data Cloud...', 'Menyinkronkan data terbaru dari Cloud Firestore...');
               }
-            }).catch(err => {
-              console.warn('[Firestore] Payload fetch note:', err.code);
-            });
-          } else {
-            console.log('[Firestore] KasirPro Handshake (Tab Aktif): Data lokal sudah mutakhir, lewati unduhan payload.');
+              applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
+              const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+              setCloudStatusUI('connected', 'Online • ' + timeStr);
+              setTimeout(() => {
+                if (typeof window.hideLoadingModal === 'function') window.hideLoadingModal();
+              }, 200);
+            }
           }
         }
       }).catch(err => {
-        console.warn('[Firestore] Visibility meta handshake note:', err.code);
+        console.warn('[Firestore] Visibility sync note:', err && err.code);
       });
     }
   });
