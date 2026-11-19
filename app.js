@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.9';
-const APP_BUILD_TIME = '19/11/2026 09:42 WIB';
+const APP_VERSION = 'v7.5.0';
+const APP_BUILD_TIME = '19/11/2026 10:28 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -579,9 +579,12 @@ const DEFAULT_MASTER_RESEP = [
     defaultPcs: 66,
     isCustom: false,
     isActive: true,
+    mitraOverrides: [
+      { mitraKey: 'Tara', label: 'Warung Sayur Tara', qtyPerPcs: 21 }
+    ],
     komposisi: [
       { bahanKey: 'Kulit Lumpia', nama: 'Kulit Lumpia Segar', qtyPerPcs: 1, unit: 'lembar', isGram: false, tipe: 'kulit' },
-      { bahanKey: 'Ubi Ungu', nama: 'Ubi Ungu Kukus Lumat', qtyPerPcs: 13.2, unit: 'gram', isGram: true, tipe: 'isian' },
+      { bahanKey: 'Ubi Ungu', nama: 'Ubi Ungu Kukus Lumat', qtyPerPcs: 16, unit: 'gram', isGram: true, tipe: 'isian' },
       { bahanKey: 'Keju', nama: 'Keju Oles Prochiz Spready', qtyPerPcs: 1.0, unit: 'gram', isGram: true, tipe: 'isian' },
       { bahanKey: 'Susu Kental Manis', nama: 'SKM Putih', qtyPerPcs: 0.45, unit: 'gram', isGram: true, tipe: 'bumbu' },
       { bahanKey: 'Gula Pasir', nama: 'Gula Pasir', qtyPerPcs: 0.6, unit: 'gram', isGram: true, tipe: 'bumbu', fallbackCost: 10 },
@@ -4302,6 +4305,12 @@ function renderRecipeVisualGrid() {
           '<li><strong>SOP Suhu &amp; Waktu Goreng:</strong> ' + (p.sopWaktuSuhu || '160°C • 3.5 Menit') + '</li>' +
           '<li><strong>Standar Takaran &amp; Catatan Metode:</strong> ' + (p.catatanSOP || '-') + '</li>' +
           '<li><strong>Rincian Standar Formula / Pcs:</strong> <div style="font-size: 0.73rem; color: #94A3B8; margin-top: 5px; line-height: 1.5; background: rgba(15, 23, 42, 0.5); padding: 8px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">' + (bahanSummary || 'Belum ada komposisi') + '</div></li>' +
+          (function() {
+            const ovs = typeof getProductMitraOverrides === 'function' ? getProductMitraOverrides(p) : [];
+            if (!ovs || ovs.length === 0) return '';
+            const chips = ovs.map(o => '<span style="display:inline-block; background: rgba(251, 191, 36, 0.14); color: #FCD34D; border: 1px solid rgba(251, 191, 36, 0.35); padding: 2px 7px; border-radius: 4px; margin: 2px 4px 2px 0; font-weight: 700;">' + (o.label || o.mitraKey) + ': ' + o.qtyPerPcs + 'g/pcs</span>').join('');
+            return '<li><strong>Takaran Khusus Mitra (Batas Atas):</strong> <div style="font-size: 0.72rem; margin-top: 4px;">' + chips + '</div></li>';
+          })() +
           videoHtml +
         '</ul>' +
         '<div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">' +
@@ -4523,7 +4532,9 @@ window.openManageFormulaModal = function(selectedProdId) {
 
   let rowsHtml = '';
   (prod.komposisi || []).forEach((k, idx) => {
-    const perPcsQty = Number(k.qtyPerPcs) || 0;
+    const perPcsQty = (k.tipe === 'isian' && typeof getEffectiveBaseIsianQty === 'function')
+      ? getEffectiveBaseIsianQty(prod, k)
+      : (Number(k.qtyPerPcs) || 0);
     const batchQty = Math.round(perPcsQty * batchSize * 100) / 100;
     const lineCostPcs = getIngredientUnitCost(k.bahanKey || k.nama, perPcsQty, k.unit);
     const lineCostBatch = Math.round(lineCostPcs * batchSize);
@@ -4643,6 +4654,31 @@ window.openManageFormulaModal = function(selectedProdId) {
         '</tbody>' +
       '</table>' +
     '</div>' +
+
+    (function() {
+      const ovs = typeof getProductMitraOverrides === 'function' ? getProductMitraOverrides(prod) : [];
+      const ovRowsHtml = ovs.map(o =>
+        '<tr>' +
+          '<td><input type="text" class="form-control-slate f-ov-key" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;" value="' + (o.mitraKey || '') + '" placeholder="Contoh: Tara"></td>' +
+          '<td><input type="text" class="form-control-slate f-ov-label" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;" value="' + (o.label || o.mitraKey || '') + '" placeholder="Contoh: Warung Sayur Tara"></td>' +
+          '<td><input type="number" step="any" min="0" class="form-control-slate f-ov-qty" style="padding: 4px 8px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FCD34D;" value="' + (Number(o.qtyPerPcs) || 0) + '"></td>' +
+          '<td style="text-align: center;"><button type="button" class="btn-del-row" style="color: #FB7185; padding: 2px 6px; font-size: 0.85rem;" onclick="this.closest(\'tr\').remove();" title="Hapus aturan">&times;</button></td>' +
+        '</tr>'
+      ).join('');
+      return '<div style="background: rgba(251, 191, 36, 0.06); border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">' +
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">' +
+          '<div>' +
+            '<strong style="font-size: 0.8rem; color: #FCD34D;">Takaran Khusus per Mitra (Opsional • Batas Atas)</strong>' +
+            '<div style="font-size: 0.71rem; color: #94A3B8;">Jika nama mitra di Rencana Produksi mengandung kata kunci ini, sistem memakai takaran gram khusus berikut (bukan takaran standar).</div>' +
+          '</div>' +
+          '<button type="button" class="tool-btn" style="font-size: 0.72rem; padding: 3px 9px; border-color: rgba(251, 191, 36, 0.4); color: #FCD34D;" onclick="window.addFormulaMitraOverrideRow()">+ Tambah Aturan Mitra</button>' +
+        '</div>' +
+        '<table class="slate-table" style="margin: 0;">' +
+          '<thead><tr><th style="width: 28%;">Kata Kunci Mitra</th><th style="width: 38%;">Label Tampilan</th><th style="width: 24%; text-align: center;">Takaran (g / pcs)</th><th style="width: 10%; text-align: center;">Hapus</th></tr></thead>' +
+          '<tbody id="formulaMitraOverrideBody">' + ovRowsHtml + '</tbody>' +
+        '</table>' +
+      '</div>';
+    })() +
 
     '<div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 6px;">' +
       '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">' +
@@ -4769,7 +4805,19 @@ window.addFormulaIngredientLine = function() {
   window.recalcFormulaModalLine();
 };
 
-window.saveFormulaChanges = function(prodId) {
+window.addFormulaMitraOverrideRow = function() {
+  const tbody = document.getElementById('formulaMitraOverrideBody');
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td><input type="text" class="form-control-slate f-ov-key" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;" value="" placeholder="Contoh: Tara"></td>' +
+    '<td><input type="text" class="form-control-slate f-ov-label" style="padding: 4px 8px; font-size: 0.78rem; width: 100%;" value="" placeholder="Contoh: Warung Sayur Tara"></td>' +
+    '<td><input type="number" step="any" min="0" class="form-control-slate f-ov-qty" style="padding: 4px 8px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FCD34D;" value="21"></td>' +
+    '<td style="text-align: center;"><button type="button" class="btn-del-row" style="color: #FB7185; padding: 2px 6px; font-size: 0.85rem;" onclick="this.closest(\'tr\').remove();" title="Hapus aturan">&times;</button></td>';
+  tbody.appendChild(tr);
+};
+
+window.saveFormulaChanges = async function(prodId) {
   const recipes = (auraData && auraData.masterResep && auraData.masterResep.length > 0)
     ? auraData.masterResep
     : DEFAULT_MASTER_RESEP;
@@ -4811,10 +4859,41 @@ window.saveFormulaChanges = function(prodId) {
     prod.komposisi = newKomposisi;
   }
 
+  // Simpan daftar aturan takaran khusus per mitra
+  const ovBody = document.getElementById('formulaMitraOverrideBody');
+  if (ovBody) {
+    const ovRows = ovBody.querySelectorAll('tr');
+    const newOverrides = [];
+    ovRows.forEach(r => {
+      const kEl = r.querySelector('.f-ov-key');
+      const lEl = r.querySelector('.f-ov-label');
+      const qEl = r.querySelector('.f-ov-qty');
+      const keyVal = kEl ? kEl.value.trim() : '';
+      const qtyVal = qEl ? (parseFloat(qEl.value) || 0) : 0;
+      if (keyVal && qtyVal > 0) {
+        newOverrides.push({
+          mitraKey: keyVal,
+          label: (lEl && lEl.value.trim()) ? lEl.value.trim() : keyVal,
+          qtyPerPcs: qtyVal
+        });
+      }
+    });
+    prod.mitraOverrides = newOverrides;
+  }
+
   saveLocal();
-  pushToFirestoreCloud(true);
   window.closeAppModal();
   renderAllViews();
+  if (navigator.onLine && typeof pushToFirestoreCloud === 'function') {
+    window.showLoadingModal('Menyimpan Takaran Menu...', 'Sedang menyinkronkan perubahan takaran ke Cloud Firestore...');
+    try {
+      await pushToFirestoreCloud(true);
+    } catch (e) {
+      console.warn('[Formula] Cloud sync warning:', e);
+    } finally {
+      window.hideLoadingModal();
+    }
+  }
   window.showSuccessModal(
     "Takaran Menu Disimpan",
     'Formula takaran untuk "' + prod.nama + '" berhasil diperbarui! Seluruh kalkulator subuh dan audit HPP otomatis disinkronkan.'
@@ -6467,7 +6546,36 @@ function getLhRencanaRowTotal(r, activeRecipes) {
   return (Number(r.ubi) || 0) + (Number(r.sosis) || 0) + (Number(r.roti) || 0);
 }
 
-function getProductEstText(p, totalPcs) {
+function isUbiUnguProduct(p) {
+  if (!p) return false;
+  if (p.id === 'prod_ubi') return true;
+  const nm = (p.nama || '').toLowerCase();
+  return nm.includes('ubi ungu');
+}
+
+function getProductMitraOverrides(p) {
+  if (!p) return [];
+  // Jika user sudah pernah menyimpan aturan khusus (termasuk menghapus semua hingga []), hormati pilihan user
+  if (Array.isArray(p.mitraOverrides)) {
+    return p.mitraOverrides;
+  }
+  // Aturan default khusus Ubi Ungu (Batas Atas: Warung Tara = 21g/pcs)
+  if (isUbiUnguProduct(p)) {
+    return [{ mitraKey: 'Tara', label: 'Warung Sayur Tara', qtyPerPcs: 21 }];
+  }
+  return [];
+}
+
+function getEffectiveBaseIsianQty(p, isian) {
+  const raw = Number((isian && isian.qtyPerPcs) || 0);
+  // Migrasi halus batas atas Ubi Ungu (15-16g -> 16g) jika aturan khusus belum pernah disimpan manual
+  if (p && !Array.isArray(p.mitraOverrides) && isUbiUnguProduct(p) && (raw === 15 || raw === 13.2)) {
+    return 16;
+  }
+  return raw;
+}
+
+function getProductEstText(p, totalPcs, rencanaRows) {
   const tot = Number(totalPcs) || 0;
   if (tot <= 0) return 'Belum ada target produksi';
   if (!p || !Array.isArray(p.komposisi) || p.komposisi.length === 0) {
@@ -6475,12 +6583,50 @@ function getProductEstText(p, totalPcs) {
   }
   const kulit = p.komposisi.find(k => k.tipe === 'kulit' || k.unit === 'lembar' || (k.nama && k.nama.toLowerCase().includes('kulit')) || (k.nama && k.nama.toLowerCase().includes('roti')));
   const isian = p.komposisi.find(k => k.tipe === 'isian');
+  const overrides = getProductMitraOverrides(p);
+  const rows = Array.isArray(rencanaRows) ? rencanaRows : (typeof lhRencanaRows !== 'undefined' && Array.isArray(lhRencanaRows) ? lhRencanaRows : []);
 
   let parts = [];
   if (isian) {
-    const isianTot = tot * Number(isian.qtyPerPcs || 0);
-    const formatted = isianTot >= 10 ? Math.round(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
-    parts.push(formatted + (isian.unit === 'gram' ? 'g' : ' ' + isian.unit) + ' ' + (isian.nama || 'isian'));
+    const baseQty = getEffectiveBaseIsianQty(p, isian);
+    const unitSuffix = isian.unit === 'gram' ? 'g' : ' ' + isian.unit;
+
+    if (overrides.length > 0 && rows.length > 0) {
+      let isianTot = 0;
+      let stdPcs = 0;
+      const ovBuckets = {};
+
+      rows.forEach(r => {
+        const q = getLhRencanaProdQty(r, p.id);
+        if (q <= 0) return;
+        const rName = (r.nama || '').toLowerCase();
+        const matchedOv = overrides.find(ov => ov.mitraKey && rName.includes(ov.mitraKey.toLowerCase()));
+        if (matchedOv) {
+          const ovQty = Number(matchedOv.qtyPerPcs) || baseQty;
+          isianTot += q * ovQty;
+          const bKey = matchedOv.mitraKey;
+          if (!ovBuckets[bKey]) ovBuckets[bKey] = { key: matchedOv.mitraKey, pcs: 0, qty: ovQty };
+          ovBuckets[bKey].pcs += q;
+        } else {
+          isianTot += q * baseQty;
+          stdPcs += q;
+        }
+      });
+
+      const formatted = isianTot >= 10 ? Math.ceil(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
+      const ovList = Object.values(ovBuckets).filter(b => b.pcs > 0);
+      if (ovList.length > 0) {
+        const detailParts = ovList.map(b => b.key + ' ' + b.pcs + '×' + b.qty + unitSuffix);
+        if (stdPcs > 0) detailParts.push('Lain ' + stdPcs + '×' + baseQty + unitSuffix);
+        parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian') + ' (' + detailParts.join(', ') + ')');
+      } else {
+        parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian'));
+      }
+    } else {
+      const isianTot = tot * baseQty;
+      const formatted = isianTot >= 10 ? Math.ceil(isianTot).toLocaleString('id-ID') : (isianTot % 1 === 0 ? isianTot : isianTot.toFixed(1));
+      parts.push(formatted + unitSuffix + ' ' + (isian.nama || 'isian'));
+    }
   }
   if (kulit) {
     const kulitTot = Math.ceil(tot * Number(kulit.qtyPerPcs || 1));
