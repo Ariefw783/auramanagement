@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.4.8';
-const APP_BUILD_TIME = '03/11/2026 12:40 WIB';
+const APP_VERSION = 'v7.4.9';
+const APP_BUILD_TIME = '19/11/2026 09:42 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -49,7 +49,23 @@ const FIREBASE_CONFIG = {
 let firestoreDb = null;
 let cloudSyncTimeout = null;
 let isFirestoreInitialized = false;
+let isInitialSyncInProgress = false;
+let firestoreUnsubscribe = null;
+let loadingSafetyTimer = null;
 window._hasUnsavedLocalChanges = false;
+
+function applyCloudPayloadAndRender(cloudPayload, lastUpdated) {
+  auraData = cloudPayload;
+  auraData._lastUpdated = lastUpdated;
+  try {
+    localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
+  } catch (e) {}
+  // KRUSIAL: Reset cache baris Laporan Harian agar layar langsung merender data terbaru dari Cloud tanpa perlu refresh!
+  if (typeof lhActiveDateCache !== 'undefined') {
+    lhActiveDateCache = null;
+  }
+  renderAllViews();
+}
 
 function setCloudStatusUI(status, label) {
   const pills = [document.getElementById('cloudSyncPillDesktop'), document.getElementById('cloudSyncPillMobile')];
@@ -71,21 +87,36 @@ function setCloudStatusUI(status, label) {
   });
 }
 
-function initFirestoreSync(retryCount = 0) {
+function initFirestoreSync(retryCount = 0, showModal = true) {
   // Jika perangkat offline secara fisik
   if (!navigator.onLine) {
     setCloudStatusUI('offline', 'Mode Offline');
+    if (typeof window.hideLoadingModal === 'function') window.hideLoadingModal();
     return;
   }
 
-  setCloudStatusUI('syncing', 'Menghubungkan Cloud...');
+  // Cegah pemanggilan paralel ganda saat inisialisasi awal sedang berlangsung
+  if (isInitialSyncInProgress && retryCount === 0) {
+    return;
+  }
+  isInitialSyncInProgress = true;
+
+  setCloudStatusUI('syncing', 'Menyinkronkan Cloud...');
+  if (showModal && typeof window.showLoadingModal === 'function') {
+    window.showLoadingModal(
+      'Menyinkronkan Data Cloud...',
+      'Sedang mengambil data terbaru dari Cloud Firestore. Mohon tunggu sebentar...'
+    );
+  }
 
   if (typeof firebase === 'undefined' || !firebase.firestore) {
-    if (retryCount < 10) {
-      setTimeout(() => initFirestoreSync(retryCount + 1), 400);
+    if (retryCount < 15) {
+      setTimeout(() => initFirestoreSync(retryCount + 1, showModal), 300);
       return;
     }
+    isInitialSyncInProgress = false;
     setCloudStatusUI('offline', 'Firebase Tidak Termuat');
+    if (showModal && typeof window.hideLoadingModal === 'function') window.hideLoadingModal();
     return;
   }
 
@@ -93,65 +124,69 @@ function initFirestoreSync(retryCount = 0) {
     if (!firebase.apps.length) {
       firebase.initializeApp(FIREBASE_CONFIG);
     }
-    firestoreDb = firebase.firestore();
-
-    // Persistensi IndexedDB yang aman terhadap multi-tab browser HP
-    try {
-      firestoreDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
-        console.warn('[Firestore] Multi-tab persistence note:', err.code);
-      });
-    } catch (e) {}
+    if (!firestoreDb) {
+      firestoreDb = firebase.firestore();
+      // Persistensi IndexedDB yang aman terhadap multi-tab browser HP
+      try {
+        firestoreDb.enablePersistence({ synchronizeTabs: true }).catch(err => {
+          console.warn('[Firestore] Multi-tab persistence note:', err.code);
+        });
+      } catch (e) {}
+    }
 
     isFirestoreInitialized = true;
     const docRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_DOC_PATH);
-    const metaRef = firestoreDb.collection('dapur_mom_fitri').doc(FIRESTORE_META_PATH);
+
+    // Timeout pengaman 8 detik agar pop-up loading tidak pernah macet jika sinyal lemah
+    let syncDone = false;
+    const finishInitialLoading = () => {
+      if (syncDone) return;
+      syncDone = true;
+      isInitialSyncInProgress = false;
+      if (showModal && typeof window.hideLoadingModal === 'function') {
+        window.hideLoadingModal();
+      }
+    };
+    const fallbackTimeout = setTimeout(() => {
+      if (!syncDone) {
+        console.warn('[Firestore] Initial fetch melebihi 8 detik, lanjutkan dengan data lokal + listener realtime.');
+        setCloudStatusUI('connected', 'Online (Sinkronisasi Latar)');
+        finishInitialLoading();
+      }
+    }, 8000);
 
     // ==============================================================
-    // KASIRPRO HANDSHAKE: METADATA TIMESTAMP PING
-    // Cek dokumen meta_sync berbobot sangat ringan (<100 bytes) terlebih dahulu
+    // SINGLE-TRIP SERVER FETCH (LEBIH CEPAT 2x TANPA DOUBLE ROUND-TRIP)
     // ==============================================================
-    metaRef.get({ source: 'server' })
-      .then(metaDoc => {
-        const localUpdated = (auraData && auraData._lastUpdated) || 0;
-        if (metaDoc.exists) {
-          const cloudMeta = metaDoc.data();
-          if (cloudMeta && cloudMeta.lastUpdated && cloudMeta.lastUpdated > localUpdated) {
-            console.log('[Firestore] KasirPro Handshake: Cloud lebih baru dari lokal, unduh payload server...');
-            return docRef.get({ source: 'server' });
-          } else {
-            console.log('[Firestore] KasirPro Handshake: Data lokal paling mutakhir, 0 read payload.');
-            setCloudStatusUI('connected', 'Online • Sinkron');
-            return null;
-          }
-        } else {
-          return docRef.get({ source: 'server' });
-        }
-      })
+    docRef.get({ source: 'server' })
       .then(doc => {
-        if (!doc) return;
-        if (doc.exists) {
+        clearTimeout(fallbackTimeout);
+        if (doc && doc.exists) {
           const cloudDoc = doc.data();
           if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
             const localUpdated = (auraData && auraData._lastUpdated) || 0;
-            if (cloudDoc.lastUpdated > localUpdated) {
-              console.log('[Firestore] Network-First sukses memuat data server yang lebih baru:', cloudDoc.lastUpdated);
-              auraData = cloudDoc.payload;
-              auraData._lastUpdated = cloudDoc.lastUpdated;
-              localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-              renderAllViews();
+            if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
+              console.log('[Firestore] Sukses memuat data server terbaru:', cloudDoc.lastUpdated);
+              applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
               const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
               setCloudStatusUI('connected', 'Online • ' + timeStr);
+              finishInitialLoading();
               return;
             } else if (localUpdated > cloudDoc.lastUpdated) {
               console.log('[Firestore] Data lokal lebih baru dari server, sinkronkan ke server...');
               pushToFirestoreCloud(true).catch(() => {});
             }
           }
+        } else {
+          // Dokumen perdana belum ada di cloud, buat perdana
+          pushToFirestoreCloud(true).catch(() => {});
         }
-        setCloudStatusUI('connected', 'Online');
+        setCloudStatusUI('connected', 'Online • Sinkron');
+        finishInitialLoading();
       })
       .catch(err => {
-        console.warn('[Firestore] Handshake fetch note:', err.code, err.message);
+        clearTimeout(fallbackTimeout);
+        console.warn('[Firestore] Initial server fetch note:', err.code, err.message);
         if (err.code === 'permission-denied') {
           setCloudStatusUI('error', 'Izin Firestore Ditolak');
         } else if (!navigator.onLine) {
@@ -159,33 +194,34 @@ function initFirestoreSync(retryCount = 0) {
         } else {
           setCloudStatusUI('connected', 'Online (Cache)');
         }
+        finishInitialLoading();
       });
 
     // ==============================================================
-    // REALTIME SNAPSHOT LISTENER:
+    // REALTIME SNAPSHOT LISTENER (TUNGGAL, ANTI-DUPLIKAT):
     // Menerima push live instan setiap kali ada tombol Simpan ditekan di HP/PC
     // ==============================================================
-    docRef.onSnapshot(doc => {
+    if (firestoreUnsubscribe) {
+      try { firestoreUnsubscribe(); } catch (e) {}
+      firestoreUnsubscribe = null;
+    }
+    firestoreUnsubscribe = docRef.onSnapshot(doc => {
       if (doc.exists) {
         const cloudDoc = doc.data();
         if (cloudDoc && cloudDoc.payload && cloudDoc.lastUpdated) {
           const localUpdated = (auraData && auraData._lastUpdated) || 0;
           if (cloudDoc.lastUpdated > localUpdated) {
             console.log('[Firestore] Realtime snapshot cloud diterima (lebih baru):', cloudDoc.lastUpdated);
-            auraData = cloudDoc.payload;
-            auraData._lastUpdated = cloudDoc.lastUpdated;
-            localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-            renderAllViews();
+            applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
             const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
             setCloudStatusUI('connected', 'Online • ' + timeStr);
             return;
           }
         }
-      } else {
-        // Dokumen perdana belum ada di cloud, buat perdana
-        pushToFirestoreCloud(true).catch(() => {});
       }
-      setCloudStatusUI('connected', 'Online');
+      if (syncDone) {
+        setCloudStatusUI('connected', 'Online');
+      }
     }, err => {
       console.warn('[Firestore] Realtime snapshot listener error:', err.code, err.message);
       if (err.code === 'permission-denied') {
@@ -198,6 +234,8 @@ function initFirestoreSync(retryCount = 0) {
     });
 
   } catch (err) {
+    isInitialSyncInProgress = false;
+    if (showModal && typeof window.hideLoadingModal === 'function') window.hideLoadingModal();
     console.warn('[Firestore] Inisialisasi error:', err);
     if (!navigator.onLine) {
       setCloudStatusUI('offline', 'Mode Offline');
@@ -212,7 +250,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('online', () => {
     console.log('[App] Koneksi internet online');
     setCloudStatusUI('syncing', 'Menyambungkan...');
-    initFirestoreSync(0);
+    initFirestoreSync(0, true);
   });
   window.addEventListener('offline', () => {
     console.log('[App] Koneksi internet offline');
@@ -316,10 +354,7 @@ window.triggerCloudSync = function() {
         const localUpdated = (auraData && auraData._lastUpdated) || 0;
         if (cloudDoc.lastUpdated > localUpdated || (!window._hasUnsavedLocalChanges && cloudDoc.lastUpdated !== localUpdated)) {
           console.log('[Firestore] Sinkronisasi manual menarik data terbaru dari Cloud:', cloudDoc.lastUpdated);
-          auraData = cloudDoc.payload;
-          auraData._lastUpdated = cloudDoc.lastUpdated;
-          localStorage.setItem(AURA_DB_KEY, JSON.stringify(auraData));
-          renderAllViews();
+          applyCloudPayloadAndRender(cloudDoc.payload, cloudDoc.lastUpdated);
           const timeStr = new Date(cloudDoc.lastUpdated).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
           setCloudStatusUI('connected', 'Online • ' + timeStr);
           if (typeof window.showSuccessModal === 'function') {
@@ -1265,9 +1300,21 @@ window.showLoadingModal = function(title, subtitle) {
   if (titleEl) titleEl.innerText = title || 'Menyinkronkan Data...';
   if (subEl) subEl.innerHTML = subtitle || 'Sedang berkomunikasi dengan Cloud Firestore';
   if (overlay) overlay.style.display = 'flex';
+  if (loadingSafetyTimer) clearTimeout(loadingSafetyTimer);
+  // Pengaman global: otomatis tutup jika menggantung lebih dari 15 detik
+  loadingSafetyTimer = setTimeout(() => {
+    const ov = document.getElementById('appLoadingOverlay');
+    if (ov && ov.style.display !== 'none') {
+      ov.style.display = 'none';
+    }
+  }, 15000);
 };
 
 window.hideLoadingModal = function() {
+  if (loadingSafetyTimer) {
+    clearTimeout(loadingSafetyTimer);
+    loadingSafetyTimer = null;
+  }
   const overlay = document.getElementById('appLoadingOverlay');
   if (overlay) overlay.style.display = 'none';
 };
@@ -4323,10 +4370,19 @@ window.restoreDefaultRecipes = function() {
   );
 };
 
-window.saveMasterResepChanges = function() {
+window.saveMasterResepChanges = async function() {
   saveLocal();
-  pushToFirestoreCloud(true);
   renderAllViews();
+  if (navigator.onLine && typeof pushToFirestoreCloud === 'function') {
+    window.showLoadingModal('Menyimpan Formula Resep...', 'Sedang menyinkronkan perubahan menu & gramasi ke Cloud Firestore...');
+    try {
+      await pushToFirestoreCloud(true);
+    } catch (e) {
+      console.warn('[Resep] Cloud sync warning:', e);
+    } finally {
+      window.hideLoadingModal();
+    }
+  }
   if (typeof window.showSuccessModal === 'function') {
     window.showSuccessModal(
       "Perubahan Menu Tersimpan",
@@ -7542,7 +7598,7 @@ window.stepDay = function(delta) {
 };
 
 // 1-Klik Simpan Laporan Harian Terpadu
-window.saveLaporanHarianMaster = function() {
+window.saveLaporanHarianMaster = async function() {
   const curCfg = OPERATIONAL_DAYS_CONFIG.find(c => c.isoDate === activeDate) || buildDayMetaFromIso(activeDate, 1);
   const currentB2Key = curCfg.b2Key;
 
@@ -7607,12 +7663,24 @@ window.saveLaporanHarianMaster = function() {
     localStorage.setItem('dapur_mom_fitri_active_date', activeDate);
   } catch (e) {}
   saveLocal();
-  if (typeof pushToFirestoreCloud === 'function') {
-    pushToFirestoreCloud(true).catch(() => {});
-  }
 
   // 5. Re-render seluruh modul
   renderAllViews();
+
+  // Sinkronisasi Cloud dengan pop-up loading agar pengguna yakin data telah terunggah
+  if (navigator.onLine && typeof pushToFirestoreCloud === 'function') {
+    window.showLoadingModal(
+      'Menyimpan Laporan Harian...',
+      'Sedang mengunggah data operasional <strong>' + curCfg.namaHari + '</strong> ke Cloud Firestore...'
+    );
+    try {
+      await pushToFirestoreCloud(true);
+    } catch (e) {
+      console.warn('[LaporanHarian] Cloud sync warning:', e);
+    } finally {
+      window.hideLoadingModal();
+    }
+  }
 
   // 6. Notifikasi Berhasil
   if (typeof window.showSuccessModal === 'function') {
@@ -8108,12 +8176,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   renderAllViews();
-  initFirestoreSync();
+  initSidebarDrawer();
+  initFirestoreSync(0, true);
 });
-
-renderAllViews();
-initFirestoreSync();
-initSidebarDrawer();
+if (document.readyState !== 'loading') {
+  renderAllViews();
+  initSidebarDrawer();
+  initFirestoreSync(0, true);
+}
 
 // ==============================================================
 // PWA VERSION & AUTO-UPDATE CONFIRMATION CONTROLLER
