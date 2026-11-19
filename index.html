@@ -16,6 +16,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem('dapur_mom_fitri_theme');
+        if (savedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
 
@@ -153,7 +163,7 @@
             <span class="status-indicator" style="width: 8px; height: 8px; border-radius: 50%; background: #34D399; display: inline-block; box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);"></span>
             <span style="font-size: 0.82rem; font-weight: 800; color: #FFFFFF; letter-spacing: 0.02em;">Dapur Mom Fitri</span>
           </div>
-          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.5.0</span>
+          <span class="mini-tag" style="background: rgba(56, 189, 248, 0.15); color: #38BDF8; font-size: 0.68rem; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.3);">v7.6.0</span>
         </div>
 
         <!-- Cloud Sync Status Badge Sidebar -->
@@ -161,6 +171,13 @@
           <span class="cloud-sync-dot"></span>
           <span class="cloud-sync-text">Online &middot; Sinkron Cloud</span>
         </div>
+        <!-- Theme Toggle Button Desktop -->
+        <button type="button" class="theme-toggle-btn theme-toggle-desktop no-print" id="btnThemeToggleDesktop" onclick="window.toggleAppTheme()" title="Ganti Tema Gelap / Terang">
+          <span class="theme-toggle-icon" id="themeIconDesktop">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </span>
+          <span id="themeLabelDesktop">Mode Terang</span>
+        </button>
         
         <!-- PWA Install Button Sidebar (Tersembunyi Otomatis Jika Terpasang) -->
         <div style="margin-top: 8px;">
@@ -201,6 +218,11 @@
           </div>
         </div>
         <div style="display: flex; gap: 8px; align-items: center;">
+          <button type="button" class="theme-toggle-btn theme-toggle-mobile no-print" id="btnThemeToggleMobile" onclick="window.toggleAppTheme()" aria-label="Ganti Tema Gelap/Terang" title="Ganti Tema Gelap / Terang">
+            <span class="theme-toggle-icon" id="themeIconMobile">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </span>
+          </button>
           <div class="cloud-sync-pill connected" id="cloudSyncPillMobile" onclick="window.triggerCloudSync()" title="Status Cloud Firestore">
             <span class="cloud-sync-dot"></span>
             <span class="cloud-sync-text">Online</span>

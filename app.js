@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.5.0';
-const APP_BUILD_TIME = '19/11/2026 10:28 WIB';
+const APP_VERSION = 'v7.6.0';
+const APP_BUILD_TIME = '19/11/2026 11:55 WIB';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -8217,6 +8217,7 @@ window.openCopyStokModal = function(initialMode = 'filled') {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+  initAppTheme();
   initSidebarDrawer();
 
   
@@ -8731,4 +8732,48 @@ if (typeof document !== 'undefined') {
       });
     }
   });
+}
+// ==============================================================
+// THEME CONTROLLER (MODE GELAP / TERANG PERSISTEN)
+// ==============================================================
+const THEME_STORAGE_KEY = 'dapur_mom_fitri_theme';
+
+function updateThemeToggleUI(theme) {
+  const isLight = theme === 'light';
+  const sunSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+  const moonSvg = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+
+  const iconD = document.getElementById('themeIconDesktop');
+  const labelD = document.getElementById('themeLabelDesktop');
+  const iconM = document.getElementById('themeIconMobile');
+
+  if (iconD) iconD.innerHTML = isLight ? moonSvg : sunSvg;
+  if (labelD) labelD.innerText = isLight ? 'Mode Gelap' : 'Mode Terang';
+  if (iconM) iconM.innerHTML = isLight ? moonSvg : sunSvg;
+}
+
+function applyAppTheme(theme) {
+  const normalized = theme === 'light' ? 'light' : 'dark';
+  if (normalized === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, normalized);
+  } catch (e) {}
+  updateThemeToggleUI(normalized);
+}
+
+window.toggleAppTheme = function() {
+  const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  applyAppTheme(current === 'light' ? 'dark' : 'light');
+};
+
+function initAppTheme() {
+  let saved = 'dark';
+  try {
+    saved = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
+  } catch (e) {}
+  applyAppTheme(saved);
 }
