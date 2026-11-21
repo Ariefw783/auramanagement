@@ -8254,3 +8254,492 @@ body {
     color: #000000 !important;
   }
 }
+
+/* ==============================================================
+   V7.7.3 EXECUTIVE PRIVE HISTORY MODULE (DESKTOP & MOBILE)
+   & COMPREHENSIVE LIGHT THEME HIGH-CONTRAST OVERHAUL
+   ============================================================== */
+
+.prive-history-section-card {
+  border-left: 4px solid #10B981 !important;
+}
+
+.prive-history-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34D399;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.prive-history-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.prive-history-total-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.prive-history-total-pill strong {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: #34D399;
+  font-size: 0.88rem;
+}
+
+.prive-date-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.prive-date-main {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-pure);
+  font-size: 0.84rem;
+}
+
+.prive-date-sub {
+  font-size: 0.71rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.prive-nominal-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #34D399;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.prive-ket-cell {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.prive-recipient-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: #38BDF8;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.prive-table-foot-row {
+  background: rgba(15, 23, 42, 0.55);
+  border-top: 2px solid var(--card-border);
+}
+
+.prive-total-val {
+  font-family: var(--font-mono);
+  color: #34D399;
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+/* Mobile Cards for Riwayat Penarikan Laba (Prive) */
+.prive-mobile-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prive-mobile-card {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--card-border);
+  border-left: 3px solid #10B981;
+  border-radius: 8px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prive-mobile-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.prive-mobile-date-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.prive-mobile-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #38BDF8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-top: 1px;
+}
+
+.prive-mobile-date {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-pure);
+}
+
+.prive-mobile-ket {
+  display: block;
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.prive-mobile-amount {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #34D399;
+  white-space: nowrap;
+}
+
+.prive-mobile-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 7px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.prive-mobile-del-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: #FB7185;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.prive-mobile-summary-bar {
+  margin-top: 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.prive-mobile-summary-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--text-pure);
+  letter-spacing: 0.02em;
+}
+
+.prive-mobile-summary-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.prive-mobile-summary-val {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: #34D399;
+  white-space: nowrap;
+}
+
+.prive-mobile-empty {
+  text-align: center;
+  padding: 18px 12px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-style: italic;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px dashed var(--card-border);
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .prive-history-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ==============================================================
+   COMPREHENSIVE LIGHT THEME HIGH-CONTRAST OVERHAUL ([data-theme="light"])
+   Memastikan TIDAK ADA teks putih/pucat yang hilang di atas latar terang
+   ============================================================== */
+
+/* 1. Tangkap seluruh elemen dengan inline style warna putih/terang agar otomatis kontras gelap */
+[data-theme="light"] [style*="color: #FFFFFF"]:not(.btn-primary-action):not(.sheet-section-number):not(.tool-btn-primary):not(.tool-btn-success):not(.lh-prive-btn-action),
+[data-theme="light"] [style*="color: #FFF"]:not(.btn-primary-action):not(.sheet-section-number):not(.tool-btn-primary):not(.tool-btn-success):not(.lh-prive-btn-action),
+[data-theme="light"] [style*="color:#FFFFFF"]:not(.btn-primary-action):not(.sheet-section-number):not(.tool-btn-primary):not(.tool-btn-success):not(.lh-prive-btn-action),
+[data-theme="light"] [style*="color: #F8FAFC"],
+[data-theme="light"] [style*="color: #F1F5F9"] {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] [style*="color: #E2E8F0"],
+[data-theme="light"] [style*="color: #CBD5E1"] {
+  color: #334155 !important;
+}
+
+[data-theme="light"] [style*="color: #94A3B8"] {
+  color: #475569 !important;
+}
+
+/* 2. Tangkap inline warna aksen pastel (biru muda, hijau muda, kuning muda, ungu muda, merah muda) agar tajam di latar putih */
+[data-theme="light"] [style*="color: #38BDF8"],
+[data-theme="light"] [style*="color:#38BDF8"],
+[data-theme="light"] [style*="color: #BAE6FD"] {
+  color: #0284C7 !important;
+}
+
+[data-theme="light"] [style*="color: #34D399"],
+[data-theme="light"] [style*="color:#34D399"],
+[data-theme="light"] [style*="color: #A7F3D0"],
+[data-theme="light"] [style*="color: #10B981"] {
+  color: #059669 !important;
+}
+
+[data-theme="light"] [style*="color: #FBBF24"],
+[data-theme="light"] [style*="color:#FBBF24"],
+[data-theme="light"] [style*="color: #F59E0B"],
+[data-theme="light"] [style*="color: #FDE68A"] {
+  color: #B45309 !important;
+}
+
+[data-theme="light"] [style*="color: #FB7185"],
+[data-theme="light"] [style*="color:#FB7185"],
+[data-theme="light"] [style*="color: #F87171"] {
+  color: #E11D48 !important;
+}
+
+[data-theme="light"] [style*="color: #818CF8"],
+[data-theme="light"] [style*="color:#818CF8"] {
+  color: #4F46E5 !important;
+}
+
+[data-theme="light"] [style*="color: #C084FC"],
+[data-theme="light"] [style*="color: #A855F7"] {
+  color: #7C3AED !important;
+}
+
+/* 3. Tangkap inline background gelap (#0F172A, #1E293B, #151F2E, rgba(15, 23, 42...)) agar berubah menjadi permukaan terang bersih */
+[data-theme="light"] [style*="background: #0F172A"],
+[data-theme="light"] [style*="background: #151F2E"],
+[data-theme="light"] [style*="background: #1E293B"],
+[data-theme="light"] [style*="background: rgba(15, 23, 42"],
+[data-theme="light"] [style*="background: rgba(30, 41, 59"],
+[data-theme="light"] [style*="background: rgba(0, 0, 0, 0.25)"] {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] button[style*="background: #334155"] {
+  background: #E2E8F0 !important;
+  color: #1E293B !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] span[style*="rgba(255,255,255,0.06)"] {
+  background: #F1F5F9 !important;
+  border-color: #CBD5E1 !important;
+  color: #1E293B !important;
+}
+
+/* 4. Komponen Kartu Akordeon Mobile, Kuitansi, Buku 1-3, Resep, & Toolbar di Mode Terang */
+[data-theme="light"] .card-view-header-bar {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .card-view-header-title {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .btn-card-toggle-all {
+  background: #FFFFFF !important;
+  color: #334155 !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] .expandable-record-card {
+  background: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+}
+
+[data-theme="light"] .record-card-header {
+  background: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+[data-theme="light"] .record-card-body {
+  background: #FFFFFF !important;
+  color: #1E293B !important;
+}
+
+[data-theme="light"] .record-title-name,
+[data-theme="light"] .record-meta-row .val,
+[data-theme="light"] .card-stat-pill strong,
+[data-theme="light"] .card-total-box strong,
+[data-theme="light"] .date-display-text,
+[data-theme="light"] .date-val-highlight,
+[data-theme="light"] .takaran-item-label,
+[data-theme="light"] .b1-drop-input,
+[data-theme="light"] .b1-drop-val-static,
+[data-theme="light"] .lh-amplop-title,
+[data-theme="light"] .lh-amplop-input,
+[data-theme="light"] .chart-summary-row.primary strong {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .record-meta-row .label,
+[data-theme="light"] .card-stat-pill span,
+[data-theme="light"] .btn-record-expand-toggle,
+[data-theme="light"] .date-step-btn,
+[data-theme="light"] .cloud-sync-pill {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .cloud-sync-pill {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+}
+
+[data-theme="light"] .card-total-box {
+  background: #F1F5F9 !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+/* 5. Kuitansi Voucher Box di Mode Terang */
+[data-theme="light"] .kuitansi-voucher-wrap,
+[data-theme="light"] .kuitansi-voucher-box {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .kuitansi-brand-badge,
+[data-theme="light"] .kuitansi-doc-title,
+[data-theme="light"] .kuitansi-meta-val,
+[data-theme="light"] .kuitansi-sig-name {
+  color: #0F172A !important;
+}
+
+[data-theme="light"] .kuitansi-brand-loc,
+[data-theme="light"] .kuitansi-meta-label,
+[data-theme="light"] .kuitansi-sig-role {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .kuitansi-table th {
+  background: #F1F5F9 !important;
+  color: #334155 !important;
+}
+
+/* 6. Modul Riwayat Penarikan Laba (Prive) di Mode Terang */
+[data-theme="light"] .prive-history-icon-box {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #059669 !important;
+}
+
+[data-theme="light"] .prive-history-total-pill {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #334155 !important;
+}
+
+[data-theme="light"] .prive-history-total-pill strong,
+[data-theme="light"] .prive-total-val,
+[data-theme="light"] .prive-mobile-amount,
+[data-theme="light"] .prive-mobile-summary-val {
+  color: #059669 !important;
+}
+
+[data-theme="light"] .prive-nominal-badge {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+  color: #047857 !important;
+}
+
+[data-theme="light"] .prive-recipient-pill {
+  background: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0369A1 !important;
+}
+
+[data-theme="light"] .prive-table-foot-row {
+  background: #F1F5F9 !important;
+}
+
+[data-theme="light"] .prive-mobile-card {
+  background: #FFFFFF !important;
+  border-color: #CBD5E1 !important;
+  border-left: 3px solid #059669 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="light"] .prive-mobile-card-bottom {
+  border-top-color: #E2E8F0 !important;
+}
+
+[data-theme="light"] .prive-mobile-num {
+  background: #F0F9FF !important;
+  border-color: #BAE6FD !important;
+  color: #0284C7 !important;
+}
+
+[data-theme="light"] .prive-mobile-summary-bar {
+  background: #ECFDF5 !important;
+  border-color: #A7F3D0 !important;
+}
+
+[data-theme="light"] .prive-mobile-empty {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #64748B !important;
+}

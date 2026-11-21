@@ -4,8 +4,8 @@
 // CORE CONTROLLER & TACTICAL SPREADSHEET ENGINE v4.0
 // ==============================================================
 
-const APP_VERSION = 'v7.7.2';
-const APP_BUILD_TIME = '2026-11-19 19:15';
+const APP_VERSION = 'v7.7.3';
+const APP_BUILD_TIME = '2026-11-21 12:45';
 const FIRESTORE_DOC_PATH = 'production_data_v10';
 const FIRESTORE_META_PATH = 'meta_sync_v10';
 
@@ -1535,7 +1535,7 @@ window.showSuccessModal = function(title, message, onOk) {
   if (!overlay) return;
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
   if (titleEl) titleEl.innerText = title || 'Berhasil';
-  if (body) body.innerHTML = '<p style="color: #F8FAFC; font-size: 0.9rem; line-height: 1.6;">' + message.replace(/\n/g, '<br>') + '</p>';
+  if (body) body.innerHTML = '<p style="color: var(--text-pure); font-size: 0.9rem; line-height: 1.6;">' + message.replace(/\n/g, '<br>') + '</p>';
   if (footer) {
     footer.innerHTML = '<button type="button" class="tool-btn tool-btn-success" id="btnModalOk" style="min-width: 100px; font-weight: 800;">OK, Mengerti</button>';
     const btn = document.getElementById('btnModalOk');
@@ -1607,10 +1607,10 @@ window.showConfirmModal = function(title, message, onConfirm, onCancel) {
   if (!overlay) return;
   if (icon) { icon.innerHTML = ''; icon.style.display = 'none'; }
   if (titleEl) titleEl.innerText = title || 'Konfirmasi Tindakan';
-  if (body) body.innerHTML = '<p style="color: #F8FAFC; font-size: 0.9rem; line-height: 1.6;">' + message.replace(/\n/g, '<br>') + '</p>';
+  if (body) body.innerHTML = '<p style="color: var(--text-pure); font-size: 0.9rem; line-height: 1.6;">' + message.replace(/\n/g, '<br>') + '</p>';
   if (footer) {
     footer.innerHTML = 
-      '<button type="button" class="tool-btn" id="btnModalCancel" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+      '<button type="button" class="tool-btn" id="btnModalCancel" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
       '<button type="button" class="tool-btn tool-btn-success" id="btnModalConfirm" style="font-weight: 800;">Ya, Lanjutkan</button>';
 
     const btnConf = document.getElementById('btnModalConfirm');
@@ -1818,7 +1818,7 @@ window.openAddBuku1DateModal = function() {
     '<p style="font-size: 0.8rem; color: var(--text-secondary);">Sistem akan menyiapkan tabel 6 titik konsinyasi untuk tanggal tersebut agar Anda dapat mengatur rencana kirim maupun mencatat setoran.</p>';
 
   footer.innerHTML =
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnConfirmNewBuku1Date" style="font-weight: 800;">Buka & Set Tanggal</button>';
 
   const btnConf = document.getElementById('btnConfirmNewBuku1Date');
@@ -2138,7 +2138,7 @@ window.openEditBuku1RowModal = function(idx) {
 
   const checkboxesHtml = recipes.map(p => {
     const isChecked = (drops[p.id] > 0 || (p.id === 'prod_ubi' && r.ubi > 0) || (p.id === 'prod_sayur' && r.sayur > 0) || (p.id === 'prod_roti' && r.roti > 0) || r.kirim === 0);
-    return '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: #E2E8F0; cursor: pointer;">' +
+    return '<label style="display: flex; align-items: center; gap: 5px; font-size: 0.74rem; color: var(--text-primary); cursor: pointer;">' +
       '<input type="checkbox" class="b1-split-chk" value="' + p.id + '" ' + (isChecked ? 'checked' : '') + '> ' +
       '<span style="color: ' + (p.badgeColor || '#38BDF8') + '; font-weight: 700;">' + (p.shortName || p.nama) + '</span>' +
     '</label>';
@@ -2262,7 +2262,7 @@ window.openEditBuku1RowModal = function(idx) {
   }, 20);
 
   footer.innerHTML =
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnSaveB1RowModal" style="font-weight: 800;">Simpan Perubahan</button>';
 
   const btnSave = document.getElementById('btnSaveB1RowModal');
@@ -3038,9 +3038,9 @@ window.renderMasterBahanTable = function() {
     const tr = document.createElement('tr');
     tr.innerHTML = 
       '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-      '<td data-label="Bahan"><strong style="color: #FFFFFF;">' + item.nama + '</strong></td>' +
+      '<td data-label="Bahan"><strong style="color: var(--text-pure);">' + item.nama + '</strong></td>' +
       '<td data-label="Satuan & Takaran">' +
-        '<div style="font-size: 0.82rem; color: #F8FAFC; font-weight: 600;">' + item.satuan + '</div>' +
+        '<div style="font-size: 0.82rem; color: var(--text-pure); font-weight: 600;">' + item.satuan + '</div>' +
         '<div style="font-size: 0.71rem; color: #38BDF8; font-family: var(--font-mono); margin-top: 2px;">' + unitInfoText + '</div>' +
       '</td>' +
       '<td data-label="Harga Acuan" style="font-family: var(--font-mono); font-weight: 800; color: #34D399; text-align: right;">' +
@@ -3119,7 +3119,7 @@ window.openAddMasterBahanModal = function() {
           '<option value="fixed">Satuan Tetap / Tabung (Gas LPG, Operasional)</option>' +
         '</select>' +
         '<div id="mbInputCountBox" style="display: block;">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
           '<div style="display: flex; gap: 8px;">' +
             '<div style="flex: 1;">' +
               '<label class="form-label" style="font-size: 0.68rem;">Nama Satuan Pakai</label>' +
@@ -3132,14 +3132,14 @@ window.openAddMasterBahanModal = function() {
           '</div>' +
         '</div>' +
         '<div id="mbInputWeightBox" style="display: none;">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
           '<div>' +
             '<label class="form-label" style="font-size: 0.68rem;">Total Berat Bersih Kemasan (Gram)</label>' +
             '<input type="number" step="any" min="1" id="mbInputTotalGram" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 kg), 500 (untuk 500g)" value="1000">' +
           '</div>' +
         '</div>' +
         '<div id="mbInputVolumeBox" style="display: none;">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
           '<div>' +
             '<label class="form-label" style="font-size: 0.68rem;">Total Volume Kemasan (ml)</label>' +
             '<input type="number" step="any" min="1" id="mbInputTotalMl" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 Liter)" value="1000">' +
@@ -3162,7 +3162,7 @@ window.openAddMasterBahanModal = function() {
     '</form>';
 
   footer.innerHTML = 
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnSaveMasterBahan" style="font-weight: 800;">Simpan Bahan</button>';
 
   const btnSave = document.getElementById('btnSaveMasterBahan');
@@ -3288,7 +3288,7 @@ window.openEditMasterBahanModal = function(idx) {
           '<option value="fixed"' + (tipe === 'fixed' ? ' selected' : '') + '>Satuan Tetap / Tabung (Gas LPG, Operasional)</option>' +
         '</select>' +
         '<div id="mbEditCountBox" style="display: ' + (tipe === 'count' ? 'block' : 'none') + ';">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Dihitung berdasarkan jumlah lembaran/batang utuh (tanpa hitungan gram).</div>' +
           '<div style="display: flex; gap: 8px;">' +
             '<div style="flex: 1;">' +
               '<label class="form-label" style="font-size: 0.68rem;">Nama Satuan Pakai</label>' +
@@ -3301,14 +3301,14 @@ window.openEditMasterBahanModal = function(idx) {
           '</div>' +
         '</div>' +
         '<div id="mbEditWeightBox" style="display: ' + (tipe === 'weight' ? 'block' : 'none') + ';">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Ditimbang murni dalam gram/kg (tanpa hitungan lembar/pcs).</div>' +
           '<div>' +
             '<label class="form-label" style="font-size: 0.68rem;">Total Berat Bersih Kemasan (Gram)</label>' +
             '<input type="number" step="any" min="1" id="mbEditTotalGram" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 kg), 500 (untuk 500g)" value="' + tGram + '">' +
           '</div>' +
         '</div>' +
         '<div id="mbEditVolumeBox" style="display: ' + (tipe === 'volume' ? 'block' : 'none') + ';">' +
-          '<div style="font-size: 0.72rem; color: #CBD5E1; margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
+          '<div style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 6px;">Dihitung dalam ukuran cairan ml/liter.</div>' +
           '<div>' +
             '<label class="form-label" style="font-size: 0.68rem;">Total Volume Kemasan (ml)</label>' +
             '<input type="number" step="any" min="1" id="mbEditTotalMl" class="form-control-slate" placeholder="Contoh: 1000 (untuk 1 Liter)" value="' + tGram + '">' +
@@ -3331,7 +3331,7 @@ window.openEditMasterBahanModal = function(idx) {
     '</form>';
 
   footer.innerHTML = 
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnUpdateMasterBahan" style="font-weight: 800;">Simpan Perubahan</button>';
 
   const btnUpdate = document.getElementById('btnUpdateMasterBahan');
@@ -3471,7 +3471,7 @@ window.handleCreateNewKuitansiDay = function() {
     '<input type="text" id="inputNewKuitansiDate" class="form-control-slate" placeholder="Contoh: 22/10" value="22/10">';
 
   footer.innerHTML = 
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnSubmitNewDate" style="font-weight: 800;">Buat Lembar</button>';
 
   const btnSubmit = document.getElementById('btnSubmitNewDate');
@@ -3699,7 +3699,7 @@ window.openEditBelanjaModal = function(globalIdx) {
     '</form>';
 
   footer.innerHTML = 
-    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Batal</button>' +
+    '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Batal</button>' +
     '<button type="button" class="tool-btn tool-btn-success" id="btnSaveEditBelanja" style="font-weight: 800;">Simpan Perubahan</button>';
 
   const btnSave = document.getElementById('btnSaveEditBelanja');
@@ -3893,7 +3893,7 @@ window.transferStokBelanjaToKuitansi = function() {
     titleEl.innerText = 'Daftar Belanja Ditransfer';
     body.innerHTML = '<div style="text-align: center; color: var(--text-pure); font-size: 0.88rem;">' + msg + '</div>';
     footer.innerHTML = 
-      '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Tutup</button>' +
+      '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Tutup</button>' +
       '<button type="button" class="tool-btn tool-btn-primary" onclick="window.closeAppModal(); window.switchTab(\'tab-buku2\');" style="font-weight: 800;">Buka Lembar Kuitansi</button>';
     overlay.style.display = 'flex';
   }
@@ -4360,7 +4360,7 @@ window.calculateTakaran = function() {
           hppCardGrids +
           '<div style="background: rgba(16, 185, 129, 0.08); padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.25);">' +
             '<span style="font-size: 0.72rem; color: var(--text-secondary); display: block;">Total HPP ' + totalPcs + ' Pcs vs Omzet (Rp ' + estOmzetSetor.toLocaleString('id-ID') + ')</span>' +
-            '<strong style="font-family: var(--font-mono); font-size: 1rem; color: #F8FAFC;">Modal Rp ' + totalHPPProduksi.toLocaleString('id-ID') + '</strong>' +
+            '<strong style="font-family: var(--font-mono); font-size: 1rem; color: var(--text-pure);">Modal Rp ' + totalHPPProduksi.toLocaleString('id-ID') + '</strong>' +
             '<span style="font-size: 0.72rem; color: ' + (estLabaBersih >= 0 ? '#34D399' : '#FB7185') + '; font-weight: 700; display: block; margin-top: 2px;">Est. Profit Bersih: ' + (estLabaBersih >= 0 ? '+Rp ' : '-Rp ') + Math.abs(estLabaBersih).toLocaleString('id-ID') + '</span>' +
           '</div>' +
         '</div>' +
@@ -4476,7 +4476,7 @@ function renderRecipeVisualGrid() {
     // Rincian komposisi ringkas dengan chip elegan
     const bahanSummary = (p.komposisi || []).map(k => {
       const u = k.unit || (k.isGram ? 'g' : 'unit');
-      return '<span style="display: inline-block; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 4px; margin: 2px 3px 2px 0; border: 1px solid rgba(255,255,255,0.08);">' + k.nama + ': <strong style="color: #FFFFFF;">' + k.qtyPerPcs + ' ' + u + '</strong></span>';
+      return '<span style="display: inline-block; background: rgba(255,255,255,0.06); padding: 2px 7px; border-radius: 4px; margin: 2px 3px 2px 0; border: 1px solid rgba(255,255,255,0.08);">' + k.nama + ': <strong style="color: var(--text-pure);">' + k.qtyPerPcs + ' ' + u + '</strong></span>';
     }).join(' ');
 
     const statusPill = isActive
@@ -4751,7 +4751,7 @@ window.openManageFormulaModal = function(selectedProdId) {
           '</select>' +
         '</td>' +
         '<td>' +
-          '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FFFFFF;" value="' + perPcsQty + '" oninput="window.onFormulaPerPcsChange(this)" title="Takaran per 1 pcs">' +
+          '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: var(--text-pure);" value="' + perPcsQty + '" oninput="window.onFormulaPerPcsChange(this)" title="Takaran per 1 pcs">' +
         '</td>' +
         '<td>' +
           '<input type="number" step="any" min="0" class="form-control-slate f-item-batch-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #38BDF8;" value="' + batchQty + '" oninput="window.onFormulaBatchQtyChange(this)" title="Total kebutuhan 1 batch baskom">' +
@@ -4789,7 +4789,7 @@ window.openManageFormulaModal = function(selectedProdId) {
 
     '<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(30, 41, 59, 0.5); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--card-border); flex-wrap: wrap; gap: 8px;">' +
       '<div>' +
-        '<span style="font-size: 0.78rem; font-weight: 700; color: #FFFFFF;">Status Menu Produksi:</span>' +
+        '<span style="font-size: 0.78rem; font-weight: 700; color: var(--text-pure);">Status Menu Produksi:</span>' +
         '<span style="font-size: 0.74rem; color: #94A3B8; margin-left: 6px;">Menu aktif otomatis tampil di kalkulator takaran subuh &amp; audit HPP</span>' +
       '</div>' +
       '<button type="button" class="tool-btn" id="fProdStatusBtn" style="' + (window.formulaModalActiveStatus ? 'background: rgba(16, 185, 129, 0.2); border-color: #10B981; color: #34D399;' : 'background: rgba(148, 163, 184, 0.1); border-color: #64748B; color: #94A3B8;') + ' font-weight: 800; font-size: 0.75rem; padding: 4px 12px; border-radius: 999px;" onclick="window.toggleFormulaModalProductStatus()">' +
@@ -4816,7 +4816,7 @@ window.openManageFormulaModal = function(selectedProdId) {
     '<div style="background: rgba(30, 41, 59, 0.7); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">' +
       '<div>' +
         '<span style="font-size: 0.72rem; color: #94A3B8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; display: block;">Simulasi Skala Batch (Baskom Sekali Aduk)</span>' +
-        '<span style="font-size: 0.78rem; color: #E2E8F0;">Ketik resep skala baskom atau per pcs, sistem menghitung otomatis timbal balik:</span>' +
+        '<span style="font-size: 0.78rem; color: var(--text-primary);">Ketik resep skala baskom atau per pcs, sistem menghitung otomatis timbal balik:</span>' +
       '</div>' +
       '<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">' +
         '<button type="button" class="filter-pill ' + (batchSize === 30 ? 'active' : '') + '" id="btnBatch_30" onclick="window.setFormulaBatchSize(30)">30 pcs</button>' +
@@ -4831,7 +4831,7 @@ window.openManageFormulaModal = function(selectedProdId) {
     '</div>' +
 
     '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">' +
-      '<strong style="font-size: 0.82rem; color: #FFFFFF;">Daftar Komposisi &amp; Takaran Bahan (Per Pcs &amp; Per Batch):</strong>' +
+      '<strong style="font-size: 0.82rem; color: var(--text-pure);">Daftar Komposisi &amp; Takaran Bahan (Per Pcs &amp; Per Batch):</strong>' +
       '<span style="font-size: 0.72rem; color: #38BDF8; margin-left: auto;">↔ Geser tabel ke samping</span>' +
       '<button type="button" class="tool-btn" style="font-size: 0.72rem; padding: 3px 8px;" onclick="window.addFormulaIngredientLine()">+ Tambah Bahan Baku</button>' +
     '</div>' +
@@ -4884,7 +4884,7 @@ window.openManageFormulaModal = function(selectedProdId) {
       '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">' +
         '<div>' +
           '<span style="font-size: 0.7rem; color: var(--text-muted); display: block;">HPP Pokok per Pcs</span>' +
-          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: #FFFFFF;" id="fTotalHppDisplay">Rp ' + curHpp.toLocaleString('id-ID') + '</strong>' +
+          '<strong style="font-family: var(--font-mono); font-size: 1.05rem; color: var(--text-pure);" id="fTotalHppDisplay">Rp ' + curHpp.toLocaleString('id-ID') + '</strong>' +
         '</div>' +
         '<div>' +
           '<span style="font-size: 0.7rem; color: #38BDF8; display: block;" id="fBatchLabelDisplay">Modal 1 Batch (' + batchSize + ' pcs)</span>' +
@@ -4902,7 +4902,7 @@ window.openManageFormulaModal = function(selectedProdId) {
     '</div>';
 
   const resetBtnHtml = (!prod.isCustom)
-    ? '<button type="button" class="tool-btn" style="background: #334155; color: #CBD5E1; font-size: 0.75rem;" onclick="window.resetFormulaToDefault(\'' + prod.id + '\')">Reset Kalibrasi Standar</button>'
+    ? '<button type="button" class="tool-btn" style="background: var(--card-btn-bg); color: var(--text-secondary); font-size: 0.75rem;" onclick="window.resetFormulaToDefault(\'' + prod.id + '\')">Reset Kalibrasi Standar</button>'
     : '<button type="button" class="tool-btn" style="border-color: rgba(251, 113, 133, 0.4); color: #FB7185; font-size: 0.75rem;" onclick="window.deleteProduct(\'' + prod.id + '\')">Hapus Menu Ini</button>';
 
   footer.innerHTML =
@@ -4984,7 +4984,7 @@ window.addFormulaIngredientLine = function() {
       '</select>' +
     '</td>' +
     '<td>' +
-      '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #FFFFFF;" value="1" oninput="window.onFormulaPerPcsChange(this)">' +
+      '<input type="number" step="any" min="0" class="form-control-slate f-item-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: var(--text-pure);" value="1" oninput="window.onFormulaPerPcsChange(this)">' +
     '</td>' +
     '<td>' +
       '<input type="number" step="any" min="0" class="form-control-slate f-item-batch-qty" style="padding: 4px 6px; font-size: 0.78rem; text-align: center; font-family: var(--font-mono); font-weight: 800; color: #38BDF8;" value="' + batchSize + '" oninput="window.onFormulaBatchQtyChange(this)">' +
@@ -5903,9 +5903,9 @@ function renderBuku1View() {
       if (isReturSetorEditingAllowed) {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Mitra"><strong style="color: var(--text-pure);">' + r.nama + '</strong></td>' +
           '<td data-label="Rincian Drop">' + dropsBadgesHtml + '</td>' +
-          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: var(--text-pure); text-align: center;">' + r.kirim + '</td>' +
           '<td data-label="Bonus" style="text-align: center;">' +
             '<input type="number" inputmode="numeric" min="0" class="dark-input" style="width: 44px; text-align: center; color: #818CF8; font-weight: 700;" value="' + r.bonus + '" onchange="window.updateBuku1RowPlan(' + idx + ', \'bonus\', this.value)" title="Bonus gratis pemilik">' +
           '</td>' +
@@ -5928,9 +5928,9 @@ function renderBuku1View() {
       } else {
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-          '<td data-label="Mitra"><strong style="color: #FFFFFF;">' + r.nama + '</strong></td>' +
+          '<td data-label="Mitra"><strong style="color: var(--text-pure);">' + r.nama + '</strong></td>' +
           '<td data-label="Rincian Drop">' + dropsBadgesHtml + '</td>' +
-          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: #FFFFFF; text-align: center;">' + r.kirim + '</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); font-weight: 800; color: var(--text-pure); text-align: center;">' + r.kirim + '</td>' +
           '<td data-label="Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 700; text-align: center;">+' + r.bonus + '</td>' +
           '<td data-label="Retur Sore" style="font-family: var(--font-mono); color: #FB923C; font-weight: 700; text-align: center;">' + r.retur + '</td>' +
           '<td data-label="Laku" style="font-family: var(--font-mono); font-weight: 800; color: #38BDF8; text-align: center;">' + r.laku + ' pcs</td>' +
@@ -5946,7 +5946,7 @@ function renderBuku1View() {
       b1Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
           '<td data-label="Keterangan" colspan="3" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">TOTAL KONSINYASI:</td>' +
-          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumKirim + '</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: var(--text-pure); font-weight: 900; padding: 12px 14px; text-align: center;">' + sumKirim + '</td>' +
           '<td data-label="Total Bonus" style="font-family: var(--font-mono); color: #818CF8; font-weight: 800; padding: 12px 14px; text-align: center;">+' + sumBonus + '</td>' +
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FB923C; font-weight: 800; padding: 12px 14px; text-align: center;">' + sumRetur + '</td>' +
           '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + sumLaku + ' pcs</td>' +
@@ -6066,7 +6066,7 @@ function renderKuitansiView() {
         const tr = document.createElement('tr');
         tr.innerHTML = 
           '<td data-label="No" style="text-align: center; font-family: var(--font-mono);">' + (localIdx + 1) + '</td>' +
-          '<td data-label="Rincian Belanja"><strong style="color: #FFFFFF;">' + b.nama + '</strong></td>' +
+          '<td data-label="Rincian Belanja"><strong style="color: var(--text-pure);">' + b.nama + '</strong></td>' +
           '<td data-label="Kategori">' + badge + '</td>' +
           '<td data-label="Kuantitas" style="color: var(--text-secondary);">' + b.qty + '</td>' +
           '<td data-label="Biaya Riil" style="font-family: var(--font-mono); font-weight: 800; color: #FB7185; text-align: right;">Rp ' + (b.biaya || 0).toLocaleString('id-ID') + '</td>' +
@@ -6125,18 +6125,18 @@ window.openPenarikanLabaModal = function() {
           '<span style="font-size: 0.95rem; color: #A855F7; font-weight: 700; font-family: var(--font-mono);">-Rp ' + totalDitarik.toLocaleString('id-ID') + '</span>' +
         '</div>' +
         '<div style="border-top: 1px dashed rgba(52, 211, 153, 0.3); padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">' +
-          '<span style="font-size: 0.82rem; color: #FFFFFF; font-weight: 800;">Sisa Saldo Laba Tersedia:</span>' +
+          '<span style="font-size: 0.82rem; color: var(--text-pure); font-weight: 800;">Sisa Saldo Laba Tersedia:</span>' +
           '<strong style="font-size: 1.15rem; color: #34D399; font-weight: 900; font-family: var(--font-mono);">Rp ' + sisaTersedia.toLocaleString('id-ID') + '</strong>' +
         '</div>' +
       '</div>' +
 
       '<div style="margin-bottom: 12px;">' +
-        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Tanggal Penarikan</label>' +
-        '<input type="date" id="priveInputTanggal" class="form-control-slate" value="' + defaultDate + '" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: block;">Tanggal Penarikan</label>' +
+        '<input type="date" id="priveInputTanggal" class="form-control-slate" value="' + defaultDate + '" required style="width: 100%; padding: 8px 12px; background: var(--card-surface); border: 1px solid var(--card-border); color: var(--text-pure); border-radius: 6px;">' +
       '</div>' +
 
       '<div style="margin-bottom: 12px;">' +
-        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Nominal Penarikan (Rp)</label>' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: block;">Nominal Penarikan (Rp)</label>' +
         '<input type="number" id="priveInputNominal" class="form-control-slate" placeholder="0" min="1000" step="1000" value="' + (sisaTersedia > 0 ? sisaTersedia : '') + '" required style="width: 100%; padding: 8px 12px; font-size: 1.1rem; font-weight: 800; color: #34D399; background: #0F172A; border: 1px solid var(--card-border); border-radius: 6px; font-family: var(--font-mono);">' +
         '<div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">' +
           '<button type="button" class="tool-btn" onclick="document.getElementById(\'priveInputNominal\').value = ' + sisaTersedia + '" style="font-size: 0.72rem; padding: 3px 8px; font-weight: 700;">Tarik Semua (Rp ' + sisaTersedia.toLocaleString('id-ID') + ')</button>' +
@@ -6147,13 +6147,13 @@ window.openPenarikanLabaModal = function() {
       '</div>' +
 
       '<div style="margin-bottom: 12px;">' +
-        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Keterangan / Keperluan Penarikan</label>' +
-        '<input type="text" id="priveInputKet" class="form-control-slate" placeholder="Contoh: Tarik Laba Mingguan ke Rekening Pribadi" value="Tarik Laba Bersih Mingguan" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: block;">Keterangan / Keperluan Penarikan</label>' +
+        '<input type="text" id="priveInputKet" class="form-control-slate" placeholder="Contoh: Tarik Laba Mingguan ke Rekening Pribadi" value="Tarik Laba Bersih Mingguan" required style="width: 100%; padding: 8px 12px; background: var(--card-surface); border: 1px solid var(--card-border); color: var(--text-pure); border-radius: 6px;">' +
       '</div>' +
 
       '<div style="margin-bottom: 12px;">' +
-        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: #E2E8F0; margin-bottom: 4px; display: block;">Nama Penerima</label>' +
-        '<input type="text" id="priveInputPenerima" class="form-control-slate" value="Fitri (Pemilik)" required style="width: 100%; padding: 8px 12px; background: #0F172A; border: 1px solid var(--card-border); color: #FFF; border-radius: 6px;">' +
+        '<label class="form-label" style="font-size: 0.8rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; display: block;">Nama Penerima</label>' +
+        '<input type="text" id="priveInputPenerima" class="form-control-slate" value="Fitri (Pemilik)" required style="width: 100%; padding: 8px 12px; background: var(--card-surface); border: 1px solid var(--card-border); color: var(--text-pure); border-radius: 6px;">' +
       '</div>' +
     '</form>';
 
@@ -6250,22 +6250,48 @@ window.deletePenarikanLaba = function(id) {
   }
 };
 
+function formatPriveDateFriendly(isoDate) {
+  if (!isoDate || typeof isoDate !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+    return { main: isoDate || '-', sub: '' };
+  }
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const dt = new Date(y, (m || 1) - 1, d || 1);
+  const hariNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const bulanShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const hName = hariNames[dt.getDay()] || '';
+  const bName = bulanShort[(m || 1) - 1] || '';
+  return {
+    main: d + ' ' + bName + ' ' + y,
+    sub: hName
+  };
+}
+
 function renderPenarikanLabaTable(customList) {
   const tbody = document.getElementById('penarikanLabaTableBody');
   const tfoot = document.getElementById('penarikanLabaTableFoot');
+  const cardsContainer = document.getElementById('penarikanLabaCardsContainer');
+  const headerBadge = document.getElementById('priveHeaderTotalBadge');
   if (!tbody) return;
 
   const list = customList !== undefined ? customList : (auraData.penarikanLaba || []);
   tbody.innerHTML = '';
+  if (cardsContainer) cardsContainer.innerHTML = '';
 
   if (list.length === 0) {
+    const emptyMsg = (b3FilterPreset !== 'all')
+      ? 'Tidak ada riwayat penarikan laba pada rentang tanggal yang dipilih.'
+      : 'Belum ada riwayat penarikan laba (prive). Klik tombol "+ Catat Tarik Laba" untuk mencatat penarikan kas ke rekening pribadi.';
     tbody.innerHTML = 
       '<tr>' +
-        '<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 18px 10px; font-style: italic;">' +
-          (b3FilterPreset !== 'all' ? 'Tidak ada riwayat penarikan laba pada rentang tanggal yang dipilih.' : 'Belum ada riwayat penarikan laba (prive). Klik tombol "+ Catat Tarik Laba" untuk mencatat penarikan kas ke rekening/dompet pribadi.') +
+        '<td colspan="6" style="text-align: center; color: var(--text-muted); padding: 22px 12px; font-style: italic;">' +
+          emptyMsg +
         '</td>' +
       '</tr>';
     if (tfoot) tfoot.innerHTML = '';
+    if (headerBadge) headerBadge.innerText = 'Rp 0';
+    if (cardsContainer) {
+      cardsContainer.innerHTML = '<div class="prive-mobile-empty">' + emptyMsg + '</div>';
+    }
     return;
   }
 
@@ -6275,26 +6301,95 @@ function renderPenarikanLabaTable(customList) {
   sorted.forEach((p, idx) => {
     const nom = Number(p.nominal) || 0;
     totalDitarik += nom;
+    const dFmt = formatPriveDateFriendly(p.isoDate);
+
     const tr = document.createElement('tr');
     tr.innerHTML = 
-      '<td style="text-align: center; font-family: var(--font-mono);">' + (idx + 1) + '</td>' +
-      '<td style="font-family: var(--font-mono); font-weight: 700;">' + (p.isoDate || '-') + '</td>' +
-      '<td style="text-align: right; font-family: var(--font-mono); font-weight: 800; color: #A855F7;">Rp ' + nom.toLocaleString('id-ID') + '</td>' +
-      '<td>' + (p.keterangan || '-') + '</td>' +
-      '<td><span class="mini-tag" style="background: rgba(168, 85, 247, 0.15); color: #C084FC;">' + (p.penerima || 'Pemilik') + '</span></td>' +
+      '<td style="text-align: center; font-family: var(--font-mono); color: var(--text-muted); font-weight: 600;">' + (idx + 1) + '</td>' +
+      '<td>' +
+        '<div class="prive-date-cell">' +
+          '<strong class="prive-date-main">' + dFmt.main + '</strong>' +
+          (dFmt.sub ? '<span class="prive-date-sub">' + dFmt.sub + '</span>' : '') +
+        '</div>' +
+      '</td>' +
+      '<td style="text-align: right;">' +
+        '<span class="prive-nominal-badge">Rp ' + nom.toLocaleString('id-ID') + '</span>' +
+      '</td>' +
+      '<td class="prive-ket-cell">' + (p.keterangan || '-') + '</td>' +
+      '<td>' +
+        '<span class="prive-recipient-pill">' +
+          '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' +
+          '<span>' + (p.penerima || 'Pemilik') + '</span>' +
+        '</span>' +
+      '</td>' +
       '<td style="text-align: center;" class="no-print">' +
-        '<button type="button" class="btn-del-mini" onclick="window.deletePenarikanLaba(\'' + p.id + '\')" title="Hapus catatan penarikan laba ini dan pulihkan saldo">&times;</button>' +
+        '<button type="button" class="btn-del-row" onclick="window.deletePenarikanLaba(\'' + p.id + '\')" title="Hapus catatan penarikan laba ini dan pulihkan saldo">' +
+          '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>' +
+        '</button>' +
       '</td>';
     tbody.appendChild(tr);
   });
 
+  if (headerBadge) {
+    headerBadge.innerText = 'Rp ' + totalDitarik.toLocaleString('id-ID');
+  }
+
   if (tfoot) {
     tfoot.innerHTML = 
-      '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
-        '<td colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 10px 12px;">TOTAL SUDAH DITARIK (PRIVE):</td>' +
-        '<td style="font-family: var(--font-mono); color: #A855F7; font-weight: 900; font-size: 1rem; text-align: right; padding: 10px 12px;">Rp ' + totalDitarik.toLocaleString('id-ID') + '</td>' +
-        '<td colspan="3" style="font-size: 0.75rem; color: #94A3B8; padding: 10px 12px;">Otomatis mengurangi sisa saldo laba siap tarik</td>' +
+      '<tr class="prive-table-foot-row">' +
+        '<td colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; font-weight: 800; padding: 12px 14px;">TOTAL SUDAH DITARIK (PRIVE):</td>' +
+        '<td style="text-align: right; padding: 12px 14px;"><strong class="prive-total-val">Rp ' + totalDitarik.toLocaleString('id-ID') + '</strong></td>' +
+        '<td colspan="3" style="font-size: 0.76rem; color: var(--text-muted); padding: 12px 14px;">Otomatis mengurangi sisa saldo laba siap tarik</td>' +
       '</tr>';
+  }
+
+  // Render daftar kartu mutasi prive untuk tampilan ponsel (Mobile Optimized)
+  if (cardsContainer) {
+    const listWrap = document.createElement('div');
+    listWrap.className = 'prive-mobile-cards-list';
+
+    sorted.forEach((p, idx) => {
+      const nom = Number(p.nominal) || 0;
+      const dFmt = formatPriveDateFriendly(p.isoDate);
+      const itemCard = document.createElement('div');
+      itemCard.className = 'prive-mobile-card';
+      itemCard.innerHTML =
+        '<div class="prive-mobile-card-top">' +
+          '<div class="prive-mobile-date-group">' +
+            '<span class="prive-mobile-num">#' + (idx + 1) + '</span>' +
+            '<div>' +
+              '<strong class="prive-mobile-date">' + (dFmt.sub ? dFmt.sub + ', ' : '') + dFmt.main + '</strong>' +
+              '<span class="prive-mobile-ket">' + (p.keterangan || 'Tarik Laba Bersih') + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="prive-mobile-amount-group">' +
+            '<strong class="prive-mobile-amount">Rp ' + nom.toLocaleString('id-ID') + '</strong>' +
+          '</div>' +
+        '</div>' +
+        '<div class="prive-mobile-card-bottom">' +
+          '<span class="prive-recipient-pill">' +
+            '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>' +
+            '<span>' + (p.penerima || 'Pemilik') + '</span>' +
+          '</span>' +
+          '<button type="button" class="prive-mobile-del-btn no-print" onclick="window.deletePenarikanLaba(\'' + p.id + '\')">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>' +
+            '<span>Hapus</span>' +
+          '</button>' +
+        '</div>';
+      listWrap.appendChild(itemCard);
+    });
+
+    const summaryBar = document.createElement('div');
+    summaryBar.className = 'prive-mobile-summary-bar';
+    summaryBar.innerHTML =
+      '<div>' +
+        '<span class="prive-mobile-summary-label">TOTAL SUDAH DITARIK (PRIVE)</span>' +
+        '<span class="prive-mobile-summary-sub">Otomatis mengurangi sisa saldo laba siap tarik</span>' +
+      '</div>' +
+      '<strong class="prive-mobile-summary-val">Rp ' + totalDitarik.toLocaleString('id-ID') + '</strong>';
+
+    cardsContainer.appendChild(listWrap);
+    cardsContainer.appendChild(summaryBar);
   }
 }
 
@@ -6527,7 +6622,7 @@ function renderBuku3View() {
       b3Foot.innerHTML = 
         '<tr style="background: rgba(0, 0, 0, 0.25); font-weight: 800; border-top: 2px solid var(--card-border);">' +
           '<td data-label="Keterangan" colspan="2" style="text-align: right; color: var(--text-secondary); text-transform: uppercase; font-size: 0.75rem; padding: 12px 14px;">' + (b3FilterPreset !== 'all' ? 'TOTAL TERFILTER:' : 'TOTAL TERVERIFIKASI:') + '</td>' +
-          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: #FFFFFF; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalKirimAll + '</td>' +
+          '<td data-label="Total Kirim" style="font-family: var(--font-mono); color: var(--text-pure); font-weight: 800; padding: 12px 14px; text-align: center;">' + totalKirimAll + '</td>' +
           '<td data-label="Total Retur" style="font-family: var(--font-mono); color: #FBBF24; font-weight: 800; padding: 12px 14px; text-align: center;">' + totalReturAll + '</td>' +
           '<td data-label="Total Laku" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: center;">' + totalLakuAll + '</td>' +
           '<td data-label="1. Total Omzet" style="font-family: var(--font-mono); color: #38BDF8; font-weight: 900; padding: 12px 14px; text-align: right;">Rp ' + totalSetorAll.toLocaleString('id-ID') + '</td>' +
@@ -6854,7 +6949,7 @@ function renderLhEstimasiTakaranCards(totalsByProd, grandTotal, activeRecipes) {
     card.style.cssText = `background: ${hexToRgba(color, 0.08)}; border: 1px solid ${hexToRgba(color, 0.3)}; border-radius: 8px; padding: 12px 14px;`;
     card.innerHTML = `
       <span style="font-size: 0.72rem; font-weight: 700; color: ${color}; text-transform: uppercase;">${idx + 1}. ${p.nama}</span>
-      <div style="font-size: 1.3rem; font-weight: 900; color: #FFFFFF; font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaProd_${p.id}">${pTot} Pcs</div>
+      <div style="font-size: 1.3rem; font-weight: 900; color: var(--text-pure); font-family: var(--font-mono); margin: 4px 0;" id="cardRencanaProd_${p.id}">${pTot} Pcs</div>
       <div style="font-size: 0.72rem; color: #94A3B8;" id="cardRencanaProdSub_${p.id}">${estTxt}</div>
     `;
     container.appendChild(card);
@@ -8369,7 +8464,7 @@ window.openCopyStokModal = function(initialMode = 'filled') {
           '</div>' +
         '</div>' +
         '<div style="position: relative;">' +
-          '<pre id="preStokWaText" style="background: #0F172A; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px; font-family: var(--font-mono); font-size: 0.78rem; color: #F1F5F9; max-height: 280px; overflow-y: auto; white-space: pre-wrap; margin: 0; line-height: 1.55; user-select: all;">' +
+          '<pre id="preStokWaText" style="background: #0F172A; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px 14px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-pure); max-height: 280px; overflow-y: auto; white-space: pre-wrap; margin: 0; line-height: 1.55; user-select: all;">' +
             currText +
           '</pre>' +
         '</div>';
@@ -8392,7 +8487,7 @@ window.openCopyStokModal = function(initialMode = 'filled') {
 
     if (footer) {
       footer.innerHTML = 
-        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Tutup</button>' +
+        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Tutup</button>' +
         '<button type="button" class="tool-btn tool-btn-success" id="btnModalCopyStokAgain" style="font-weight: 800; min-width: 140px;">Salin Ulang Teks</button>';
 
       const btnAgain = document.getElementById('btnModalCopyStokAgain');
@@ -8576,13 +8671,13 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
             '<polyline points="20 6 9 17 4 12"></polyline>' +
           '</svg>' +
         '</div>' +
-        '<h4 style="color: #F8FAFC; font-size: 1.1rem; font-weight: 800; margin: 0 0 8px 0;">Aplikasi Telah Diperbaharui</h4>' +
+        '<h4 style="color: var(--text-pure); font-size: 1.1rem; font-weight: 800; margin: 0 0 8px 0;">Aplikasi Telah Diperbaharui</h4>' +
         '<div style="display: inline-block; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 8px; padding: 6px 14px; margin-bottom: 12px;">' +
           '<span style="color: #38BDF8; font-weight: 800; font-size: 0.95rem; font-family: var(--font-mono);">' +
             'Pembaruan: ' + timeDisplay +
           '</span>' +
         '</div>' +
-        '<p style="color: #CBD5E1; font-size: 0.88rem; line-height: 1.6; margin: 0;">' +
+        '<p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin: 0;">' +
           'Aplikasi telah diperbaharui pada <strong>' + timeDisplay + '</strong>.<br>' +
           'Versi <strong>' + APP_VERSION + '</strong> telah aktif dengan strategi <strong>Network First</strong> (selalu memprioritaskan data & kode terbaru dari jaringan).' +
         '</p>' +
@@ -8592,7 +8687,7 @@ window.showAppUpdateConfirmationModal = function(buildTime, needReload = false) 
   if (footer) {
     if (needReload) {
       footer.innerHTML = 
-        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: #334155; color: #CBD5E1;">Nanti Saja</button>' +
+        '<button type="button" class="tool-btn" onclick="window.closeAppModal()" style="background: var(--card-btn-bg); color: var(--text-secondary);">Nanti Saja</button>' +
         '<button type="button" class="tool-btn tool-btn-success" id="btnReloadAppUpdate" style="font-weight: 800; min-width: 130px;">Muat Ulang Sekarang</button>';
       const btn = document.getElementById('btnReloadAppUpdate');
       if (btn) {
