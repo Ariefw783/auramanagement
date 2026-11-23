@@ -6395,9 +6395,9 @@ function renderPenarikanLabaTable(customList) {
 
 
 // ==============================================================
-// MODUL REKAP KAS & LABA: FILTER RENTANG TANGGAL CONTROLLER
+// MODUL REKAP KAS & LABA: FILTER PERIODE CONTROLLER (DROPDOWN & MINGGUAN)
 // ==============================================================
-var b3FilterPreset = 'all'; // 'all', '7d', 'month-this', 'month-prev', 'custom'
+var b3FilterPreset = 'all'; // 'all', 'week-this', 'week-prev', 'week-prev2', 'month-this', 'month-prev', 'custom'
 var b3FilterStartDate = null; // 'YYYY-MM-DD'
 var b3FilterEndDate = null; // 'YYYY-MM-DD'
 
@@ -6421,12 +6421,74 @@ function formatIndoMonthYear(isoDate) {
   return months[m - 1] + ' ' + y;
 }
 
+function getBuku3WeekRangeData(baseDate, weekOffset) {
+  const d = baseDate ? new Date(baseDate) : new Date();
+  const day = d.getDay();
+  const diffToMon = (day === 0 ? -6 : 1 - day) + ((weekOffset || 0) * 7);
+  const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon);
+  const sun = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 6);
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = dt => dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate());
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const fmtLabel = dt => dt.getDate() + ' ' + months[dt.getMonth()];
+  return {
+    startIso: fmt(mon),
+    endIso: fmt(sun),
+    label: fmtLabel(mon) + ' – ' + fmtLabel(sun) + ' ' + sun.getFullYear(),
+    shortLabel: fmtLabel(mon) + ' – ' + fmtLabel(sun)
+  };
+}
+
+function populateBuku3PeriodDropdown() {
+  const selectEl = document.getElementById('b3FilterPeriodSelect');
+  if (!selectEl) return;
+  if (selectEl.dataset.populated === 'true') {
+    selectEl.value = b3FilterPreset || 'all';
+    return;
+  }
+  const now = new Date();
+  const wThis = getBuku3WeekRangeData(now, 0);
+  const wPrev = getBuku3WeekRangeData(now, -1);
+  const wPrev2 = getBuku3WeekRangeData(now, -2);
+  const m = now.getMonth();
+  const y = now.getFullYear();
+  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  const monthThisLabel = months[m] + ' ' + y;
+  const prevMonthDate = new Date(y, m - 1, 1);
+  const monthPrevLabel = months[prevMonthDate.getMonth()] + ' ' + prevMonthDate.getFullYear();
+
+  const options = [
+    { value: 'all', text: 'Semua Riwayat (Total Keseluruhan)' },
+    { value: 'week-this', text: 'Minggu Ini (' + wThis.shortLabel + ')' },
+    { value: 'week-prev', text: 'Minggu Lalu (' + wPrev.shortLabel + ')' },
+    { value: 'week-prev2', text: '2 Pekan Lalu (' + wPrev2.shortLabel + ')' },
+    { value: 'month-this', text: 'Bulan Ini (' + monthThisLabel + ')' },
+    { value: 'month-prev', text: 'Bulan Lalu (' + monthPrevLabel + ')' },
+    { value: 'custom', text: '📅 Kustom (Tentukan Tanggal...)' }
+  ];
+
+  const currentVal = b3FilterPreset || 'all';
+  selectEl.innerHTML = options.map(opt => 
+    '<option value="' + opt.value + '" ' + (opt.value === currentVal ? 'selected' : '') + '>' + opt.text + '</option>'
+  ).join('');
+  selectEl.dataset.populated = 'true';
+}
+
 function getBuku3FilterPeriodLabel() {
   if (b3FilterPreset === 'all' || (!b3FilterStartDate && !b3FilterEndDate)) {
     return 'Semua Periode Tercatat';
   }
+  if (b3FilterPreset === 'week-this' && b3FilterStartDate && b3FilterEndDate) {
+    return 'Minggu Ini (' + formatIndoDateShort(b3FilterStartDate) + ' – ' + formatIndoDateShort(b3FilterEndDate) + ')';
+  }
+  if (b3FilterPreset === 'week-prev' && b3FilterStartDate && b3FilterEndDate) {
+    return 'Minggu Lalu (' + formatIndoDateShort(b3FilterStartDate) + ' – ' + formatIndoDateShort(b3FilterEndDate) + ')';
+  }
+  if (b3FilterPreset === 'week-prev2' && b3FilterStartDate && b3FilterEndDate) {
+    return '2 Pekan Lalu (' + formatIndoDateShort(b3FilterStartDate) + ' – ' + formatIndoDateShort(b3FilterEndDate) + ')';
+  }
   if (b3FilterPreset === '7d' && b3FilterStartDate && b3FilterEndDate) {
-    return '7 Hari Terakhir (' + formatIndoDateShort(b3FilterStartDate) + ' - ' + formatIndoDateShort(b3FilterEndDate) + ')';
+    return '7 Hari Terakhir (' + formatIndoDateShort(b3FilterStartDate) + ' – ' + formatIndoDateShort(b3FilterEndDate) + ')';
   }
   if (b3FilterPreset === 'month-this' && b3FilterStartDate) {
     return 'Bulan Ini (' + formatIndoMonthYear(b3FilterStartDate) + ')';
@@ -6450,18 +6512,19 @@ function getBuku3FilterPeriodLabel() {
 }
 
 function updateBuku3FilterButtonUI() {
-  const presets = ['all', '7d', 'month-this', 'month-prev', 'custom'];
-  presets.forEach(p => {
-    const btn = document.getElementById('btnB3Preset_' + p);
-    if (btn) {
-      if (p === b3FilterPreset) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    }
-  });
+  const selectEl = document.getElementById('b3FilterPeriodSelect');
+  if (selectEl && selectEl.value !== b3FilterPreset) {
+    selectEl.value = b3FilterPreset;
+  }
+  const customWrap = document.getElementById('b3CustomDateWrap');
+  if (customWrap) {
+    customWrap.style.display = (b3FilterPreset === 'custom') ? 'flex' : 'none';
+  }
 }
+
+window.handleBuku3PeriodSelect = function(preset) {
+  window.setBuku3FilterPreset(preset);
+};
 
 window.setBuku3FilterPreset = function(preset) {
   b3FilterPreset = preset;
@@ -6475,24 +6538,54 @@ window.setBuku3FilterPreset = function(preset) {
 
   const elStart = document.getElementById('b3FilterStartDate');
   const elEnd = document.getElementById('b3FilterEndDate');
+  const customWrap = document.getElementById('b3CustomDateWrap');
+  const selectEl = document.getElementById('b3FilterPeriodSelect');
+
+  if (selectEl && selectEl.value !== preset) {
+    selectEl.value = preset;
+  }
 
   if (preset === 'all') {
     b3FilterStartDate = null;
     b3FilterEndDate = null;
     if (elStart) elStart.value = '';
     if (elEnd) elEnd.value = '';
+    if (customWrap) customWrap.style.display = 'none';
+  } else if (preset === 'week-this') {
+    const range = getBuku3WeekRangeData(now, 0);
+    b3FilterStartDate = range.startIso;
+    b3FilterEndDate = range.endIso;
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
+  } else if (preset === 'week-prev') {
+    const range = getBuku3WeekRangeData(now, -1);
+    b3FilterStartDate = range.startIso;
+    b3FilterEndDate = range.endIso;
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
+  } else if (preset === 'week-prev2') {
+    const range = getBuku3WeekRangeData(now, -2);
+    b3FilterStartDate = range.startIso;
+    b3FilterEndDate = range.endIso;
+    if (elStart) elStart.value = b3FilterStartDate;
+    if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
   } else if (preset === '7d') {
     const past7 = new Date(y, m, d - 6);
     b3FilterStartDate = past7.getFullYear() + '-' + pad(past7.getMonth() + 1) + '-' + pad(past7.getDate());
     b3FilterEndDate = todayIso;
     if (elStart) elStart.value = b3FilterStartDate;
     if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
   } else if (preset === 'month-this') {
     const lastDayThisMonth = new Date(y, m + 1, 0).getDate();
     b3FilterStartDate = y + '-' + pad(m + 1) + '-01';
     b3FilterEndDate = y + '-' + pad(m + 1) + '-' + pad(lastDayThisMonth);
     if (elStart) elStart.value = b3FilterStartDate;
     if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
   } else if (preset === 'month-prev') {
     const prevMonthDate = new Date(y, m - 1, 1);
     const prevY = prevMonthDate.getFullYear();
@@ -6502,7 +6595,9 @@ window.setBuku3FilterPreset = function(preset) {
     b3FilterEndDate = prevY + '-' + pad(prevM + 1) + '-' + pad(lastDayPrevMonth);
     if (elStart) elStart.value = b3FilterStartDate;
     if (elEnd) elEnd.value = b3FilterEndDate;
+    if (customWrap) customWrap.style.display = 'none';
   } else if (preset === 'custom') {
+    if (customWrap) customWrap.style.display = 'flex';
     if (elStart && elStart.value) b3FilterStartDate = elStart.value;
     if (elEnd && elEnd.value) b3FilterEndDate = elEnd.value;
     if (elStart && !elStart.value) elStart.focus();
@@ -6536,6 +6631,8 @@ window.resetBuku3DateFilter = function() {
 };
 
 function renderBuku3View() {
+  populateBuku3PeriodDropdown();
+  updateBuku3FilterButtonUI();
   const b3Body = document.getElementById('buku3TableBody');
   const b3Foot = document.getElementById('buku3TableFoot');
   const allDaysAccounting = getAllDaysAccounting();

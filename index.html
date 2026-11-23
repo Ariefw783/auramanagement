@@ -1082,24 +1082,29 @@
               <button type="button" class="tool-btn" onclick="window.printBuku3()" title="Cetak laporan arus kas dan laba bersih ke format A4">Cetak Laporan</button>
             </div>
           </div>
-          <!-- TOOLBAR FILTER RENTANG TANGGAL (HANYA LAYAR / NO-PRINT) -->
+          <!-- TOOLBAR FILTER PERIODE LAPORAN (DROPDOWN MINIMALIS / NO-PRINT) -->
           <div class="b3-filter-toolbar no-print">
-            <div class="b3-filter-presets-group">
-              <span class="b3-filter-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                Filter Periode:
-              </span>
-              <div class="b3-filter-pills-row">
-                <button type="button" class="filter-pill b3-preset-btn active" id="btnB3Preset_all" onclick="window.setBuku3FilterPreset('all')">Semua</button>
-                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_7d" onclick="window.setBuku3FilterPreset('7d')">7 Hari</button>
-                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-this" onclick="window.setBuku3FilterPreset('month-this')">Bulan Ini</button>
-                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_month-prev" onclick="window.setBuku3FilterPreset('month-prev')">Bulan Lalu</button>
-                <button type="button" class="filter-pill b3-preset-btn" id="btnB3Preset_custom" onclick="window.setBuku3FilterPreset('custom')">Kustom</button>
+            <div class="b3-filter-dropdown-group">
+              <label for="b3FilterPeriodSelect" class="b3-filter-label">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                Periode Laporan:
+              </label>
+              <div class="b3-select-wrapper">
+                <select id="b3FilterPeriodSelect" class="b3-period-select" onchange="window.handleBuku3PeriodSelect(this.value)">
+                  <option value="all" selected>Semua Riwayat (Total Keseluruhan)</option>
+                  <option value="week-this">Minggu Ini</option>
+                  <option value="week-prev">Minggu Lalu</option>
+                  <option value="week-prev2">2 Pekan Lalu</option>
+                  <option value="month-this">Bulan Ini</option>
+                  <option value="month-prev">Bulan Lalu</option>
+                  <option value="custom">📅 Kustom (Tentukan Tanggal...)</option>
+                </select>
+                <svg class="b3-select-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
             </div>
 
-            <!-- Custom Date Inputs -->
-            <div id="b3CustomDateWrap" class="b3-custom-date-wrap">
+            <!-- Custom Date Inputs (Hanya aktif jika memilih Kustom) -->
+            <div id="b3CustomDateWrap" class="b3-custom-date-wrap" style="display: none;">
               <div class="b3-date-inputs">
                 <div class="b3-date-field">
                   <span class="b3-date-label">Dari:</span>
@@ -1112,7 +1117,7 @@
               </div>
               <div class="b3-date-actions">
                 <button type="button" class="tool-btn tool-btn-primary b3-btn-apply" onclick="window.applyBuku3CustomDateFilter()">Terapkan</button>
-                <button type="button" class="tool-btn b3-btn-reset" onclick="window.setBuku3FilterPreset('all')">Reset</button>
+                <button type="button" class="tool-btn b3-btn-reset" onclick="window.resetBuku3DateFilter()">Batal</button>
               </div>
             </div>
           </div>

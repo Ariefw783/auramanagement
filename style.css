@@ -8074,10 +8074,10 @@ body {
   gap: 12px;
 }
 
-.b3-filter-presets-group {
+.b3-filter-dropdown-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -8094,6 +8094,55 @@ body {
 
 [data-theme="light"] .b3-filter-label {
   color: #475569 !important;
+}
+
+.b3-select-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 290px;
+}
+
+.b3-period-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 100%;
+  background: var(--canvas-bg, #0F172A);
+  color: var(--text-pure, #F8FAFC);
+  border: 1px solid var(--card-border, #334155);
+  border-radius: 8px;
+  padding: 8px 36px 8px 12px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.b3-period-select:focus {
+  border-color: #38BDF8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+}
+
+.b3-select-chevron {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: #94A3B8;
+  transition: transform 0.2s ease;
+}
+
+[data-theme="light"] .b3-period-select {
+  background: #FFFFFF !important;
+  color: #0F172A !important;
+  border: 1px solid #CBD5E1 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="light"] .b3-select-chevron {
+  color: #64748B !important;
 }
 
 .b3-filter-pills-row {
@@ -8167,8 +8216,23 @@ body {
   .b3-filter-toolbar {
     flex-direction: column !important;
     align-items: stretch !important;
-    padding: 12px !important;
-    gap: 12px !important;
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+  .b3-filter-dropdown-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  .b3-select-wrapper {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .b3-period-select {
+    width: 100% !important;
+    padding: 9px 36px 9px 12px !important;
+    font-size: 0.86rem !important;
   }
   .b3-filter-presets-group {
     flex-direction: column !important;
