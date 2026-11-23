@@ -6449,22 +6449,12 @@ function populateBuku3PeriodDropdown() {
   const now = new Date();
   const wThis = getBuku3WeekRangeData(now, 0);
   const wPrev = getBuku3WeekRangeData(now, -1);
-  const wPrev2 = getBuku3WeekRangeData(now, -2);
-  const m = now.getMonth();
-  const y = now.getFullYear();
-  const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-  const monthThisLabel = months[m] + ' ' + y;
-  const prevMonthDate = new Date(y, m - 1, 1);
-  const monthPrevLabel = months[prevMonthDate.getMonth()] + ' ' + prevMonthDate.getFullYear();
 
   const options = [
     { value: 'all', text: 'Semua Riwayat (Total Keseluruhan)' },
     { value: 'week-this', text: 'Minggu Ini (' + wThis.shortLabel + ')' },
     { value: 'week-prev', text: 'Minggu Lalu (' + wPrev.shortLabel + ')' },
-    { value: 'week-prev2', text: '2 Pekan Lalu (' + wPrev2.shortLabel + ')' },
-    { value: 'month-this', text: 'Bulan Ini (' + monthThisLabel + ')' },
-    { value: 'month-prev', text: 'Bulan Lalu (' + monthPrevLabel + ')' },
-    { value: 'custom', text: '📅 Kustom (Tentukan Tanggal...)' }
+    { value: 'custom', text: '📅 Pilih Tanggal Kustom...' }
   ];
 
   const currentVal = b3FilterPreset || 'all';
